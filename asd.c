@@ -539,7 +539,7 @@ int RunGLTest (void)
 		    if (shrink||grow)
 		    { 
 		        resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
-		        // wm(w,h);
+		        wm(w,h);
 		    }
 		    _mutexV(upd_t_data.lock);
 		}
