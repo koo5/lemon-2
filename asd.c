@@ -150,7 +150,7 @@ void lines_r_clean(RoteTerm *rt)
 RoteTerm* add_terminal(void)
 {
     RoteTerm* t;
-    t= rote_vt_create(80, 25);
+    t= rote_vt_create(25,80);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     return t;
 }
