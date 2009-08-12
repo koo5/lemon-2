@@ -1027,7 +1027,7 @@ static void twonhalfd_draw (struct state *st)
 }
 
 
-#include "stolenfromglu"
+//#include "stolenfromglu"
 
 static void threed_draw (struct state *st)
 {
@@ -1071,15 +1071,15 @@ static void threed_draw (struct state *st)
 	    int i;
 	    for (i = 1; i < blotShapeCount; i++)
 	    {
-		FLOAT rx=(st->minRadius + ((40.0-(40.0*winz))-19.0)/2*(st->maxRadius - st->minRadius))/st->windowWidth*2;
-		FLOAT ry=(st->minRadius + ((40.0-(40.0*winz))-19.0)/2*(st->maxRadius - st->minRadius))/st->windowHeight*2;
+		FLOAT rx=(st->minRadius + (1-winz)*(st->maxRadius - st->minRadius))/st->windowWidth*2.0;
+		FLOAT ry=(st->minRadius + (1-winz)*(st->maxRadius - st->minRadius))/st->windowHeight*2.0;
 
 	        glVertex3f(
-		    b->ip[0]+(blotShape[i-1].x+( b->xoff[1+blotShape[i-1].x][1+blotShape[i-1].y] * st->maxNerveRadius))*rx,
-		    b->ip[1]+(blotShape[i-1].y+( b->yoff[1+blotShape[i-1].x][1+blotShape[i-1].y] * st->maxNerveRadius))*ry,b->ip[2]);
+		    b->ip[0]+(blotShape[i-1].x+ b->xoff[1+blotShape[i-1].x][1+blotShape[i-1].y] * st->maxNerveRadius)*rx,
+		    b->ip[1]+(blotShape[i-1].y+ b->yoff[1+blotShape[i-1].x][1+blotShape[i-1].y] * st->maxNerveRadius)*ry,b->ip[2]);
 		glVertex3f(
-		    b->ip[0]+(blotShape[i].x+ (b->xoff[1+blotShape[i].x][1+blotShape[i].y]* st->maxNerveRadius)) *rx,
-		    b->ip[1]+(blotShape[i].y+ (b->yoff[1+blotShape[i].x][1+blotShape[i].y]* st->maxNerveRadius)) *ry,b->ip[2]);
+		    b->ip[0]+(blotShape[i].x+ b->xoff[1+blotShape[i].x][1+blotShape[i].y]* st->maxNerveRadius) *rx,
+		    b->ip[1]+(blotShape[i].y+ b->yoff[1+blotShape[i].x][1+blotShape[i].y]* st->maxNerveRadius) *ry,b->ip[2]);
 		m++;
 	    }
 	}

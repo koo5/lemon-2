@@ -46,6 +46,7 @@
 #endif
 #include "initsdl.c"
 #include "toys/nerverot/stolenfromglu"
+#include "toys/nerverot/nerverot.c"
 
 typedef struct 
 {
@@ -149,7 +150,7 @@ void lines_r_clean(RoteTerm *rt)
 RoteTerm* add_terminal(void)
 {
     RoteTerm* t;
-    t= rote_vt_create(80, 30);
+    t= rote_vt_create(80, 25);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     return t;
 }
@@ -290,8 +291,6 @@ int RunGLTest (void)
 	SDL_InitSubSystem( SDL_INIT_TIMER);
 	SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
-	int commandos=0;
-
 #ifdef GL
 	printf("pretty far\n");
 	wm(w,h);
@@ -315,7 +314,9 @@ int RunGLTest (void)
 	printf("2threaad\n");
 	
 	loadl2();
-	char* sdl_error;
+
+	struct state *nerv=0;
+	nerv=nerverot_init(w,h);
 	while( !done )
 	{	
 	        _mutexP(upd_t_data.lock);
@@ -333,11 +334,20 @@ int RunGLTest (void)
 #ifndef GL
 				sdl_draw_terminal(f.t,showhex,0);
 #else
+				if(nerv)
+				{
+				    nerverot_update(nerv);
+				    glPushMatrix();
+				    //glTranslatef(0,0,-5.5);
+				    nerverot_draw(3,nerv);
+				    glPopMatrix();
+				    dirty=1;
+				}
 				glPushMatrix();
 				glTranslatef(r1x,r1y,0);
 				glScalef(sx,sy,0.004);
 				draw_terminal(&f,showhex);
-				dirty=zoomize(&f);
+				dirty|=zoomize(&f);
 				glPopMatrix();
 #endif
 
@@ -356,11 +366,13 @@ int RunGLTest (void)
 		{
 			if(gl_error==GL_STACK_OVERFLOW)
 				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
-			else
-				fprintf( stderr, "testgl: OpenGL error: %d\n", gl_error );
+			else if(gl_error==GL_INVALID_OPERATION)
+				printf("INVALID OPERATION, PATIENT EXPLODED\n");
+			else	fprintf( stderr, "testgl: OpenGL error: %d\n", gl_error );
 			
 		}
 #endif
+		char* sdl_error;
 		sdl_error = SDL_GetError( );
 		if( sdl_error[0] != '\0' )
 		{
@@ -432,6 +444,19 @@ int RunGLTest (void)
 							    resizooo(&f, -1,0,keystate);
 							case SDLK_PAGEDOWN:
 							    resizooo(&f, 1,0,keystate);
+							break;
+							case SDLK_F1:
+								if(nerv)
+								{
+									nerverot_free(nerv);
+							        	dirty=1;
+									nerv=0;
+								}
+								else
+								{
+							        	nerv=nerverot_init(w,h);
+									dirty=1;
+								}
 							break;
 						}
 					}
