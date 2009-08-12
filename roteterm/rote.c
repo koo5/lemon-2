@@ -47,7 +47,7 @@ struct timeval {
 void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 {
     struct winsize  ws;
-    printf ("winsize\n");
+//    printf ("winsize\n");
     if (fd < 0)
 	return;
 
@@ -63,11 +63,11 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 #endif
 
     ioctl(fd, TIOCGWINSZ, &ws);
-    printf ("ioctlin from %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
+//    printf ("ioctlin from %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
     ws.ws_col = (unsigned short)xx;
     ws.ws_row = (unsigned short)yy;
     ioctl(fd, TIOCSWINSZ, &ws);
-    printf ("ioctled to %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
+//    printf ("ioctled to %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
 //    if ((ws.ws_col==xx)&&(ws.ws_row==yy))
 
 	int or=rt->rows;
@@ -76,9 +76,9 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 	rt->cols=xx;
 	rt->rows=yy;
 
-        printf ("W\n");    
+//        printf ("W\n");    
 	for (i = yy; i < or; i++)
-	{	printf(";;%i;;\n", i);
+	{//	printf(";;%i;;\n", i);
     		free(rt->cells[i]);
     	}
 	if(or != yy)
@@ -94,13 +94,13 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 
     if(oc != xx)
     {
-        printf ("X\n");    
+//        printf ("X\n");    
 	for (i = 0; i < yy; i++)
 	{
     	    rt->cells[i] = (RoteCell*) realloc(rt->cells[i], sizeof(RoteCell) * rt->cols);
 //    	    printf("resized row %i at address %i\n", i, rt->cells[i]);
     	}
-    	printf("QUACK!\n");
+//    	printf("QUACK!\n");
     }
     rt->pd->scrollbottom+=yy;
     if(rt->pd->scrollbottom<0)rt->pd->scrollbottom=0;
@@ -120,7 +120,6 @@ void rote_vt_resize(RoteTerm *rt,int rows, int cols)
 {
 //    printf("resize %i\n",rt->pd);
     tt_winsize(rt, rt->pd->pty,cols,rows);
-    printf("resized\n");
 }
 
 RoteTerm *rote_vt_create(int rows, int cols) {
@@ -166,9 +165,9 @@ RoteTerm *rote_vt_create(int rows, int cols) {
    rt->pd->scrolltop = 0;
    rt->pd->scrollbottom = rt->rows - 1;
 
-   #ifdef DEBUG
+//   #ifdef DEBUG
    fprintf(stderr, "Created a %d x %d terminal.\n", rt->rows, rt->cols);
-   #endif
+//   #endif
    
    return rt;
 }
