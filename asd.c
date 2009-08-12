@@ -309,8 +309,6 @@ int RunGLTest (void)
 	f.x1=0;
 	f.y1=1;
 	printf("2threaad\n");
-	fontedit e;
-	e.i=0;
 	
 	loadl2();
 	char* sdl_error;
@@ -434,11 +432,6 @@ int RunGLTest (void)
 					    if ( (key == SDLK_RCTRL) )
 					    {
 					    	showhex=dirty=1;
-					    }
-					    else
-					    if ( (key == SDLK_LCTRL) )
-					    {
-						showhtop=dirty=1;
 					    }
 					    else
 					    if ( (key == SDLK_SPACE) )

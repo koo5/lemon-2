@@ -6,7 +6,7 @@ srcdir  = .
 
 CC      = gcc-4  -g -ggdb 
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
-CFLIBS =   -DXTHREADS  -DREENTRANT  -L/usr/lib -lSDL -L/usr/X11R6/lib  -lutil -L/usr/local/lib   -ltermcap  -L/usr/local/lib   `pkg-config --libs x11`  `pkg-config --cflags x11` -I/usr/include -I/usr/local/include -I./  -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib   roteterm/inject_csi.c roteterm/inject.c roteterm/rote_keymap.c roteterm/rote.c wtf.c -lncurses 
+CFLIBS =   -DXTHREADS  -DREENTRANT  -L/usr/lib -lSDL -L/usr/X11R6/lib  -lutil -L/usr/local/lib   -ltermcap  -L/usr/local/lib   `pkg-config --libs x11`  `pkg-config --cflags x11` -I/usr/include -I/usr/local/include -I./  -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib   roteterm/inject_csi.c roteterm/inject.c roteterm/rote_keymap.c roteterm/rote.c more-mess/wtf.c -lncurses 
 
 pl=$(shell uname)
 

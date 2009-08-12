@@ -23,6 +23,8 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #include "roteprivate.h"
 #include "inject_csi.h"
 #include <string.h>
+#include "../more-mess/wtf.h"
+
 #define true 1
 #define false 0
 
@@ -255,9 +257,6 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
    if (rt->pd->esbuf_len + 1 >= ESEQ_BUF_SIZE) cancel_escape_sequence(rt);
 }
 
-#include "wtf.h"
-/*
-*/
 
 void unicrude(RoteTerm *rt, int x)
 {
