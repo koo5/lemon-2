@@ -43,7 +43,8 @@ sdg$(EXE): $(srcdir)/sd.c
 
 
 asd$(EXE): $(srcdir)/asd.c
-	$(CC)   -o $@ $? $(GLLIBS) $(CFLIBS) 
+	$(CC)   -o $@ $? -O3  $(GLLIBS) $(CFLIBS) 
+
 asdf$(EXE): $(srcdir)/asd.c
 	$(CC)  -o $@ $?  $(CFLIBS)  -llibSDL_draw
 

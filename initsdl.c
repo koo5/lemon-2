@@ -47,7 +47,7 @@ SDL_Surface *initsdl(int w,int h,int *bppp,Uint32 flags)
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	}
 	
-	video_flags|=(SDL_ANYFORMAT|SDL_HWSURFACE|SDL_DOUBLEBUF);
+	video_flags|=(SDL_RESIZABLE|SDL_ANYFORMAT|SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
 	s= SDL_SetVideoMode( w, h, bpp, video_flags );
 	if (s == NULL ) {

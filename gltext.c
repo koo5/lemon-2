@@ -3,10 +3,6 @@ float lx,ly,lw,lh; //  rendered point while rendering
 char ** l2; // non-builtin
 int l2numitems=0;// font
 
-typedef struct 
-{
-    int x,y,x2,y2;
-}	limits;
 
 void freel2(void)
 {
@@ -660,12 +656,12 @@ void getlimits(RoteTerm *rt, limits *l)
 }
 
 
-void draw_terminal(RoteTerm *rt, int showhex, limits *l)
+void draw_terminal(roteface *f, int showhex)
 {
     static int oldcrow, oldccol;
+    RoteTerm * rt=f->t;
 #ifdef GL
-    if(l)
-    {lx=0;ly=0;lw=0;lh=0; glimits=1;}
+    lx=0;ly=0;lw=0;lh=0; glimits=1;
     
     glPushMatrix();
     glBegin(GL_LINE_STRIP);
@@ -675,11 +671,11 @@ void draw_terminal(RoteTerm *rt, int showhex, limits *l)
     int i,j;
     for (i=0; i<rt->rows; i++)
     {
-	lok.y=i*30;
+	lok.y=i*26;
 	for (j=0; j<rt->cols; j++)
 	{
-	    lok.x=j*16;
-	    if(1)//do_edges_between_different_bgs
+	    lok.x=j*13;
+	    if(1)//draw_edges_between_different_bgs
 	    {
 		halflight=1;
 		if((j>0))
@@ -772,12 +768,12 @@ void draw_terminal(RoteTerm *rt, int showhex, limits *l)
 
 
 #endif
-    if(l)//return boundariesssssssssssss
+    if(1)//return boundariesssssssssssss
     {
-	l->x=lx;
-	l->y=ly;	
-	l->x2=lw;	
-	l->y2=lh;		
+	f->lim.x=lx;
+	f->lim.y=ly;	
+	f->lim.x2=lw;	
+	f->lim.y2=lh;		
         glimits=0;
     }	
 }

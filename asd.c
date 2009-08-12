@@ -45,12 +45,14 @@
 #include "SDL_draw.h"
 #endif
 #include "initsdl.c"
-#include "gltext.c"
 #include "toys/nerverot/stolenfromglu"
-float floabs(float x)
+
+typedef struct 
 {
-    return x>0 ? x : -x;
-}
+    int x,y,x2,y2;
+}	
+limits;
+
 
 typedef struct
 {
@@ -62,6 +64,14 @@ typedef struct
     limits lim;
 } roteface;
 
+#include "gltext.c"
+
+float floabs(float x)
+{
+    return x>0 ? x : -x;
+}
+
+
 float r1x=0;
 float r1y=0;
 float sx=1;
@@ -72,11 +82,6 @@ void keyp(roteface* f, char ey)
 {
     if (f->t)
         rote_vt_keypress(f->t,ey);
-}
-
-void sdl_draw_terminal(RoteTerm *t,int showhex, limits * l)
-{
-    draw_terminal(t,showhex,l);
 }
 
 #ifdef GL
@@ -115,8 +120,8 @@ int zoomize(roteface *f)
 	{eee++;r1x-=0.1;}
 	if(b>f->y1)
 	{eee++;r1y-=0.1;}
-	if(b<f->y1-0.05)
-	{eee++;r1y+=0.01;}
+	if(b<f->y1-0.1)
+	{eee++;r1y+=0.1;}
 	//printf("%i",eee);
 	return eee;
 }
@@ -144,12 +149,12 @@ void lines_r_clean(RoteTerm *rt)
 RoteTerm* add_terminal(void)
 {
     RoteTerm* t;
-    t= rote_vt_create(70, 79);
+    t= rote_vt_create(80, 30);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     return t;
 }
 
-typedef struct upd_t_data
+typedef struct
 {
     RoteTerm* rt;
     SDL_mutex *lock;
@@ -215,7 +220,6 @@ void wm(int w,int h)
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 	glTranslatef(0,0,-4);
-	glPushMatrix();
 #endif
 }
 	
@@ -294,7 +298,7 @@ int RunGLTest (void)
 	glEnable(GL_BLEND);
 	glShadeModel(GL_FLAT);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glClearColor( 0.0, 0.2, 0.0, 0.0 );
+	glClearColor( 0.0, 0.0, 0.0, 0.0 );
 	glLineWidth(lv);
 #else
 	gltextsdlsurface=s;
@@ -317,8 +321,7 @@ int RunGLTest (void)
 	        _mutexP(upd_t_data.lock);
 		int dirty=1;
 		int showhex;
-		SDL_Event event;
-		dirty=1;
+
 		if(dirty||t->curpos_dirty||lines_r_dirty(t))
 		{
 #ifdef GL
@@ -333,8 +336,9 @@ int RunGLTest (void)
 				glPushMatrix();
 				glTranslatef(r1x,r1y,0);
 				glScalef(sx,sy,0.004);
-				sdl_draw_terminal(f.t,showhex,&f.lim);
+				draw_terminal(&f,showhex);
 				dirty=zoomize(&f);
+				glPopMatrix();
 #endif
 
 #ifndef GL
@@ -349,7 +353,13 @@ int RunGLTest (void)
 		GLenum gl_error;
 		gl_error = glGetError( );
 		if( gl_error != GL_NO_ERROR )
-			fprintf( stderr, "testgl: OpenGL error: %d\n", gl_error );
+		{
+			if(gl_error==GL_STACK_OVERFLOW)
+				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
+			else
+				fprintf( stderr, "testgl: OpenGL error: %d\n", gl_error );
+			
+		}
 #endif
 		sdl_error = SDL_GetError( );
 		if( sdl_error[0] != '\0' )
@@ -364,10 +374,12 @@ int RunGLTest (void)
 		                     
 		_mutexV(upd_t_data.lock);
 //		printf("---------unlocked wating\n");
+		SDL_Event event;
 		if(SDL_WaitEvent( &event ))
 		{
 	    	    _mutexP(upd_t_data.lock);
 //		    printf("---------locked goooin %i\n", event.type);
+		    if(x)SDL_RemoveTimer(x);x=0;	    	    
 		    do {
 			int mod=event.key.keysym.mod;
 			int key=event.key.keysym.sym;
@@ -375,12 +387,6 @@ int RunGLTest (void)
 
 			switch( event.type )
 			{
-				case SDL_MOUSEBUTTONDOWN:
-					commandos=1;
-				break;
-				case SDL_MOUSEBUTTONUP:
-					commandos=0;
-				break;
 				case SDL_KEYUP:
 				{
 					if ( (key == SDLK_RCTRL) )
@@ -389,10 +395,11 @@ int RunGLTest (void)
 						dirty=1;
 					}
 				}
+				break;
 				case SDL_KEYDOWN:
-				{
-					if(commandos)
+					if(mod&KMOD_RCTRL)
 					{
+						showhex=dirty=1;
 						switch (key)
 						{
 							case SDLK_F6:
@@ -415,6 +422,17 @@ int RunGLTest (void)
 							case SDLK_F12:
 							    grow=1;
 							break;
+							case SDLK_END:
+							    resizooo(&f, 0,1,keystate);
+							break;
+							case SDLK_HOME:
+							    resizooo(&f, 0,-1,keystate);
+							break;
+							case SDLK_DELETE:
+							    resizooo(&f, -1,0,keystate);
+							case SDLK_PAGEDOWN:
+							    resizooo(&f, 1,0,keystate);
+							break;
 						}
 					}
 					else
@@ -427,11 +445,6 @@ int RunGLTest (void)
 						    rote_vt_terminfo(f.t, k);
 						    free(k);
 						}
-					    }
-					    else
-					    if ( (key == SDLK_RCTRL) )
-					    {
-					    	showhex=dirty=1;
 					    }
 					    else
 					    if ( (key == SDLK_SPACE) )
@@ -450,57 +463,28 @@ int RunGLTest (void)
 						rote_vt_terminfo(f.t, "kcuf1");
 					    else
 					    if ( (key == SDLK_UP) )
-					    {
 						rote_vt_terminfo(f.t, "kcuu1");
-					    }
 					    else
 					    if ( (key == SDLK_DOWN) )
 						rote_vt_terminfo(f.t, "kcud1");
 					    else
 					    if ( (key == SDLK_END) )
-					    {
 						rote_vt_terminfo(f.t, "kend");
-						if(mod&KMOD_RCTRL)
-						    resizooo(&f, 0,1,keystate);
-						dirty=1;
-					    }
 					    else
 					    if ( (key == SDLK_HOME) )
-					    {
 						rote_vt_terminfo(f.t, "khome");
-						if(mod&KMOD_RCTRL)
-						    resizooo(&f, 0,-1,keystate);
-						dirty=1;
-					    }
 					    else
 					    if ( (key == SDLK_DELETE) )
-					    {
 						rote_vt_terminfo(f.t, "kdch1");
-						if(mod&KMOD_RCTRL)
-						    resizooo(&f, -1,0,keystate);
-						dirty=1;
-					    }						
 					    else
 					    if ( (key == SDLK_PAGEDOWN) )
-					    {
 						rote_vt_terminfo(f.t, "knp");
-						if(mod&KMOD_RCTRL)
-						    resizooo(&f, 1,0,keystate);
-						dirty=1;
-					    }						
 					    else
 					    if ( (key == SDLK_INSERT) )
-					    {
 					    	rote_vt_terminfo(f.t, "kich1");
-					    }
 					    else
 					    if ( (key == SDLK_PAGEUP) )
 						rote_vt_terminfo(f.t, "kpp");
-					    else
-					    if ( (key == SDLK_INSERT) )
-					    {
-						rote_vt_terminfo(f.t, "kich1");
-					    }
 					    else
 					    if ( (key == SDLK_RETURN) )
 						keyp(&f,10);
@@ -508,12 +492,17 @@ int RunGLTest (void)
 					    if( event.key.keysym.unicode && ( (event.key.keysym.unicode & 0xFF80) == 0 ) )
 						keyp(&f, event.key.keysym.unicode);
 					}
-					break;
-	 			}
+				break;
 	 			case SDL_QUIT:
 					done = 1;
 					break;
 				case SDL_VIDEORESIZE:
+					w=event.resize.w;h=event.resize.h;
+					printf("videoresize %i %i\n", w,h);
+					dirty=1;
+					if (s=SDL_SetVideoMode( w,h, bpp, s->flags ) ) 
+						printf("hmm\n");
+					wm(w,h);
 					break;
 				case SDL_MOUSEMOTION:
 					break;
@@ -523,13 +512,13 @@ int RunGLTest (void)
 		    }
 		    while (SDL_PollEvent(&event));
 		    if (shrink||grow)
-		    { resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
-		      wm(w,h);
+		    { 
+		        resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
+		        // wm(w,h);
 		    }
 		    _mutexV(upd_t_data.lock);
 		}
-		if(x)SDL_RemoveTimer(x);x=0;
-		    
+
 	}
 	SDL_Quit( );
 	return(0);
@@ -538,6 +527,7 @@ int RunGLTest (void)
 int main(int argc, char *argv[])
 {
 	printf("hi\n");
+	printf("Ctrl+ Home End PgDn Delete to resize , f11 f12 to resize window, f9 f10 line width, \n");
 	RunGLTest();
 	printf("bye\n");
 	return 0;
