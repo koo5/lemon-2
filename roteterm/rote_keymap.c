@@ -37,7 +37,6 @@ void rote_vt_keypress(RoteTerm *rt, int i)
     rote_vt_write(rt, &c, 1); /* not special, just write it */
     }
     else printf("no rt\n");
-    printf("---%c---\n",c);
 }
 
 
