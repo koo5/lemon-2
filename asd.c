@@ -112,7 +112,7 @@ int zoomize(roteface *f)
 	if(floabs(b-e)<0.9)
 	{eee++;
 	    sy*=1.01;}
-	if(floabs(b-e)>0.97)
+	if(floabs(b-e)>0.91)
 	{eee++;
 	    sy*=0.9;}
 	if(a<f->x1)
@@ -523,10 +523,10 @@ int RunGLTest (void)
 					break;
 				case SDL_VIDEORESIZE:
 					w=event.resize.w;h=event.resize.h;
-					printf("videoresize %i %i\n", w,h);
+//					printf("videoresize %i %i\n", w,h);
 					dirty=1;
 					if (s=SDL_SetVideoMode( w,h, bpp, s->flags ) ) 
-						printf("hmm\n");
+//						printf("hmm\n");
 					wm(w,h);
 					break;
 				case SDL_MOUSEMOTION:
