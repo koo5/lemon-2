@@ -27,7 +27,7 @@ endif
 
 
 
-TARGETS = asd
+TARGETS = s3dtv
 all: $(TARGETS)
 
 gl$(EXE): $(srcdir)/gl.c
@@ -60,6 +60,8 @@ curve$(EXE): $(srcdir)/curve.c
 
 
 s3dtv$(EXE): $(srcdir)/s3dtv.c
-    	$(CC) -o $@ $?  `pkg-config --cflags --libs libs3d` -L/usr/lib -L/usr/X11R6/lib  -lutil -L/usr/local/lib   -ltermcap  -L/usr/local/lib   -I/usr/include -I/usr/local/include -I./  -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib   roteterm/inject_csi.c roteterm/inject.c roteterm/rote_keymap.c roteterm/rote.c more-mess/wtf.c -lncurses 
+    	$(CC) -o $@ $?   -L/usr/lib -L/usr/X11R6/lib  -lutil -L/usr/local/lib   -ltermcap  -L/usr/local/lib   -I/usr/include -I/usr/local/include -I./  -I/usr/local/include/vte -L/usr/X11R6/lib   roteterm/inject_csi.c roteterm/inject.c roteterm/rote_keymap.c roteterm/rote.c more-mess/wtf.c -lncurses  `pkg-config --cflags --libs libs3d`
+
+    	
 
 
