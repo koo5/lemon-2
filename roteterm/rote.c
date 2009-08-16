@@ -31,7 +31,7 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #include <string.h>
 #include <ncurses.h>
 #include "sys/ioctl.h"
-#define ROTE_VT_UPDATE_ITERATIONS 55
+#define ROTE_VT_UPDATE_ITERATIONS 5
 #define true 1
 #define false 0
 #include <termios.h>
@@ -53,8 +53,8 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 
     if((xx==rt->cols)&&(yy==rt->rows))
 	return;
-    if(xx<1)xx=1;
-    if(yy<1)yy=1;
+    if(xx<1)xx=1;//
+    if(yy<1)yy=1;//
 	
     ws.ws_col = (unsigned short)xx;
     ws.ws_row = (unsigned short)yy;
@@ -63,11 +63,11 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 #endif
 
     ioctl(fd, TIOCGWINSZ, &ws);
-//    printf ("ioctlin from %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
+    printf ("ioctlin from %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
     ws.ws_col = (unsigned short)xx;
     ws.ws_row = (unsigned short)yy;
     ioctl(fd, TIOCSWINSZ, &ws);
-//    printf ("ioctled to %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
+    printf ("ioctled to %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
 //    if ((ws.ws_col==xx)&&(ws.ws_row==yy))
 
 	int or=rt->rows;
@@ -270,8 +270,10 @@ void rote_vt_update(RoteTerm *rt) {
       FD_ZERO(&ifs); FD_SET(rt->pd->pty, &ifs);
       tvzero.tv_sec = 0; tvzero.tv_usec = 0;
       if (select(rt->pd->pty + 1, &ifs, NULL, NULL, &tvzero) <= 0)
+      {
          return; /* nothing to read, or select() failed */
 
+      }
       /* read what we can. This is guaranteed not to block, since
        * select() told us there was something to read. */
       bytesread = read(rt->pd->pty, buf, 512);

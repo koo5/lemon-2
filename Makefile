@@ -15,7 +15,6 @@ CC      = gcc  -g -ggdb
 PYLIBS = `/usr/bin/python2.5-config --cflags` + `/usr/bin/python2.5-config --libs ` 
 CFLIBS += -DLINUX -pthread `pkg-config --libs sdl` `pkg-config --cflags sdl` 
 GLLIBS += -lGL
-# -lSDL_ttf 
 
 else ifeq ($(pl), openbsd)
 py=/usr/ports/lang/python/2.5/w-Python-2.5.4/Python-2.5.4/
@@ -57,3 +56,10 @@ testgl$(EXE): $(srcdir)/testgl.c
 
 curve$(EXE): $(srcdir)/curve.c 
 	g++ curve.c -lGL -lGLU -lglut -lplibsg -lplibul
+
+
+
+s3dtv$(EXE): $(srcdir)/s3dtv.c
+    	$(CC) -o $@ $?  `pkg-config --cflags --libs libs3d` -L/usr/lib -L/usr/X11R6/lib  -lutil -L/usr/local/lib   -ltermcap  -L/usr/local/lib   -I/usr/include -I/usr/local/include -I./  -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib   roteterm/inject_csi.c roteterm/inject.c roteterm/rote_keymap.c roteterm/rote.c more-mess/wtf.c -lncurses 
+
+

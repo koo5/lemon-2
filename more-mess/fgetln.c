@@ -36,6 +36,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <errno.h> 
+#include "string.h"
 char *
 fgetln(FILE *fp,
 	size_t *len)
