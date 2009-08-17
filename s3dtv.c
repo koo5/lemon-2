@@ -9,7 +9,7 @@ int o;
 
 #include "gltext.c"
 int showhex=0;
-
+int ok=0;
 #include "glterm.c"
 RoteTerm *t;
 
@@ -85,6 +85,11 @@ static int keypress(struct s3d_evt *event)
 							    dirty=1;
 							    showhex=!showhex;
 							    printf("showhex=!showhex;\n");
+							break;
+							case S3DK_F10:
+							    dirty=1;
+							    ok=!ok;
+							    printf("ok\n");
 							break;
 							case S3DK_END:
 							    resizooo(t, 0,1);
@@ -166,10 +171,10 @@ void mainloop(void)
     if(dirty||t->curpos_dirty || lines_r_dirty(t))
     {
 	dirty=0;
-	draw_terminal(t,showhex);
-	t->curpos_dirty=0;
 	lines_r_clean(t);
-	bpep();
+	t->curpos_dirty=0;
+	draw_terminal(t,showhex);
+	bpep(ok);
     }
    usleep(1000); // sleep is good
 }

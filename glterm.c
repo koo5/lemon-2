@@ -30,7 +30,7 @@ void draw_terminal(RoteTerm * rt, int showhex)
 		    if((ROTE_ATTR_BG(rt->cells[i-1][j].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
 			zspillit(lok,"aaza",1);
 	    }
-	    printf("%i",ROTE_ATTR_FG(rt->cells[i][j].attr));
+//	    printf("%i",ROTE_ATTR_FG(rt->cells[i][j].attr));
 	    material=ROTE_ATTR_FG(rt->cells[i][j].attr);
 	    draw(lok,rt->cells[i][j].ch);
 	    material=0;
@@ -42,7 +42,7 @@ void draw_terminal(RoteTerm * rt, int showhex)
 		zspillit(lok,nums[0],1.3);
 		if(showhex)
 		{
-		    printf("WTF\n");
+//		    printf("WTF\n");
 		    xy loko;
 		    loko.y=lok.y+13;
 		    char *h;
