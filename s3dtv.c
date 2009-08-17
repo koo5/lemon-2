@@ -94,6 +94,7 @@ static int keypress(struct s3d_evt *event)
 							break;
 							case S3DK_DELETE:
 							    resizooo(t, -1,0);
+							break;
 							case S3DK_PAGEDOWN:
 							    resizooo(t, 1,0);
 							break;
@@ -181,20 +182,30 @@ static int stop(struct s3d_evt *event)
 
 
 
-int main(int c, char **v)
+int main(int a, char **v)
 {
-    if(s3d_init(&c,&v,"test"))
+    if(s3d_init(&a,&v,"test"))
     {
 	printf("opsie\n");
 	s3d_usage();
 	s3d_quit();
     }
     o=s3d_new_object();
-    float bla[24]=
+	float bla[12]=
 	{1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1};
-    s3d_push_materials_a(o,bla, 1); // push a red and a cyan material
+
+    int b;
+    int c;
+    for (b=1;b<9;b++)
+    {
+	for (c=0;c<3;c++)
+	{
+	    bla[c*4]=1.0/((float)b/2.0);
+	}
+	s3d_push_materials_a(o,bla, 1); // push a red and a cyan material
+    }
 
     t=rote_vt_create(20,80);
     lines_r_clean(t);

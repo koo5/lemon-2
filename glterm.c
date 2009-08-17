@@ -8,6 +8,10 @@ void draw_terminal(RoteTerm * rt, int showhex)
     for (i=0; i<rt->rows; i++)
     {
 	lok.y=(i-rt->rows/2)*-26;
+	
+	
+	
+	
 	for (j=0; j<rt->cols; j++)
 	{
 	    lok.x=(j-rt->cols/2)*13;
@@ -26,7 +30,10 @@ void draw_terminal(RoteTerm * rt, int showhex)
 		    if((ROTE_ATTR_BG(rt->cells[i-1][j].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
 			zspillit(lok,"aaza",1);
 	    }
+	    printf("%i",ROTE_ATTR_FG(rt->cells[i][j].attr));
+	    material=ROTE_ATTR_FG(rt->cells[i][j].attr);
 	    draw(lok,rt->cells[i][j].ch);
+	    material=0;
 	    int selectedtext;
 	    selectedtext=((rt->ccol==j)&&(rt->crow==i));
 	    //actually , not selected but under cursor

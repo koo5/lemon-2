@@ -1,3 +1,4 @@
+int material=0;
 #include "XY.h"
 #include "more-mess/fgetln.c"
 char ** l2=0; // non-builtin
@@ -142,11 +143,11 @@ void nulizze(abuffer * b)
 {
 	if(b->buf)
 	{
-	    free(b->buf);
+//	    free(b->buf);
 	}
-	b->siz=0;
+//	b->siz=0;
 	b->pos=0;
-	b->buf=0;
+//	b->buf=0;
 }
 void * realloc_abuffer(abuffer * b)
 {
@@ -163,7 +164,9 @@ int grow(abuffer * b)
 {
 
 	int r= b->pos < b->siz || realloc_abuffer(b);
-	if(!r)printf ("no realoco\n");
+	if(!r)
+	{printf ("no realoco\n");
+	exit(0);}
 	return r;
 	
 }
@@ -197,6 +200,7 @@ void addinde(int a,int b, int m)
 }
 void initbufs(void )
 {
+	vb.siz=0;ib.siz=0;
 	vb.pep=ib.pep=0;
 	vb.buf=ib.buf=0;
 	nulizze(&vb);
@@ -211,7 +215,7 @@ void dooooot(float x,float y)
     if(have_first)
     {
 	addvert(x,y,0);
-	addinde(vb.pos-1,vb.pos-2,0);
+	addinde(vb.pos-1,vb.pos-2,material);
 	firstx=x;
 	firsty=y;
     }
@@ -311,7 +315,7 @@ static xy draw(xy lok,unsigned int i)
     if (!((i<65)||((i>90)&&(i<97))||(i>122)))
     {
 	if ((i>='A')&&(i<='Z'))
-	    zspillit(lok,chrz[i-'A'],1);
+	    zspillit(lok,chrz[i-'A'],0.8);
 	else
 	{
 	    zspillit(lok,chrz[i-'a'],0.5);

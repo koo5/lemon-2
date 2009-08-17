@@ -161,6 +161,7 @@ static void handle_control_char(RoteTerm *rt, char c) {
          cancel_escape_sequence(rt);
          break;
       case '\a': /* bell */
+         rote_vt_inject(rt, "DING, DING!", 11);
          printf("DING, DING!");
          /* do nothing for now... maybe a visual bell would be nice? */
          break;
