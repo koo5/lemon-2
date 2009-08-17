@@ -16,11 +16,13 @@ PYLIBS = `/usr/bin/python2.5-config --cflags` + `/usr/bin/python2.5-config --lib
 CFLIBS += -DLINUX -pthread `pkg-config --libs sdl` `pkg-config --cflags sdl` 
 GLLIBS += -lGL
 
-else ifeq ($(pl), openbsd)
+else 
+ifeq ($(pl), openbsd)
 py=/usr/ports/lang/python/2.5/w-Python-2.5.4/Python-2.5.4/
 CFLIBS += -I$(py) -I$(py)/Include  $(py)/libpython2.5.a -R/usr/X11R6/lib -lintl  -liconv -lreadline
 
-else ifeq ($(pl),CYGWIN_NT-6.0)
+else 
+ifeq ($(pl),CYGWIN_NT-6.0)
 CFLIBS += -DWINDOWS -I/usr/include/ncurses -I/usr/local/include/SDL
 
 endif

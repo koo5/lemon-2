@@ -1,3 +1,4 @@
+int dirty;
 int o;
 #include "s3d.h"
 #include "s3d_keysym.h"
@@ -7,7 +8,7 @@ int o;
 #define S3D
 
 #include "gltext.c"
-int showhex;
+int showhex=0;
 
 #include "glterm.c"
 RoteTerm *t;
@@ -42,7 +43,7 @@ keyp(RoteTerm *t,char k)
 void resizooo(RoteTerm *t, int x, int y)
 {
 	rote_vt_resize(t, t->rows+y,t->cols+x);
-	lines_r_not_clean(t);
+	lines_r_not_clean(t);//4 valgrinds unitialized value blahblahs
 }
 
 static int keypress(struct s3d_evt *event)
@@ -52,11 +53,15 @@ static int keypress(struct s3d_evt *event)
     int mod=keys->modifier;
 					if(mod&S3D_KMOD_RCTRL)
 					{
-						showhex=1;
 						switch (key)
 						{
 							case S3DK_F8:
 							    loadl2();
+							break;
+							case S3DK_F12:
+							    dirty=1;
+							    showhex=!showhex;
+							    printf("showhex=!showhex;\n");
 							break;
 							case S3DK_END:
 							    resizooo(t, 0,1);
@@ -134,8 +139,9 @@ void mainloop(void)
 {
     rote_vt_update(t);
 
-    if(t->curpos_dirty || lines_r_dirty(t))
+    if(dirty||t->curpos_dirty || lines_r_dirty(t))
     {
+	dirty=0;
 	draw_terminal(t,showhex);
 	t->curpos_dirty=0;
 	lines_r_clean(t);

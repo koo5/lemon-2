@@ -596,8 +596,8 @@ void draw_line(int x,int y,const char *a)
 
 void bpush(void)
 {
-printf("push%i\n ",s3d_push_vertices(o, vb.buf, vb.pos));
-printf("push%i[%f]\n ",s3d_push_lines(o, ib.buf, ib.pos),*(float*)vb.buf);
+printf("push%i ",s3d_push_vertices(o, vb.buf, vb.pos));
+printf("push%i[%f] ",s3d_push_lines(o, ib.buf, ib.pos),*(float*)vb.buf);
 nulizze(&ib);
 nulizze(&vb);
 }
@@ -606,8 +606,8 @@ void bpep(void)
 {
 
 s3d_pop_vertex(o,vb.pep);s3d_pop_line(o,ib.pep);
-printf("pep%i\n ",s3d_push_vertices(o, vb.buf, vb.pos));
-printf("pep%i[%f]\n ",s3d_push_lines(o, ib.buf, ib.pos),*(float*)vb.buf);
+printf("pep%i ",s3d_push_vertices(o, vb.buf, vb.pos));
+printf("pep%i[%f] ",s3d_push_lines(o, ib.buf, ib.pos),*(float*)vb.buf);
 vb.pep=vb.pos;
 ib.pep=ib.pos;
 
