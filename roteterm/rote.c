@@ -249,7 +249,6 @@ void rote_vt_forsake_child(RoteTerm *rt) {
    rt->childpid = 0;
 }
 
-
 void rote_vt_update(RoteTerm *rt) {
    fd_set ifs;
    struct    timeval tvzero;
@@ -283,7 +282,26 @@ void rote_vt_update(RoteTerm *rt) {
       rote_vt_inject(rt, buf, bytesread);
    }
 }
-		    //?//
+
+char * rotoclipin(void)
+{
+    char *buf;
+    RoteTerm *t;
+    t = rote_vt_create(10,10);
+    rote_vt_forkpty(t, "xclip -o");
+    int i,br=0;
+    buf=malloc(512);
+    rote_vt_update_thready(buf, 6, &br,t);
+    //?
+    buf[br]=0;
+    rote_vt_forsake_child(t);
+    rote_vt_destroy(t);
+    if(br>0)return buf;
+    else { free(buf);return     0;}
+}
+
+
+		    //?!//
 void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) {
    fd_set ifs;
    struct timeval tvzero;
@@ -303,9 +321,9 @@ void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) {
       bytesread = read(rt->pd->pty, buf, 512);
       if((bytesread < 0) && (errno != EAGAIN))
       {
-             errno=0;
+            errno=0;
     	    rote_vt_forsake_child(rt);
-    	    printf("dfsdfdfsHAHA!/n");
+    	    printf("my child died too\n");
       }
       if (bytesread <= 0) return;
       *br=bytesread;

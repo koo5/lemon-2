@@ -135,7 +135,7 @@ typedef struct RoteTerm_ {
 } RoteTerm;
 
 void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) ;
-
+char * rotoclipin();
 
 /* Creates a new virtual terminal with the given dimensions. You
  * must destroy it with rote_vt_destroy after you are done with it.

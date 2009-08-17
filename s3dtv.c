@@ -14,6 +14,28 @@ int showhex=0;
 RoteTerm *t;
 
 
+
+keyp(RoteTerm *t,char k)
+{
+    rote_vt_keypress(t,k);
+}
+
+
+void clip(int noes)
+{
+char * r=rotoclipin();
+char *s=r;
+if(r)
+{
+while(*r)
+{
+    if((noes && (*r)!=10 && (*r)!=13 ) || !noes) keyp(t,*r);
+    r++;
+}
+free(s);
+}
+}
+
 int lines_r_dirty(RoteTerm *rt)
 {
     int x;
@@ -35,11 +57,6 @@ void lines_r_not_clean(RoteTerm *rt)
 	rt->line_dirty[x]=1;
 }
 
-keyp(RoteTerm *t,char k)
-{
-    rote_vt_keypress(t,k);
-}
-
 void resizooo(RoteTerm *t, int x, int y)
 {
 	rote_vt_resize(t, t->rows+y,t->cols+x);
@@ -57,6 +74,12 @@ static int keypress(struct s3d_evt *event)
 						{
 							case S3DK_F8:
 							    loadl2();
+							break;
+							case S3DK_BACKSPACE:
+							    clip(1);
+							break;
+							case S3DK_F11:
+							    clip(0);
 							break;
 							case S3DK_F12:
 							    dirty=1;
