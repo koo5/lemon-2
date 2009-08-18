@@ -1,5 +1,7 @@
 int dirty;
-int o;
+int o[2];
+int x=0;
+int y=1;
 #include "s3d.h"
 #include "s3d_keysym.h"
 #include "stdio.h"
@@ -106,6 +108,25 @@ static int keypress(struct s3d_evt *event)
 						}
 					}
 					else
+					if(mod&S3D_KMOD_RALT)
+					{
+						switch (key)
+						{
+							case S3DK_END:
+							    resizooo(t, 0,100);
+							break;
+							case S3DK_HOME:
+							    resizooo(t, 0,-100);
+							break;
+							case S3DK_DELETE:
+							    resizooo(t, -100,0);
+							break;
+							case S3DK_PAGEDOWN:
+							    resizooo(t, 100,0);
+							break;
+						}
+					}
+					else
 					{
 					    if ( (key >= S3DK_F1) && (key <= S3DK_F15) )
 					    {
@@ -173,8 +194,12 @@ void mainloop(void)
 	dirty=0;
 	lines_r_clean(t);
 	t->curpos_dirty=0;
+
 	draw_terminal(t,showhex);
-	bpep(ok);
+	bpep();
+	s3d_flags_on(o[y], S3D_OF_VISIBLE);
+	s3d_flags_off(o[x], S3D_OF_VISIBLE);
+
     }
    usleep(1000); // sleep is good
 }
@@ -195,7 +220,7 @@ int main(int a, char **v)
 	s3d_usage();
 	s3d_quit();
     }
-    o=s3d_new_object();
+    o[1]=s3d_new_object();    o[0]=s3d_new_object();
 	float bla[12]=
 	{1, 1, 1, 1,
         1, 1, 1, 1,
@@ -209,7 +234,8 @@ int main(int a, char **v)
 	{
 	    bla[c*4]=1.0/((float)b/2.0);
 	}
-	s3d_push_materials_a(o,bla, 1); // push a red and a cyan material
+	s3d_push_materials_a(o[0],bla, 1); // push a red and a cyan material
+	s3d_push_materials_a(o[1],bla, 1); // push a red and a cyan material
     }
 
     t=rote_vt_create(20,80);
@@ -220,56 +246,7 @@ int main(int a, char **v)
     s3d_set_callback(S3D_EVENT_KEY, keypress);
 
 
-    initbufs();/*
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(10,0,"XXX");
-    draw_line(10,110,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,30,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(03,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,02,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    draw_line(0,0,"XXX");
-    draw_line(10,10,"XXX");
-    draw_line(0,20,"XXX");
-    bpush();  */  s3d_flags_on(o, S3D_OF_VISIBLE);
+    initbufs();
     s3d_mainloop(mainloop);
     rote_vt_destroy(t);
 }

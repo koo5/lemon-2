@@ -602,42 +602,18 @@ void draw_line(int x,int y,const char *a)
 
 }
 
-void bpep(int ok)
+void bpep()
 {
-if(ok)
-{
-//    printf("have %i stacked %i\n"   ,vb.pos,vb.pep);
-    if(vb.pep>=vb.pos)
-    {
-//	printf("so, ");
-    	if(vb.pep>vb.pos)
-    	{
-    	    s3d_pop_vertex(o,vb.pep-vb.pos);
-//    	    printf("poping %i&\n", vb.pep-vb.pos);
-    	}
-    	s3d_pep_vertices(o,vb.buf,vb.pos);printf("peping  %i\n",vb.pos);
-    }
-    else
-    {
-//    	printf("peping %i\n", vb.pep);
-//	printf("pushing %i\n", vb.pos-vb.pep);
-	s3d_pep_vertices(o,vb.buf,vb.pep);
-	s3d_push_vertices(o, vb.buf+(3*(vb.pos-vb.pep)), vb.pos-vb.pep);
-    }
-}
-else
-{
-    	    s3d_pop_vertex(o,vb.pep);
-
-	s3d_push_vertices(o, vb.buf, vb.pos);
-}
-    
-
-    s3d_pop_line(o,ib.pep);
-    s3d_push_lines(o, ib.buf, ib.pos);
-    vb.pep=vb.pos;
-    ib.pep=ib.pos;
-    nulizze(&ib);
-    nulizze(&vb);
+	int a=y;
+	y=x;
+	x=a;
+	s3d_pop_vertex(o[x],vb.pep);
+	s3d_push_vertices(o[y], vb.buf, vb.pos);
+	s3d_pop_line(o[x],ib.pep);
+	s3d_push_lines(o[y], ib.buf, ib.pos);
+	vb.pep=vb.pos;
+	ib.pep=ib.pos;
+	nulizze(&ib);
+	nulizze(&vb);
 }
 
