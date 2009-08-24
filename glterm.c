@@ -5,6 +5,8 @@ void draw_terminal(RoteTerm * rt, int showhex)
     xy lok;
     lok.x=0;    lok.y=0;
     int i,j;
+    xoom=rt->rows*26;
+    yoom=rt->cols*13;
     for (i=0; i<rt->rows; i++)
     {
 	lok.y=(i-rt->rows/2)*-26;

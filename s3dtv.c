@@ -1,13 +1,10 @@
 int dirty;
-int o[2];
-int x=0;
-int y=1;
+int o;
 #include "s3d.h"
 #include "s3d_keysym.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "roteterm/rote.h"
-#define S3D
 
 #include "gltext.c"
 int showhex=0;
@@ -197,8 +194,7 @@ void mainloop(void)
 
 	draw_terminal(t,showhex);
 	bpep();
-	s3d_flags_on(o[y], S3D_OF_VISIBLE);
-	s3d_flags_off(o[x], S3D_OF_VISIBLE);
+
 
     }
    usleep(1000); // sleep is good
@@ -207,6 +203,26 @@ void mainloop(void)
 static int stop(struct s3d_evt *event)
 {
     s3d_quit();
+    return(0);
+}
+
+static int camcamcam(struct s3d_evt *event)
+{
+    if(!(strcmp(event.s3d_obj_info.name, "sys_cam")))
+    {
+	if(event.s3d_obj_info.scale==1)
+	    zoomx=zoomy=1;
+	else	if(event.s3d_obj_info.scale<1)//its tall
+	{
+	    zoomx=1;
+	    zoomy=1/event.s3d_obj_info.scale;
+	}
+	else	if(event.s3d_obj_info.scale>1)//its tall
+	{
+	    zoomy=1;
+	    zoomx=1/event.s3d_obj_info.scale;
+	}
+    }
     return(0);
 }
 
@@ -220,7 +236,7 @@ int main(int a, char **v)
 	s3d_usage();
 	s3d_quit();
     }
-    o[1]=s3d_new_object();    o[0]=s3d_new_object();
+    o=s3d_new_object();
 	float bla[12]=
 	{1, 1, 1, 1,
         1, 1, 1, 1,
@@ -234,17 +250,17 @@ int main(int a, char **v)
 	{
 	    bla[c*4]=1.0/((float)b/2.0);
 	}
-	s3d_push_materials_a(o[0],bla, 1); // push a red and a cyan material
-	s3d_push_materials_a(o[1],bla, 1); // push a red and a cyan material
+	s3d_push_materials_a(o,bla, 1);
     }
 
     t=rote_vt_create(20,80);
     lines_r_clean(t);
     rote_vt_forkpty(t,"bash");
 
+    s3d_flags_on(o, S3D_OF_VISIBLE);
     s3d_set_callback(S3D_EVENT_QUIT, stop);
     s3d_set_callback(S3D_EVENT_KEY, keypress);
-
+    s3d_set_callback(S3D_EVENT_OBJ_INFO, camcamcam);
 
     initbufs();
     s3d_mainloop(mainloop);

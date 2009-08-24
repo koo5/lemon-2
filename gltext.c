@@ -1,3 +1,4 @@
+float zoomx, zoomy;
 int material=0;
 #include "XY.h"
 #include "more-mess/fgetln.c"
@@ -212,9 +213,11 @@ void initbufs(void )
 	vb.dat=sizeof(float)*3;
 	ib.dat=sizeof(int)*3;
 }
+
+
 void dooooot(float x,float y)
 {
-    x=x/20;y=y/20;
+    x=x/zoomx;y=y/zoomy;
     static float firstx, firsty;
     if(have_first)
     {
@@ -604,14 +607,11 @@ void draw_line(int x,int y,const char *a)
 
 void bpep()
 {
-	int a=y;
-	y=x;
-	x=a;
-	s3d_pop_vertex(o[x],vb.pep);
-	s3d_push_vertices(o[y], vb.buf, vb.pos);
-	s3d_pop_line(o[x],ib.pep);
-	s3d_push_lines(o[y], ib.buf, ib.pos);
+	s3d_pop_vertex(o,vb.pep);
+	s3d_push_vertices(o, vb.buf, vb.pos);
 	vb.pep=vb.pos;
+	s3d_pop_line(o,ib.pep);
+	s3d_push_lines(o, ib.buf, ib.pos);
 	ib.pep=ib.pos;
 	nulizze(&ib);
 	nulizze(&vb);
