@@ -206,22 +206,30 @@ static int stop(struct s3d_evt *event)
     return(0);
 }
 
-static int camcamcam(struct s3d_evt *event)
+static int camcamcam(struct s3d_evt *e)
 {
-    if(!(strcmp(event.s3d_obj_info.name, "sys_cam")))
+    struct s3d_obj_info *event;
+    event =(struct s3d_obj_info*) e->buf;
+    float zx,zy;
+    if(!(strncmp(event->name, "sys_cam",7)))
     {
-	if(event.s3d_obj_info.scale==1)
-	    zoomx=zoomy=1;
-	else	if(event.s3d_obj_info.scale<1)//its tall
+    //printf("%s\n| ,",event->name);
+    printf("%f\n", event->scale);
+	if(event->scale==1)
+	    zx=zy=1;
+	else	if(event->scale<1)//its tall
 	{
-	    zoomx=1;
-	    zoomy=1/event.s3d_obj_info.scale;
+	    zx=1;
+	    zy=1/event->scale;
 	}
-	else	if(event.s3d_obj_info.scale>1)//its tall
+	else	if(event->scale>1)
 	{
-	    zoomy=1;
-	    zoomx=1/event.s3d_obj_info.scale;
+	    zy=1;
+	    zx=event->scale;
 	}
+	zoomx=zx*10;
+	zoomy=zy*10;
+	dirty=1; mainloop();
     }
     return(0);
 }

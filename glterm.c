@@ -5,18 +5,18 @@ void draw_terminal(RoteTerm * rt, int showhex)
     xy lok;
     lok.x=0;    lok.y=0;
     int i,j;
-    xoom=rt->rows*26;
-    yoom=rt->cols*13;
+    yoom=zoomy/rt->rows/26;
+    xoom=zoomx/rt->cols/14;
     for (i=0; i<rt->rows; i++)
     {
-	lok.y=(i-rt->rows/2)*-26;
+	lok.y=(i*-26+rt->rows*26/2)-26;
 	
 	
 	
 	
 	for (j=0; j<rt->cols; j++)
 	{
-	    lok.x=(j-rt->cols/2)*13;
+	    lok.x=(j*14-rt->cols*14/2)-3.25;
 	    if(1)//draw_edges_between_different_bgs
 	    {
 		if((j>0))

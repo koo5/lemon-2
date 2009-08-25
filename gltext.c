@@ -214,10 +214,10 @@ void initbufs(void )
 	ib.dat=sizeof(int)*3;
 }
 
-
+float xoom, yoom;
 void dooooot(float x,float y)
 {
-    x=x/zoomx;y=y/zoomy;
+    x=x*xoom;y=y*yoom;
     static float firstx, firsty;
     if(have_first)
     {
