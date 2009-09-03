@@ -172,7 +172,7 @@ void disp(void)
 	    }
     }
     if (!popv)
-	donoob(1);
+	donoob(2);
 }
 
 
@@ -331,6 +331,12 @@ void mainloop(void)
 
 int stop_quit(struct s3d_evt *event)
 {
+    FILE * f = fopen("lastpos", "w");
+    if(f)
+    {
+	fwrite(&pos, 1, 4, f);
+	fclose(f);
+    }
     s3d_quit();
     return(0);
 }
@@ -345,6 +351,13 @@ int main(int a, char **v)
     }
     else
     {
+	FILE * f = fopen("lastpos", "r");
+	if(f)
+	{
+	    fread(&pos, 1, 4, f);
+	    fclose(f);
+	}
+
 	float mw=0.1;
 	sw=s/2.0;
 	px=-13*sw;
@@ -393,6 +406,10 @@ int main(int a, char **v)
 	{0, 1, 1, 1,
          1, 1, 0, 1,
          0, 0, 1, 1};
+	float orange[12]=
+	{1, 1, 0, 1,
+         1, 1, 0, 1,
+         1, 1, 0, 1};
 	 
 
 	oo=s3d_new_object();
@@ -400,6 +417,7 @@ int main(int a, char **v)
 
 	s3d_push_materials_a(oo,red, 1);
 	s3d_push_materials_a(oo,teal,1);
+	s3d_push_materials_a(oo,orange,1);
 
 	s3d_flags_on(oo, S3D_OF_VISIBLE);
 	aoo=s3d_new_object();

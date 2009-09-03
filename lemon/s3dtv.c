@@ -73,6 +73,7 @@ static int keypress(struct s3d_evt *event)
 						{
 							case S3DK_F8:
 							    loadl2();
+							    dirty=1;
 							break;
 							case S3DK_BACKSPACE:
 							    clip(1);
