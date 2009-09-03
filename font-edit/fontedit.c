@@ -95,6 +95,23 @@ void donoob(int m)
 			popl++;popv=2;
 }
 
+int toocomplex(char *x)
+{
+    printf("checkoing compexity...\n");
+    int c=0;
+    while(x[c])
+    {
+        printf(".");
+        if(((x[c])>'z')||((x[c])<'a')&&(x[c]!=' '))
+        {
+		printf("too complex:[0x%x]\n",x[c]);
+		return 1;
+	}
+	c++;
+    }
+    return 0;
+}
+
 
 void disp(void)
 {
@@ -126,36 +143,29 @@ void disp(void)
 #endif
     char *x=l2[pos];
     printf("editoing %c (%x)\n",pos,pos);
-    printf("|TEST--->\n");
-    int y=x[0];
-    printf("%i\n", y);
-    printf("<---checkoing compexity...\n");
-    int c=0;
-    while(x[c])
+    if(toocomplex(x))
     {
-        printf(".");
-        if(((x[c])>'z')||((x[c])<'a'))
-        {
-		printf("d:too complex:[0x%x]\n",x[c]);
-		donoob(0);
-		return;
-	}
-	c++;
+	donoob(0);
+	return;
     }
-    c=0;
+    int c=0;
     while((x[c]))
     {
-	    float ptx=x[c++]-'a';
-	    float pty=x[c++]-'a';
-	    if((popv==aim)||(!x[c]&&(aim>popv)))
-	        dispaim(ptx,pty);
-	    s3d_push_vertex(oo, sw*ptx+0.5*sw,-s*pty+0.5*s,0.1);
-	    if(popv)
+	    if(x[c]!=' ')
 	    {
-		s3d_push_line(oo, popv-1, popv,1 );
+		float ptx=x[c++]-'a';
+		float pty=x[c++]-'a';
+		s3d_push_vertex(oo, sw*ptx+0.5*sw,-s*pty+0.5*s,0.1);
+		popv++;
+		if((popv-1==aim)||(!x[c]&&(aim>popv-1)))
+	    	    dispaim(ptx,pty);
+	    }
+
+	    if(popv>1)
+	    {
+		s3d_push_line(oo, popv-2, popv-1,1 );
 		popl++;
 	    }
-	    popv++;
     }
     if (!popv)
 	donoob(1);
@@ -179,16 +189,8 @@ int click(struct s3d_evt *e)
 		}
 		printf("\b)\n");
 		c=0;
-		while(x[c])
-		{
-		    if(((x[c])<'a')||((x[c])>'z'))
-		    {
-			printf("e:too complex\n");
+		if(toocomplex(x))
 			return;
-		    }
-		    c++;
-		}
-		c=0;
 		if((aim>=0)&&(strlen(x)/2>aim))
 		{
 		    x[aim*2]=i+'a';
@@ -216,7 +218,6 @@ int click(struct s3d_evt *e)
 void del(void)
 {
 		char *x=l2[pos];
-
 		if(!x[0]||(aim==-1))return ;
 		printf("deleting from pos %i (%s) ( ",pos,x);
 		int c=0;
@@ -224,26 +225,13 @@ void del(void)
 		    printf("%x,",x[c++]);
 		printf("\b)\n");
 		c=0;
-		while(x[c])
-		{
-		    if(((x[c])<'a')||((x[c])>'z'))
-		    {
-			printf("e:too complex\n");
+		if(toocomplex(x))
 			return;
-		    }
-		    c++;
-		}
-		c=0;
-		if(1)
-		{
-		    int y=strlen(x);
-		    if(y>aim*2+2)
-		    {
-			printf("deling from inside\n");
-			memmove(&x[aim*2], &x[aim*2+2],y-aim*2+1);
-		    }
-		    trytorealloc(x, y);
-		}
+		int y=strlen(x);
+		if(y>aim*2+2)
+			memmove(&x[aim*2], &x[aim*2+2],y-aim*2-2);
+		l2[pos]=trytorealloc(x, y-1);
+		l2[pos][y-2]=0;
 		disp();
 }
 
