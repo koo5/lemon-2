@@ -19,7 +19,7 @@ int aim=-1;
 int ltxt=-1;
 int griddist=0.00002;
 float px,py;
-
+int space;
 char * trytorealloc(char * chacha, int y)
 {
     char * tmp;
@@ -115,6 +115,11 @@ int toocomplex(char *x)
 
 void disp(void)
 {
+    if (pos<0)pos=l2numitems-1;
+    if(pos==l2numitems)pos=0;
+    if (aim<-1)aim=0;
+    showaim();
+    showpos();
     if(popl)
     {
 	s3d_pop_line(oo, popl);
@@ -151,20 +156,19 @@ void disp(void)
     int c=0;
     while((x[c]))
     {
-	    if(x[c]!=' ')
+	    float ptx=x[c++]-'a';
+	    float pty=x[c++]-'a';
+	    if(x[c-2]!=' ')
 	    {
-		float ptx=x[c++]-'a';
-		float pty=x[c++]-'a';
 		s3d_push_vertex(oo, sw*ptx+0.5*sw,-s*pty+0.5*s,0.1);
 		popv++;
 		if((popv-1==aim)||(!x[c]&&(aim>popv-1)))
 	    	    dispaim(ptx,pty);
-	    }
-
-	    if(popv>1)
-	    {
-		s3d_push_line(oo, popv-2, popv-1,1 );
-		popl++;
+		if((popv>1)&&!(x[c-1]==' ')&&!((c>2)&&x[c-3]==' '))
+		{
+		    s3d_push_line(oo, popv-2, popv-1,1 );
+		    popl++;
+		}
 	    }
     }
     if (!popv)
@@ -172,14 +176,8 @@ void disp(void)
 }
 
 
-int click(struct s3d_evt *e)
+void clack(char i, char j)
 {
-    int g = (int) * ((unsigned long *)e->buf);
-    int i,j;
-    for (i=0;i<26;i++)
-    for (j=0;j<26;j++)
-    if(g==o[i][j])
-    {
 		char *x=l2[pos];
 		printf("editing pos %i (%s) ( ",pos,x);
 		int c=0;
@@ -202,7 +200,7 @@ int click(struct s3d_evt *e)
 		{
 		    int l=strlen(x)+2+1;
 		    x=realloc(l2[pos], l);
-		    if(!x){free(l2[pos]);return 0;}
+		    if(!x){free(l2[pos]);return;}
 		    printf("adding point %c%c\n", 'a'+i, 'a'+j);
 		    x[l-3]=i+'a';
 		    x[l-2]=j+'a';
@@ -210,8 +208,37 @@ int click(struct s3d_evt *e)
 		    l2[pos]=x;
 		    printf("x is now %s, len %i", x, strlen(x));
 		}
+		else if(aim==-1)
+		{
+		    int l=strlen(x)+2+1;
+		    x=realloc(l2[pos], l);
+		    if(!x)return;
+		    printf("adding point %c%c\n", 'a'+i, 'a'+j);
+		    memmove(&x[2], &x[0],l-2);
+		    x[0]=i+'a';
+		    x[1]=j+'a';
+		    x[l-1]=0;
+		    l2[pos]=x;
+		    printf("x is now %s, len %i", x, strlen(x));
+		}
 		disp();
-		return(0);
+}
+
+int click(struct s3d_evt *e)
+{
+    int g = (int) * ((unsigned long *)e->buf);
+    int i,j;
+    for (i=0;i<26;i++)
+    for (j=0;j<26;j++)
+    if((g==o[i][j])||(g==space))
+    {
+		if(g==space)
+		{
+		    j=' '-'a';
+		    i=' '-'a';
+		}
+		clack(i,j);
+		return(1);
     }
 }
 
@@ -237,40 +264,23 @@ void del(void)
 
 
 
-void go_left(void)
-{
-    pos--;
-    if (pos<0)pos=l2numitems-1;
-    disp();
-    showpos();
-
-}
-void go_right(void)
-{
-    pos++;
-    if(pos==l2numitems)pos=0;
-    disp();
-    showpos();
-}
-void aim_up(void)
-{
-    aim--;
-    if (aim<0)aim=0;
-    disp();
-    showaim();
-}
-void aim_down(void)
-{
-    aim++;
-    disp();
-    showaim();
-}
 
 void clr(void)
 {
     l2[pos]=realloc(l2[pos],1);
     l2[pos][0]=0;
     disp();
+}
+
+void spc()
+{
+    clack(' '-'a', ' '-'a');
+}
+
+void ll2()
+{
+	loadl2();
+	disp();
 }
 
 int keypress(struct s3d_evt *event)
@@ -281,16 +291,16 @@ int keypress(struct s3d_evt *event)
 	switch (key)
 	{
 		case S3DK_LEFT:
-		    go_left();
+		    pos--;
 		break;
 		case S3DK_RIGHT:
-		    go_right();
+		    pos++;
 		break;
 		case S3DK_UP:
-		    aim_up();
+		    aim--;
 		break;
 		case S3DK_DOWN:
-		    aim_down();
+		    aim++;
 		break;
 		case S3DK_RETURN:
 		    savel2();
@@ -298,10 +308,20 @@ int keypress(struct s3d_evt *event)
 		case S3DK_DELETE:
 		    del();
 		break;
+		case S3DK_INSERT:
+//		    ins();
+		break;
 		case S3DK_c:
 		    clr();
 		break;
+		case S3DK_SPACE:
+		    spc();
+		break;
+		case S3DK_F8:
+		    ll2();
+		break;
 	}
+	disp();
 }
 
 void mainloop(void)
@@ -327,7 +347,7 @@ int main(int a, char **v)
     {
 	float mw=0.1;
 	sw=s/2.0;
-	px=-26*sw;
+	px=-13*sw;
 	py=13*s;
 
 #ifdef hfgm
@@ -352,7 +372,7 @@ int main(int a, char **v)
 			s3d_scale(txt[i], 5);
 		    }
 		}
-		px=-mw/2;
+		px=-mw*5/2;
 		for (i=0;(i<128);i++)
 		    s3d_translate(txt[i],px,py-4,0.00001);
 	    }
@@ -374,7 +394,7 @@ int main(int a, char **v)
          1, 1, 0, 1,
          0, 0, 1, 1};
 	 
-	 
+
 	oo=s3d_new_object();
 	s3d_translate(oo, px,py,0);
 
@@ -423,6 +443,16 @@ int main(int a, char **v)
 		s3d_flags_on(o[b][c], S3D_OF_VISIBLE|S3D_OF_SELECTABLE);
     	    }
 	}
+
+	space=s3d_new_object();
+	s3d_translate(space, px, py-s*27,0);
+	s3d_push_materials_a(space,black, 1);
+	float svs2[12]={0,0,0,sw*26,0,0,sw*26,s,0,0,s,0};
+	s3d_push_vertices(space, svs2, 4);
+	int sps[8]={0,2,1,0,0,3,2,0};
+	s3d_push_polygons(space, sps, 2);
+	s3d_flags_on(space, S3D_OF_VISIBLE|S3D_OF_SELECTABLE);
+
 
 	s3d_set_callback(S3D_EVENT_OBJ_CLICK, click);
 	s3d_set_callback(S3D_EVENT_QUIT, stop_quit);
