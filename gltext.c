@@ -40,7 +40,9 @@ void loadl2(void)
     l2numitems=0;
     while((l2[l2numitems]=fgetln(fp, &len)))
     {
-	l2[l2numitems][len-1 >= 0 ? len-1 : 0]=0; // hrrrm turning newline into 0
+	printf("%i",len);
+	if(!len)printf ("_oooops_\n");
+	l2[l2numitems][len-1]=0; // hrrrm turning newline into 0
 	l2numitems++;
 	if (!(l2numitems%100))
 	{
@@ -52,6 +54,24 @@ void loadl2(void)
 	}
     }
     fclose(fp);
+}
+void savel2(void)
+{
+    FILE * f = fopen("l2","w");
+    if (f == NULL) 
+    {
+	printf("no go\n");
+	return;
+    }
+    int i;
+    for (i=0;i<l2numitems;i++)
+    {
+	if (!(l2[i]))
+	    fprintf(f,"\n");
+	else
+	    fprintf(f,"%s\n", l2[i]);
+    }
+    fclose(f);
 }
 
 static char * sgns[] = {
@@ -605,13 +625,15 @@ void draw_line(int x,int y,const char *a)
 
 }
 
+int tex;
+
 void bpep()
 {
-	s3d_pop_vertex(o,vb.pep);
-	s3d_push_vertices(o, vb.buf, vb.pos);
+	s3d_pop_vertex(tex,vb.pep);
+	s3d_push_vertices(tex, vb.buf, vb.pos);
 	vb.pep=vb.pos;
-	s3d_pop_line(o,ib.pep);
-	s3d_push_lines(o, ib.buf, ib.pos);
+	s3d_pop_line(tex,ib.pep);
+	s3d_push_lines(tex, ib.buf, ib.pos);
 	ib.pep=ib.pos;
 	nulizze(&ib);
 	nulizze(&vb);

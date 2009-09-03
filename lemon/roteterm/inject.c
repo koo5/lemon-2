@@ -23,7 +23,7 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #include "roteprivate.h"
 #include "inject_csi.h"
 #include <string.h>
-#include "../more-mess/wtf.h"
+#include "../../more-mess/wtf.h"
 
 #define true 1
 #define false 0

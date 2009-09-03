@@ -1,12 +1,12 @@
 int dirty;
-int o;
+//int o;
 #include "s3d.h"
 #include "s3d_keysym.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "roteterm/rote.h"
 
-#include "gltext.c"
+#include "../gltext.c"
 int showhex=0;
 int ok=0;
 #include "glterm.c"
@@ -244,7 +244,7 @@ int main(int a, char **v)
 	s3d_usage();
 	s3d_quit();
     }
-    o=s3d_new_object();
+    tex=s3d_new_object();
 	float bla[12]=
 	{1, 1, 1, 1,
         1, 1, 1, 1,
@@ -258,14 +258,14 @@ int main(int a, char **v)
 	{
 	    bla[c*4]=1.0/((float)b/2.0);
 	}
-	s3d_push_materials_a(o,bla, 1);
+	s3d_push_materials_a(tex,bla, 1);
     }
 
     t=rote_vt_create(20,80);
     lines_r_clean(t);
     rote_vt_forkpty(t,"bash");
 
-    s3d_flags_on(o, S3D_OF_VISIBLE);
+    s3d_flags_on(tex, S3D_OF_VISIBLE|S3D_OF_SELECTABLE);
     s3d_set_callback(S3D_EVENT_QUIT, stop);
     s3d_set_callback(S3D_EVENT_KEY, keypress);
     s3d_set_callback(S3D_EVENT_OBJ_INFO, camcamcam);
