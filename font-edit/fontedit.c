@@ -215,8 +215,9 @@ int click(struct s3d_evt *e)
 
 void del(void)
 {
-		if(!x[0]||(aim==-1))return ;
 		char *x=l2[pos];
+
+		if(!x[0]||(aim==-1))return ;
 		printf("deleting from pos %i (%s) ( ",pos,x);
 		int c=0;
 		while(x[c])
@@ -336,14 +337,14 @@ int main(int a, char **v)
     }
     else
     {
-	float mw=1;
+	float mw=0.1;
 	sw=s/2.0;
 	px=-26*sw;
 	py=13*s;
 
 #ifdef hfgm
 	
-	if (s3d_select_font("courier new")) {
+	if (s3d_select_font("Courier new")) {
 		printf("font not found\n");
 	}else
 	{
@@ -370,7 +371,7 @@ int main(int a, char **v)
 	}
 #endif
 
-	sw=mw*s;//s/2.0;
+	sw=mw/26*5;//s/2.0;
 	
 	float red[12]=
 	{1, 0, 0, 1,
