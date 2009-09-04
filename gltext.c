@@ -55,24 +55,6 @@ void loadl2(void)
     }
     fclose(fp);
 }
-void savel2(void)
-{
-    FILE * f = fopen("l2","w");
-    if (f == NULL) 
-    {
-	printf("no go\n");
-	return;
-    }
-    int i;
-    for (i=0;i<l2numitems;i++)
-    {
-	if (!(l2[i]))
-	    fprintf(f,"\n");
-	else
-	    fprintf(f,"%s\n", l2[i]);
-    }
-    fclose(f);
-}
 
 static char * sgns[] = {
 "dzdptuzpznxnxpzp", /*\0*/
@@ -270,7 +252,7 @@ void zspillit(xy lok,char *x,float z)
     {
 	flip2=flip2&&!((*x==45)&&x++);if(!(*(x+1)))break; // - 
 	flip=flip||((*x==124)&&x++);if(!(*(x+1)))break;  // |
-    
+	/*"-|", !"|-"*/
 	if(((*x)==' ')&&(*(x+1)==' ')) // 2 spaces
 	{
 		x++;x++;

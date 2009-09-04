@@ -186,7 +186,7 @@ void rote_vt_forsake_child(RoteTerm *rt);
  *
  * This function will not block, that is, if there is no data to be
  * read from the child process it will return immediately. */
-void rote_vt_update(RoteTerm *rt);
+int rote_vt_update(RoteTerm *rt);
 
 /* Puts data into the terminal: if there is a forked process running,
  * the data will be sent to it. If there is no forked process,

@@ -249,13 +249,13 @@ void rote_vt_forsake_child(RoteTerm *rt) {
    rt->childpid = 0;
 }
 
-void rote_vt_update(RoteTerm *rt) {
+int rote_vt_update(RoteTerm *rt) {
    fd_set ifs;
    struct    timeval tvzero;
    char buf[512];
    int bytesread;
    int n = ROTE_VT_UPDATE_ITERATIONS;
-   if (rt->pd->pty < 0) return;  /* nothing to pump */
+   if (rt->pd->pty < 0) return 0;  /* nothing to pump */
 
    while (n--) { /* iterate at most ROtE_VT_UPDATE_ITERATIONS times.
                   * As Phil Endecott pointed out, if we don't restrict this,
@@ -270,17 +270,20 @@ void rote_vt_update(RoteTerm *rt) {
       tvzero.tv_sec = 0; tvzero.tv_usec = 0;
       if (select(rt->pd->pty + 1, &ifs, NULL, NULL, &tvzero) <= 0)
       {
-         return; /* nothing to read, or select() failed */
+         return 1; /* nothing to read, or select() failed */
 
       }
       /* read what we can. This is guaranteed not to block, since
        * select() told us there was something to read. */
       bytesread = read(rt->pd->pty, buf, 512);
-      if (bytesread <= 0) return;   
+      if((bytesread < 0) && (errno != EAGAIN))
+        return 0;
+      if (bytesread <= 0) return 1;   
 
       /* inject the data into the terminal */
       rote_vt_inject(rt, buf, bytesread);
    }
+   return 1;
 }
 
 char * rotoclipin(void)
@@ -290,7 +293,7 @@ char * rotoclipin(void)
     t = rote_vt_create(10,10);
     rote_vt_forkpty(t, "xclip -o");
     int i,br=0;
-    buf=malloc(512);
+    buf=malloc(512512);
     rote_vt_update_thready(buf, 6, &br,t);
     //?
     buf[br]=0;

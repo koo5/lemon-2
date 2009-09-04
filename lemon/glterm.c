@@ -6,17 +6,17 @@ void draw_terminal(RoteTerm * rt, int showhex)
     lok.x=0;    lok.y=0;
     int i,j;
     yoom=zoomy/rt->rows/26;
-    xoom=zoomx/rt->cols/14;
+    xoom=zoomx/rt->cols/13;
     for (i=0; i<rt->rows; i++)
     {
-	lok.y=(i*-26+rt->rows*26/2)-26;
+	lok.y=(i*-25+rt->rows*25/2)-25;
 	
 	
 	
 	
 	for (j=0; j<rt->cols; j++)
 	{
-	    lok.x=(j*14-rt->cols*14/2)-3.25;
+	    lok.x=(j*12.5-rt->cols*12.5/2)-3.25;
 	    if(1)//draw_edges_between_different_bgs
 	    {
 		if((j>0))

@@ -12,7 +12,7 @@ int ok=0;
 #include "glterm.c"
 RoteTerm *t;
 
-
+int afterlife=0;
 
 keyp(RoteTerm *t,char k)
 {
@@ -185,8 +185,8 @@ static int keypress(struct s3d_evt *event)
 
 void mainloop(void)
 {
-    rote_vt_update(t);
-
+    if (!rote_vt_update(t) && !afterlife)
+	s3d_quit();
     if(dirty||t->curpos_dirty || lines_r_dirty(t))
     {
 	dirty=0;
@@ -255,7 +255,7 @@ int main(int a, char **v)
     int c;
     for (b=1;b<9;b++)
     {
-	for (c=0;c<3;c++)
+	for (c=0;c<1;c++)
 	{
 	    bla[c*4]=1.0/((float)b/2.0);
 	}

@@ -1,5 +1,5 @@
 typedef struct XY{
-    int x;
-    int y;
+    float x;
+    float y;
 }	xy;
 //this is the most important file out there

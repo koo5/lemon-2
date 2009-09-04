@@ -20,6 +20,28 @@ int ltxt=-1;
 int griddist=0.00002;
 float px,py;
 int space;
+
+
+void savel2(void)
+{
+    FILE * f = fopen("l2","w");
+    if (f == NULL) 
+    {
+	printf("no go\n");
+	return;
+    }
+    int i;
+    for (i=0;i<l2numitems;i++)
+    {
+	if (!(l2[i]))
+	    fprintf(f,"\n");
+	else
+	    fprintf(f,"%s\n", l2[i]);
+    }
+    fclose(f);
+}
+
+
 char * trytorealloc(char * chacha, int y)
 {
     char * tmp;
