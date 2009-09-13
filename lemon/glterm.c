@@ -1,4 +1,5 @@
 int curposx,curposy;
+float wdt=10;
 void draw_terminal(RoteTerm * rt, int showhex)
 {
     static int oldcrow, oldccol;
@@ -15,8 +16,9 @@ void draw_terminal(RoteTerm * rt, int showhex)
 	
 	
 	for (j=0; j<rt->cols; j++)
-	{
-	    lok.x=(j*12.5-rt->cols*12.5/2)-3.25;
+	{	//12.5
+	    //#define wdt 10
+	    lok.x=(j*wdt-rt->cols*wdt/2);
 	    if(1)//draw_edges_between_different_bgs
 	    {
 		if((j>0))

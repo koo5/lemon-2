@@ -28,7 +28,7 @@ if(r)
 {
 while(*r)
 {
-    if((noes && (*r)!=10 && (*r)!=13 ) || !noes) keyp(t,*r);
+    if(!noes || ((*r)!=10 && (*r)!=13 )) keyp(t,*r);
     r++;
 }
 free(s);
@@ -56,6 +56,13 @@ void lines_r_not_clean(RoteTerm *rt)
 	rt->line_dirty[x]=1;
 }
 
+void scrollup(void)
+
+{
+
+
+}
+
 void resizooo(RoteTerm *t, int x, int y)
 {
 	rote_vt_resize(t, t->rows+y,t->cols+x);
@@ -67,19 +74,30 @@ static int keypress(struct s3d_evt *event)
     struct s3d_key_event *keys = (struct s3d_key_event *)event->buf;
     int key=keys->keysym;    
     int mod=keys->modifier;
+					if(mod&S3D_KMOD_RSHIFT)
+					{
+						switch (key)
+						{
+							case S3DK_INSERT:
+							    clip(mod&S3D_KMOD_RCTRL);
+						}
+					}
+					
 					if(mod&S3D_KMOD_RCTRL)
 					{
 						switch (key)
 						{
+							case S3DK_F5:
+							    wdt-=0.1;
+							    dirty=1;
+							break;
+							case S3DK_F6:
+							    wdt+=0.1;
+							    dirty=1;
+							break;
 							case S3DK_F8:
 							    loadl2();
 							    dirty=1;
-							break;
-							case S3DK_BACKSPACE:
-							    clip(1);
-							break;
-							case S3DK_F11:
-							    clip(0);
 							break;
 							case S3DK_F12:
 							    dirty=1;
@@ -126,6 +144,19 @@ static int keypress(struct s3d_evt *event)
 					}
 					else
 					{
+					    if ( (key == S3DK_F1) )
+					    {
+						keyp(t,27);
+						keyp(t,'[');
+						keyp(t,'M');
+						keyp(t,32);
+						keyp(t,33);
+						keyp(t,33);
+						
+					    
+					    }
+					    else
+
 					    if ( (key >= S3DK_F1) && (key <= S3DK_F15) )
 					    {
 						char *k;
@@ -173,6 +204,9 @@ static int keypress(struct s3d_evt *event)
 					    	rote_vt_terminfo(t, "kich1");
 					    else
 					    if ( (key == S3DK_PAGEUP) )
+					    if(mod&S3D_KMOD_RSHIFT)
+						scrollup();
+					    else
 						rote_vt_terminfo(t, "kpp");
 					    else
 					    if ( (key == S3DK_RETURN) )
@@ -214,8 +248,10 @@ static int camcamcam(struct s3d_evt *e)
     float zx,zy;
     if(!(strncmp(event->name, "sys_cam",7)))
     {
-    //printf("%s\n| ,",event->name);
+    //(
+    printf("%s  | ,",event->name);
     printf("%f\n", event->scale);
+    //)
 	if(event->scale==1)
 	    zx=zy=1;
 	else	if(event->scale<1)//its tall
@@ -228,7 +264,7 @@ static int camcamcam(struct s3d_evt *e)
 	    zy=1;
 	    zx=event->scale;
 	}
-	zoomx=zx*10;
+	zoomx=zx*12.5;
 	zoomy=zy*10;
 	dirty=1; mainloop();
     }
@@ -262,15 +298,17 @@ int main(int a, char **v)
 	s3d_push_materials_a(tex,bla, 1);
     }
 
-    t=rote_vt_create(20,80);
-    lines_r_clean(t);
+    t=rote_vt_create(30,120);
+    //lines_r_clean(t);
     rote_vt_forkpty(t,"bash");
 
     s3d_flags_on(tex, S3D_OF_VISIBLE|S3D_OF_SELECTABLE);
     s3d_set_callback(S3D_EVENT_QUIT, stop);
     s3d_set_callback(S3D_EVENT_KEY, keypress);
     s3d_set_callback(S3D_EVENT_OBJ_INFO, camcamcam);
-
+    zoomx=1.666;
+    zoomy=1;
+    loadl2();
     initbufs();
     s3d_mainloop(mainloop);
     rote_vt_destroy(t);

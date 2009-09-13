@@ -450,6 +450,7 @@ int main(int a, char **v)
 
 	showpos();
 	loadl2();
+	if(!l2)return 1;
 	disp();
 	 
 	int b,c;

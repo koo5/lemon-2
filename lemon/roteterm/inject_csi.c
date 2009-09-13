@@ -25,7 +25,6 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #include <string.h>
 #define true 1
 #define MAX_CSI_ES_PARAMS 32
-   
 static inline void clamp_cursor_to_bounds(RoteTerm *rt) {
    if (rt->crow < 0) rt->curpos_dirty = true, rt->crow = 0;
    if (rt->ccol < 0) rt->curpos_dirty = true, rt->ccol = 0;
@@ -307,9 +306,7 @@ void rote_es_interpret_csi(RoteTerm *rt) {
    char verb = rt->pd->esbuf[rt->pd->esbuf_len - 1];
 
    if (!strncmp(rt->pd->esbuf, "[?", 2)) { /* private-mode CSI, ignore */
-      #ifdef DEBUG
       fprintf(stderr, "Ignoring private-mode CSI: <%s>\n", rt->pd->esbuf);
-      #endif
       return; 
    }
 

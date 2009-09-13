@@ -1,4 +1,4 @@
- cc    -L/usr/lib -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
+ cc  -DDEBUG  -L/usr/lib -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
   -L/usr/local/lib   -I/usr/include -I/usr/local/include -I./ \
    -I/usr/local/include/vte -L/usr/X11R6/lib   roteterm/inject_csi.c \
    roteterm/inject.c roteterm/rote_keymap.c roteterm/rote.c ../more-mess/wtf.c \

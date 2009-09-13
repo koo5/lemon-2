@@ -215,11 +215,9 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
       /* handler said it can't handle that escape sequence,
        * but we can still try handling it ourselves, so 
        * we proceed normally. */
-      #ifdef DEBUG
       fprintf(stderr, "Handler returned NOWAY. Trying our handlers.\n");
-      #endif
-   }
-
+    }
+    
    /* interpret ESC-M as reverse line-feed */
    if (firstchar == 'M') {
       cursor_line_up(rt);
@@ -229,9 +227,7 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
 
    if (firstchar != '[' && firstchar != ']') {
       /* unrecognized escape sequence. Let's forget about it. */
-      #ifdef DEBUG
       fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);
-      #endif
 
       cancel_escape_sequence(rt);
       return;
@@ -246,9 +242,7 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
       /* we have an xterm escape sequence: interpret it */
 
       /* rote_es_interpret_xterm_es(rt);     -- TODO!*/
-      #ifdef DEBUG
       fprintf(stderr, "Ignored XTerm ES.\n");
-      #endif
       cancel_escape_sequence(rt);
    }
 

@@ -438,10 +438,10 @@ static xy draw(xy lok,unsigned int i)
     if(i==205)
     {
 	draw(lok, 'I');
-	spillit(lok, "ofxa");
+	spillit(lok, "ofxa"); 
     }
     if(i==211)
-    {
+    {//29;5~29;5~ /              mmmMMmmmmmmmmmmmmm//////jjJKL mjjjjjj       jj   /    
 	draw(lok, 'O');
 	spillit(lok, "ofxa");
     }
@@ -586,6 +586,7 @@ static xy draw(xy lok,unsigned int i)
 	spillit(lok, sgns[0]);  else
     if(i==124)
 	spillit(lok, sgns[20]);
+
 }
 
 
