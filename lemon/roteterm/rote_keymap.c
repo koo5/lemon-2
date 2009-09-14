@@ -60,7 +60,7 @@ void rote_vt_terminfo(RoteTerm *rt, char *c)
 	    printf("bubak\n");
 	else
 	{
-	//    printf("%s\n",u);
+//	    printf("%s\n",u);
 	    tputs(u,1,_rtput);
 	}
     }

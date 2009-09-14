@@ -23,16 +23,16 @@ void draw_terminal(RoteTerm * rt, int showhex)
 	    {
 		if((j>0))
 		    if((ROTE_ATTR_BG(rt->cells[i][j-1].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"aaaz",1);
+			azspillit(lok,"aaaz",1/1.25,1);
 		if((j<rt->cols-1))
 		    if((ROTE_ATTR_BG(rt->cells[i][j+1].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"zazz",1);
+			azspillit(lok,"zazz",1/1.25,1);
 		if((i<rt->rows-1))
 		    if((ROTE_ATTR_BG(rt->cells[i+1][j].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"azzz",1);
+			azspillit(lok,"azzz",1/1.25,1);
 		if((i>0))
 		    if((ROTE_ATTR_BG(rt->cells[i-1][j].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"aaza",1);
+			azspillit(lok,"aaza",1/1.25,1);
 	    }
 //	    printf("%i",ROTE_ATTR_FG(rt->cells[i][j].attr));
 	    material=ROTE_ATTR_FG(rt->cells[i][j].attr);

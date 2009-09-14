@@ -238,9 +238,9 @@ void dooooot(float x,float y)
 }
 
 
-
-void zspillit(xy lok,char *x,float z)
+void azspillit(xy lok,char *x,float a,float z)
 {
+
     int first=1; /*were drawin 1st dot*/
     have_first=0;
     int xdot,ydot;
@@ -281,7 +281,7 @@ void zspillit(xy lok,char *x,float z)
 	    ydot=ydot-13;
     	    xdot=xdot-13;
     	    fydot=ydot*(z+(2*z*(0-flip2))); //zoom and flip
-	    fxdot=xdot*0.5*(z+(2*z*(0-flip))); //always shrink width to half
+	    fxdot=xdot*0.5*(a+(2*a*(0-flip))); //always shrink width to half
     	    fxdot=fxdot+13;
     	    fydot=fydot+13; 
 
@@ -298,6 +298,12 @@ void zspillit(xy lok,char *x,float z)
 	}
     }
      
+
+}
+
+void zspillit(xy lok,char *x,float z)
+{
+    azspillit(lok,x,z,z);
 }
 static void spillit(xy lok,char *x)
 {

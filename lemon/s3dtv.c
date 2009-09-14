@@ -95,6 +95,9 @@ static int keypress(struct s3d_evt *event)
 							    wdt+=0.1;
 							    dirty=1;
 							break;
+							case S3DK_F7:
+							    afterlife=!afterlife;
+							break;
 							case S3DK_F8:
 							    loadl2();
 							    dirty=1;
@@ -210,10 +213,25 @@ static int keypress(struct s3d_evt *event)
 						rote_vt_terminfo(t, "kpp");
 					    else
 					    if ( (key == S3DK_RETURN) )
-						keyp(t,10);
+					    {
+						if(mod&(S3D_KMOD_RSHIFT|S3D_KMOD_LSHIFT))
+						    keyp(t,10);
+						else
+						    keyp(t,13);
+					    }
 					    else
-					    if( keys->unicode && ( (keys->unicode & 0xFF80) == 0 ) )
-						keyp(t, keys->unicode);
+						if(mod&(S3D_KMOD_RALT|S3D_KMOD_LALT))
+						{
+							char x[2];
+
+							x[0]=27;
+							x[1]=keys->keysym;
+							rote_vt_write(t, &x[0], 2);//thx twkm
+							
+						}
+						else
+							keyp(t, keys->unicode);
+//					    printf("%c, %i\n",  keys->keysym,  keys->unicode);
 					}
 }
 
