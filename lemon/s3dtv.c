@@ -152,9 +152,9 @@ static int keypress(struct s3d_evt *event)
 						keyp(t,27);
 						keyp(t,'[');
 						keyp(t,'M');
-						keyp(t,32);
-						keyp(t,33);
-						keyp(t,33);
+						keyp(t,35);
+						keyp(t,35);
+						keyp(t,35);
 						
 					    
 					    }
@@ -324,8 +324,8 @@ int main(int a, char **v)
     s3d_set_callback(S3D_EVENT_QUIT, stop);
     s3d_set_callback(S3D_EVENT_KEY, keypress);
     s3d_set_callback(S3D_EVENT_OBJ_INFO, camcamcam);
-    zoomx=1.666;
-    zoomy=1;
+    zoomx=16.666;
+    zoomy=10;
     loadl2();
     initbufs();
     s3d_mainloop(mainloop);
