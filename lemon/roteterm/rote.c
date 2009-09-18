@@ -44,6 +44,8 @@ struct timeval {
 };
 #endif
 
+char * muhaha="xterm";
+
 void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 {
     struct winsize  ws;
@@ -125,7 +127,7 @@ void rote_vt_resize(RoteTerm *rt,int rows, int cols)
 RoteTerm *rote_vt_create(int rows, int cols) {
    RoteTerm *rt;
    int i, j;
-   setupterm("linux", 1, (int *)0);
+   setupterm(muhaha, 1, (int *)0);
 
    if (rows <= 0 || cols <= 0) return NULL;
 
@@ -164,7 +166,7 @@ RoteTerm *rote_vt_create(int rows, int cols) {
    /* initial scrolling area is the whole window */
    rt->pd->scrolltop = 0;
    rt->pd->scrollbottom = rt->rows - 1;
-
+    rt->docellmouse=0;
 //   #ifdef DEBUG
    fprintf(stderr, "Created a %d x %d terminal.\n", rt->rows, rt->cols);
 //   #endif
@@ -229,7 +231,7 @@ pid_t rote_vt_forkpty(RoteTerm *rt, const char *command) {
 
       /* Cajole application into using linux-console-compatible escape
        * sequences (which is what we are prepared to interpret) */
-      setenv("TERM", "linux", 1);
+      setenv("TERM", muhaha, 1);
 
       /* Now we will exec /bin/sh -c command. */
       execl("/bin/sh", "/bin/sh", "-c", command, NULL);
@@ -255,6 +257,7 @@ int rote_vt_update(RoteTerm *rt) {
    char buf[512];
    int bytesread;
    int n = ROTE_VT_UPDATE_ITERATIONS;
+   int dirty=0;
    if (rt->pd->pty < 0) return 0;  /* nothing to pump */
 
    while (n--) { /* iterate at most ROtE_VT_UPDATE_ITERATIONS times.
@@ -270,7 +273,7 @@ int rote_vt_update(RoteTerm *rt) {
       tvzero.tv_sec = 0; tvzero.tv_usec = 0;
       if (select(rt->pd->pty + 1, &ifs, NULL, NULL, &tvzero) <= 0)
       {
-         return 1; /* nothing to read, or select() failed */
+         return 1+dirty; /* nothing to read, or select() failed */
 
       }
       /* read what we can. This is guaranteed not to block, since
@@ -278,12 +281,13 @@ int rote_vt_update(RoteTerm *rt) {
       bytesread = read(rt->pd->pty, buf, 512);
       if((bytesread < 0) && (errno != EAGAIN))
         return 0;
-      if (bytesread <= 0) return 1;   
+      if (bytesread <= 0) return 1+dirty;   
 
       /* inject the data into the terminal */
       rote_vt_inject(rt, buf, bytesread);
+      dirty=1;
    }
-   return 1;
+   return 2;
 }
 
 char * rotoclipin(void)

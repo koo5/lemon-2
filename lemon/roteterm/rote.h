@@ -101,6 +101,8 @@ typedef struct RoteTermPrivate_ RoteTermPrivate;
  * of this structure, but please pay close attention to the fields
  * marked read-only or with special usage notes. */
 typedef struct RoteTerm_ {
+   int dirty;
+    int docellmouse;
    int rows, cols;              /* terminal dimensions, READ-ONLY. You
                                  * can't resize the terminal by changing
                                  * this (a segfault is about all you will 

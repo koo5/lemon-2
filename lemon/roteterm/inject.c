@@ -224,8 +224,24 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
       cancel_escape_sequence(rt);
       return;
    }
+   
+   if (firstchar == '(') {
+	if(!strncmp(rt->pd->esbuf, "(B", 2))
+	{
+//	    printf("C = B → United States (USASCII)")
+    	  cancel_escape_sequence(rt);
+	}
+      return;
+   }
+   if (firstchar == '=') {
+	{
+//	    printf("ESC = Application Keypad (DECPAM)")
+    	  cancel_escape_sequence(rt);
+	}
+      return;
+   }
 
-   if (firstchar != '[' && firstchar != ']') {
+   if (firstchar != '[' && firstchar != ']' && firstchar != '(') {
       /* unrecognized escape sequence. Let's forget about it. */
       fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);
 

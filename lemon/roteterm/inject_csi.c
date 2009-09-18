@@ -305,7 +305,29 @@ void rote_es_interpret_csi(RoteTerm *rt) {
    const char *p = rt->pd->esbuf + 1;
    char verb = rt->pd->esbuf[rt->pd->esbuf_len - 1];
 
-   if (!strncmp(rt->pd->esbuf, "[?", 2)) { /* private-mode CSI, ignore */
+   if (!strncmp(rt->pd->esbuf, "[?", 2)) /* private-mode CSI, ignore */
+   {
+     if (!strncmp(rt->pd->esbuf, "[?1002h", 7))
+	rt->docellmouse=1;
+     else if (!strncmp(rt->pd->esbuf, "[?1002l", 7))
+	rt->docellmouse=0;
+     else if (!strncmp(rt->pd->esbuf, "[?1h", 4))
+     {
+//	P s = 1 → Application Cursor Keys (DECCKM)
+    }
+     else if (!strncmp(rt->pd->esbuf, "[?1001s", 4))
+     {
+//    Save DEC Private Mode Values. P s values are the same as for DECSET.
+    }
+     else if ((!strncmp(rt->pd->esbuf, "[?1049h", 7))||(!strncmp(rt->pd->esbuf, "[?1049l", 7)))
+     {
+//    Save DEC Private Mode Values. P s values are the same as for DECSET.
+    printf("you pressed ctrl-o!\n");
+    }    
+
+
+
+    else
       fprintf(stderr, "Ignoring private-mode CSI: <%s>\n", rt->pd->esbuf);
       return; 
    }
