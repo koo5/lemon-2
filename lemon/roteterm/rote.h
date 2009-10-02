@@ -29,10 +29,12 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #ifndef btco_ROTE_rote_h
 #define btco_ROTE_rote_h
 
-#include <ncurses.h>
+//#include <ncurses.h>
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+
 
 /* Color codes: 0 = black, 1 = red, 2 = green, 3 = yellow, 4 = blue,
  *              5 = magenta, 6 = cyan, 7 = white. 
@@ -131,8 +133,8 @@ typedef struct RoteTerm_ {
    /* --- dirtiness flags: the following flags will be raised when the
     * corresponding items are modified. They can only be unset by YOU
     * (when, for example, you redraw the term or something) --- */
-   bool curpos_dirty;           /* whether cursor location has changed */
-   bool *line_dirty;            /* whether each row is dirty  */
+   int curpos_dirty;           /* whether cursor location has changed */
+   int *line_dirty;            /* whether each row is dirty  */
    /* --- end dirtiness flags */
 } RoteTerm;
 
@@ -223,8 +225,8 @@ void rote_vt_inject(RoteTerm *rt, const char *data, int length);
  * This function automatically calls rote_vt_update prior to drawing
  * so that the drawn contents are accurate.
  */
-void rote_vt_draw(RoteTerm *rt, WINDOW *win, int startrow, int startcol,
-                  void (*cur_set_attr)(WINDOW *win, unsigned char attr));
+//void rote_vt_draw(RoteTerm *rt, WINDOW *win, int startrow, int startcol,
+//                  void (*cur_set_attr)(WINDOW *win, unsigned char attr));
 
 /* Indicates to the terminal that the given key has been pressed.
  * This will cause the terminal to rote_vt_write() the appropriate

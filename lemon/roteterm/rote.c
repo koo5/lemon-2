@@ -22,7 +22,7 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #include "rote.h"
 #include "roteprivate.h"
 #include <stdlib.h>
-#define gboolean int
+//#define gboolean int
 #define G_BEGIN_DECLS
 #define G_END_DECLS
 
@@ -85,7 +85,7 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
     	}
 	if(or != yy)
 	{
-		rt->line_dirty = (bool*) realloc(rt->line_dirty, sizeof(bool) * rt->rows);
+		rt->line_dirty = (int*) realloc(rt->line_dirty, sizeof(int) * rt->rows);
 		rt->cells = (RoteCell**) realloc(rt->cells, sizeof(RoteCell*) * rt->rows);
 	}
 	for (i = or; i < yy; i++)
@@ -152,7 +152,7 @@ RoteTerm *rote_vt_create(int rows, int cols) {
    }
    
    /* allocate dirtiness array */
-   rt->line_dirty = (bool*) malloc(sizeof(bool) * rt->rows);
+   rt->line_dirty = (int*) malloc(sizeof(int) * rt->rows);
 
    /* initialization of other public fields */
    rt->crow = rt->ccol = 0;
@@ -290,6 +290,7 @@ int rote_vt_update(RoteTerm *rt) {
    return 2;
 }
 
+//lol
 char * rotoclipin(void)
 {
     char *buf;
@@ -307,8 +308,22 @@ char * rotoclipin(void)
     else { free(buf);return     0;}
 }
 
+void rotoclipout(char * x)
+{
+    char *buf;
+    RoteTerm *t;
+    t = rote_vt_create(10,10);
+    rote_vt_forkpty(t, "xclip -i");
+    int i,br=0;
+    buf=malloc(512512);
+    rote_vt_update_thready(buf, 6, &br,t);
+    rote_vt_write(t,x,strlen(x));
+//    rote_vt_forsake_child(t);
+    rote_vt_destroy(t);
+    free(buf);
+}
 
-		    //?!//
+
 void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) {
    fd_set ifs;
    struct timeval tvzero;

@@ -19,6 +19,7 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 */
 
 
+#include "stdio.h" /*printF*/
 #include "inject_csi.h"
 #include "roteprivate.h"
 #include <stdlib.h>
@@ -322,7 +323,7 @@ void rote_es_interpret_csi(RoteTerm *rt) {
      else if ((!strncmp(rt->pd->esbuf, "[?1049h", 7))||(!strncmp(rt->pd->esbuf, "[?1049l", 7)))
      {
 //    Save DEC Private Mode Values. P s values are the same as for DECSET.
-    printf("you pressed ctrl-o!\n");
+    fprintf(stderr,  "you pressed ctrl-o!\n");
     }    
 
 

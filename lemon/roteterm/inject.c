@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 Copyright (c) 2004 Bruno T. C. de Oliveira
 */
 
-
+#include "stdio.h"
 #include "rote.h"
 #include "roteprivate.h"
 #include "inject_csi.h"
@@ -173,7 +173,7 @@ static void handle_control_char(RoteTerm *rt, char c) {
    }
 }
 
-static inline bool is_valid_csi_ender(char c) {
+static inline int  is_valid_csi_ender(char c) {
    return (c >= 'a' && c <= 'z') ||
           (c >= 'A' && c <= 'Z') ||
           c == '@' || c == '`';

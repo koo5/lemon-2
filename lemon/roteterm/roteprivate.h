@@ -27,10 +27,10 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 
 /* Terminal private data */
 struct RoteTermPrivate_ {
-   bool escaped;              /* whether we are currently reading an
+   int escaped;              /* whether we are currently reading an
                                * escape sequence */
 
-   bool graphmode;            /* whether terminal is in graphical 
+   int graphmode;            /* whether terminal is in graphical 
                                * character mode or not */
 
   //unicoode

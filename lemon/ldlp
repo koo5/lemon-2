@@ -1,1 +1,1 @@
-export LD_LIBRARY_PATH=../../../s3d/libs3d
+export LD_LIBRARY_PATH=../../fuzzyflakes-clone/libs3d

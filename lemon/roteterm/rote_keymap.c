@@ -19,8 +19,9 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 */
 
 
+#include "stdio.h"
 #include "rote.h"
-#include "curses.h"
+//#include "curses.h"
 #include "term.h"
 #include <stdlib.h>
 #include <string.h>
