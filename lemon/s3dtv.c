@@ -397,7 +397,8 @@ static int but(struct s3d_evt *ev)
     if ((((struct s3d_but_info*)ev->buf)->button==0)&&
             (((struct s3d_but_info*)ev->buf)->state==1))
     {
-        s3d_flags_off(mouse, S3D_OF_VISIBLE);
+        //s3d_flags_off(mouse, S3D_OF_VISIBLE);
+        butt=0;
         if (globmousecopying)
             copy();
         else
@@ -469,6 +470,7 @@ static int click(struct s3d_evt *ev)
         mousex=x*10+13;
         mousey=y*26+13;
         mousez(' ', x,y);
+        butt=1;
     }
 }
 
@@ -482,7 +484,7 @@ static int camcamcam(struct s3d_evt *e)
     {
         if (butt)
         {
-            printf("BUT %f %f %f\n", event->trans_x, event->trans_y, event->trans_z);
+            printf("but %f %f %f\n", event->trans_x, event->trans_y, event->trans_z);
             mousex=((event->trans_x+1)/2)*t->cols;
             mousey=((event->trans_y+1)/2)*t->rows;
             updatemouse();
