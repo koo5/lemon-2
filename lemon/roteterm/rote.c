@@ -406,3 +406,8 @@ int rote_vt_get_pty_fd(RoteTerm *rt) {
 }
 
 
+char * rt_savelog(RoteTerm *rt, char * x)
+{
+    printf("%s\n", x);
+    return x;
+}

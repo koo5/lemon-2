@@ -1,3 +1,4 @@
+int generic=0;
 int dirty;
 #include "s3d.h"
 #include "s3d_keysym.h"
@@ -8,6 +9,7 @@ int dirty;
 int showhex=0;
 int ok=0;
 int butt=0;
+//#define S3D
 #include "glterm.c"
 
 RoteTerm *t;
@@ -132,10 +134,14 @@ void scrollup(void)
 
 void mainloop(void)
 {
+    #define UP 100
+    static int a = UP;
+    a--;
+    if (a==-1) a=UP;
     int u;
     if (!(u=rote_vt_update(t)) && !afterlife)
         s3d_quit();
-    if (dirty||((u==2)&&(t->curpos_dirty || lines_r_dirty(t))))
+    if (!a||dirty||((u==2)&&(t->curpos_dirty || lines_r_dirty(t))))
     {
         dirty=0;
         lines_r_clean(t);
@@ -255,7 +261,7 @@ static int keypress(struct s3d_evt *event)
             afterlife=!afterlife;
             break;
         case S3DK_F8:
-            loadl2();
+            loadl2("l2");
             dirty=1;
             break;
         case S3DK_F12:
@@ -522,8 +528,10 @@ static int camcamcam(struct s3d_evt *e)
     return(0);
 }
 
-
-
+static int init(struct s3d_evt *ev)
+{
+    generic=strcmp(ev->buf, "\0\1\2kook s3d server");
+}
 
 int main(int a, char **v)
 {
@@ -630,8 +638,9 @@ int main(int a, char **v)
     s3d_set_callback(S3D_EVENT_OBJ_PCLICK, click);
     s3d_set_callback(S3D_EVENT_OBJ_INFO, camcamcam);
     s3d_set_callback(S3D_EVENT_MBUTTON, but);
+//    s3d_set_callback(S3D_EVENT_INIT, init);
 
-    loadl2();
+    loadl2("l2");
     initbufs();
     s3d_mainloop(mainloop);
     rote_vt_destroy(t);

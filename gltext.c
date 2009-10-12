@@ -1,249 +1,62 @@
-float zoomx, zoomy;
-int material=0;
-#include "XY.h"
-#include "more-mess/fgetln.c"
-char ** l2=0; // non-builtin
-int l2numitems=0;// font
-void freel2(void)
-{
-    if (!l2)return;
-    printf("freeinG font\n");
-    int t;
-    for (t=0; t<l2numitems; t++)
-    {
-        printf("%i\n",t);
-        free(l2[t]);
-    }
-    free(l2);
-    l2numitems=0;
-    l2=0;
-}
-
-void loadl2(void)
-{
-    FILE * fp = fopen("l2","r");
-    if (fp == NULL)
-    {
-        printf("no go\n");
-        return;
-    }
-    freel2();
-    int l2size=100;
-    size_t s=sizeof(char *) * 100;
-    l2=malloc(s);
-    if (!l2)
-    {
-        printf("no place 4 %i byttrez\n",s);
-        return;
-    }
-    size_t len;
-    l2numitems=0;
-    while ((l2[l2numitems]=fgetln(fp, &len)))
-    {
-        printf("%i",len);
-        if (!len)printf ("_oooops_\n");
-        l2[l2numitems][len-1]=0; // hrrrm turning newline into 0
-        l2numitems++;
-        if (!(l2numitems%100))
-        {
-            char **tmp=realloc(l2,sizeof(char *) *(l2size+100));
-            if (!tmp)
-                return;
-            l2=tmp;
-            l2size+=100;
-        }
-    }
-    fclose(fp);
-}
-
-static char * sgns[] =
-{
-    "dzdptuzpznxnxpzp", /*\0*/
-    "ogooaokkktao",/*\n*/
-    "oaaooz",/*<*/
-    "azzoaazo",/*>*/
-    "akzk    aszs",/*=*/
-    "aazzooazzaoooaozooaozo",/***/
-    "@llss          owaF",/*;*/
-    "saohnoossz",	/*(*/
-    "jaohqoosjz",	/*)*/
-    "gzwa",	/*/*/
-    "luaF",/*,10*/
-    "aooooaozoozo",	/*+*/
-    "dowo",/*-*/
-    "dxxx",	/*_*/
-    "mwmzqzqwmw",/*.   14*/
-    "aoiasoza",/*~*/
-    "idqdqiiiid  ivqvqqiqiv"/*:*/,
-    "aooazohohttttr"/*?*/,
-    ""/* 18*/,
-    "gawz",/*\*/
-    "oaoz"/*|*/,
-    "oaozoozo"/*|-*/,
-    "hovnowho"/*v22*/,
-    "oaoz  hsovtvihofti"/*$*/,
-    "oaaoozzooa  ohos"/*<|>*/,
-    "-hovnowho"/*v*/
-};
-
-
-char *nums[]=
-{
-    "@aazz        ",
-    "aooaoz",
-    "ahoaazzz",
-    "aaoaajoraz",
-    "aooaaozoooohoz",
-    "azzzzoaoaaza",
-    "azzzzoaoazaaza",
-    "aazaaznmamzm",
-    "azzzzoaoazaazazo",
-    "azzzzoaoaazazo",
-};
-
-static char * chrz[] =
-{
-    /*A*/"azoazz"
-    /*B*/,"aaazzsaoziaa"
-    /*C*/,"azaazaaaazzz"
-    /*D*/,"azzmaaaz"
-    /*E*/,"azaazaaaamzmamazzz"
-    /*F*/,"azaazaaaamzmamaz"
-    /*G*/,"mommzmzzazaaza"
-    /*H*/,"azaaamzmzazz"
-    /*I*/,"mzmamz"
-    /*J*/,"itmzqtqa"
-    /*K*/,"azaaamzaamzz"
-    /*L*/,"aaazzz"
-    /*M*/,"azaammzazz"
-    /*N*/,"azaazzza"
-    /*O*/,"azaazazzaz"
-    /*P*/,"azaazazmam"
-    /*Q*/,"zzazaazazzFF"
-    /*R*/,"azaazaamzz"
-    /*S*/,"zaaaamzmzzaz"
-    /*T*/,"aazamamz"
-    /*U*/,"aaazzzza"
-    /*V*/,"aamzza"
-    /*W*/,"aaizmmrzza"
-    /*X*/,"aazzooazza"
-    /*Y*/,"aammmzmmza"
-    /*Z*/,"aazaazzz"
-};
-
-int  firstline;
-int have_first=0;
-typedef struct
-{
-    void * buf;
-    int siz;
-    int pos;
-    int dat;
-    int pep;
-}
-abuffer;
-
-abuffer vb;
-abuffer ib;
-
-void nulizze(abuffer * b)
-{
-//	b->siz=0;
-    b->pos=0;
-//	b->buf=0;
-}
-void frees(void)
-{
-    if (ib.buf)
-        free(ib.buf);
-    if (vb.buf)
-        free(vb.buf);
-}
-
-void * realloc_abuffer(abuffer * b)
-{
-    void *tmp;
-    if (tmp=realloc(b->buf, (b->siz+5000)*b->dat))
-    {
-        b->buf=tmp;
-        b->siz+=5000;
-//		printf("%i\n", b->siz);
-    }
-    return tmp;
-}
-int grow(abuffer * b)
-{
-
-    int r= b->pos < b->siz || realloc_abuffer(b);
-    if (!r)
-    {
-        printf ("no realoco\n");
-        exit(0);
-    }
-    return r;
-
-}
-void add(abuffer * b)
-{
-    b->pos++;
-}
-void addvert(float x,float y, float z)
-{
-
-    if (!grow(&vb))
-        return;
-    float*p=vb.buf;
-    p+=vb.pos*3;
-    p[0]=x;
-    p[1]=y;
-    p[2]=z;
-    add(&vb);
-}
-void addinde(int a,int b, int m)
-{
-
-    if (!grow(&ib))
-        return;
-    uint32_t *p=ib.buf;
-    p+=ib.pos*3;
-    p[0]=a;
-    p[1]=b;
-    p[2]=m;
-    add(&ib);
-}
-void initbufs(void )
-{
-    vb.siz=0;
-    ib.siz=0;
-    vb.pep=ib.pep=0;
-    vb.buf=ib.buf=0;
-    nulizze(&vb);
-    nulizze(&ib);
-    vb.dat=sizeof(float)*3;
-    ib.dat=sizeof(int)*3;
-}
-
 float xoom, yoom;
+float zoomx, zoomy;
+#include "XY.h"
+#include "linetextdata"
+#define S3D
+#ifdef S3D
+#include "s3dlines"
+#endif
+#ifdef GL
+inline void dooooot(float x,float y)
+{
+    glVertex2f(x,y);
+}
+#endif
+#ifdef SDLD
+SDL_Surface *gltextsdlsurface;
+Uint32 barvicka;
+int have_first=0;
+void glBegin(int haha)
+{
+    have_first=0;
+}
+
+inline void glColor4f(float r,float g,float b,float a)
+{
+    if (a==0)
+	barvicka=0;
+    else
+	barvicka=SDL_MapRGBA( gltextsdlsurface->format ,r*255,g*255,b*255,a*255);
+}
+
 void dooooot(float x,float y)
 {
-    x=x*xoom;
-    y=y*yoom;
-    static float firstx, firsty;
-    if (have_first)
+    static Uint32 firstc;
+    static Sint16 firstx, firsty;
+        
+    if (y<1)y=1;    if (x<1)x=1;
+    if(y>gltextsdlsurface->h-2)y=gltextsdlsurface->h-2;
+    if(x>gltextsdlsurface->w-2)x=gltextsdlsurface->w-2;
+    if(have_first)
     {
-        addvert(x,y,0);
-        addinde(vb.pos-1,vb.pos-2,material);
-        firstx=x;
-        firsty=y;
+	if(barvicka&&firstc)
+	    Draw_Line(gltextsdlsurface,firstx,firsty,x,y,barvicka);
+	firstx=x;	firsty=y;
+	firstc=barvicka;
     }
     else
     {
-        firstx=x;
-        firsty=y;
-        have_first=1;
-        addvert(x,y,0);
+	have_first=1;
+	firstx=x;
+	firsty=y;
+	firstc=barvicka;
     }
 }
+#endif
+
+
+
+
 
 
 void azspillit(xy lok,char *x,float a,float z)
@@ -605,19 +418,5 @@ void draw_line(int x,int y,const char *a)
     }
     while (1);
 
-}
-
-int tex;
-
-void bpep()
-{
-    s3d_pop_vertex(tex,vb.pep);
-    s3d_push_vertices(tex, vb.buf, vb.pos);
-    vb.pep=vb.pos;
-    s3d_pop_line(tex,ib.pep);
-    s3d_push_lines(tex, ib.buf, ib.pos);
-    ib.pep=ib.pos;
-    nulizze(&ib);
-    nulizze(&vb);
 }
 

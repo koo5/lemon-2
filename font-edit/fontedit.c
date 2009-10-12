@@ -308,7 +308,7 @@ void spc()
 
 void ll2()
 {
-    loadl2();
+    loadl2("l2");
     disp();
 }
 
@@ -467,7 +467,7 @@ int main(int a, char **v)
         s3d_flags_on(aoo, S3D_OF_VISIBLE);
 
         showpos();
-        loadl2();
+        loadl2("l2");
         if (!l2)return 1;
         disp();
 

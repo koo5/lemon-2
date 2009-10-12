@@ -28,16 +28,28 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #define true 1
 #define false 0
 
+char * linetochar(RoteTerm *rt,int l)
+{
+    int j;
+    char *ble;
+    ble=(char*)malloc(rt->cols+1);
+    for (j=0;j<rt->cols;j++)
+	ble[j]=rt->cells[l][j].ch;
+    ble[rt->cols]=0;
+    return ble;
+}
+
+
 static void cursor_line_down(RoteTerm *rt) {
    int i;
    rt->crow++;
    rt->curpos_dirty = true;
    if (rt->crow <= rt->pd->scrollbottom) return;
-
+//printf("scrollin\n");
    /* must scroll the scrolling region up by 1 line, and put cursor on 
     * last line of it */
    rt->crow = rt->pd->scrollbottom;
-   
+   free(rt_savelog(rt,linetochar(rt,rt->pd->scrolltop)));
    for (i = rt->pd->scrolltop; i < rt->pd->scrollbottom; i++) {
       rt->line_dirty[i] = true;
       memcpy(rt->cells[i], rt->cells[i+1], sizeof(RoteCell) * rt->cols);
@@ -62,6 +74,7 @@ static void cursor_line_up(RoteTerm *rt) {
    /* must scroll the scrolling region up by 1 line, and put cursor on 
     * first line of it */
    rt->crow = rt->pd->scrolltop;
+  // free(rt_savelog(rt,linetochar(rt,rt->pd->scrollbottom)));
    
    for (i = rt->pd->scrollbottom; i > rt->pd->scrolltop; i--) {
       rt->line_dirty[i] = true;

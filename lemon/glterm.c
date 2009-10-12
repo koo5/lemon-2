@@ -14,7 +14,6 @@ void draw_terminal(RoteTerm * rt, int showhex)
         lok.y=(i*-25+rt->rows*25/2)-25;
         for (j=0; j<rt->cols; j++)
         {	//12.5
-            //#define wdt 10
             lok.x=(j*wdt-rt->cols*wdt/2);
             if (1)//draw_edges_between_different_bgs
             {
@@ -32,7 +31,7 @@ void draw_terminal(RoteTerm * rt, int showhex)
                         azspillit(lok,"aaza",1/1.25,1);
             }
 //	    printf("%i",ROTE_ATTR_FG(rt->cells[i][j].attr));
-            material=(rt->cells[i][j].attr&248)>>3;
+            material=(rt->cells[i][j].attr&248)>>3;//forget bg color
             draw(lok,rt->cells[i][j].ch);
             material=0;
             int selectedtext;

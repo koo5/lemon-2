@@ -153,6 +153,7 @@ void rote_vt_resize(RoteTerm *rt,int rows, int cols);
 /* Destroys a virtual terminal previously created with
  * rote_vt_create. If rt == NULL, does nothing. */
 void rote_vt_destroy(RoteTerm *rt);
+char * rt_savelog(RoteTerm *rt, char * x);
 
 /* Starts a forked process in the terminal. The <command> parameter
  * is a shell command to execute (it will be interpreted by '/bin/sh -c') 
