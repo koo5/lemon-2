@@ -97,26 +97,26 @@ void draw_terminal(roteface *f)
     int isundercursor;
     for (i=0; i<rt->rows; i++)
     {
-	lok.y=i*26;
+	lok.y=i*26*f->scale;
 	int gotlog=1;
 	for (j=0; j<rt->cols; j++)
 	{
-	    lok.x=j*13;
+	    lok.x=j*13*f->scale;
 	    if(!tscroll)//draw_edges_between_different_bgs
 	    {
 		//halflight=1;
 		if((j>0))
 		    if((ROTE_ATTR_BG(rt->cells[i][j-1].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"aaaz",1);
+			zspillit(lok,"aaaz",f->scale);
 		if((j<rt->cols-1))
 		    if((ROTE_ATTR_BG(rt->cells[i][j+1].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"zazz",1);
+			zspillit(lok,"zazz",f->scale);
 		if((i<rt->rows-1))
 		    if((ROTE_ATTR_BG(rt->cells[i+1][j].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"azzz",1);
+			zspillit(lok,"azzz",f->scale);
 		if((i>0))
 		    if((ROTE_ATTR_BG(rt->cells[i-1][j].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
-			zspillit(lok,"aaza",1);
+			zspillit(lok,"aaza",f->scale);
 		//halflight=0;
 	    }
 	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
@@ -160,7 +160,7 @@ void draw_terminal(roteface *f)
 */
 	    if(isundercursor)
 	    {	// but still cursor square
-		zspillit(lok,nums[0],1.2);
+		zspillit(lok,nums[0],1.2*f->scale);
 	    }
 
 //#endif

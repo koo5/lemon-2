@@ -94,6 +94,7 @@ typedef struct
     limits lim;
     void * next;
     moomoo upd_t_data;
+    double scale;
 } roteface;
 
 
@@ -310,6 +311,7 @@ roteface * add_face(void)
     f->x=0;
     f->y=1;
     f->t=0;
+    f->scale=1;
 }
 
 void add_terminal(roteface * f)
@@ -476,8 +478,8 @@ void  showfaces(roteface * g)
 	    glTranslatef(g->x,g->y,0);
 #endif
 #ifdef SDLD
-	    gltx=g->x-cam.x;
-	    glty=g->y-cam.y;
+	    gltx=g->x+cam.x;
+	    glty=g->y+cam.y;
 #endif
 	    showface(g);
 	    g=g->next;
@@ -764,14 +766,14 @@ int RunGLTest (void)
 							case SDLK_p:
 							    saveScreenshot();
 							break;
-#ifdef GL
 							case SDLK_F9:
-							    lv-=1;      glLineWidth(lv);
+							    activeface->scale-=0.05;
+							    
 							break;
 							case SDLK_F10:
-							    lv+=1;      glLineWidth(lv);
+							    activeface->scale+=0.05;
+
 							break;
-#endif
 							case SDLK_F11:
 							    shrink=1;
 							break;
