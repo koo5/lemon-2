@@ -59,7 +59,7 @@ xy cam;//
 typedef struct 
 {
     int x,y,x2,y2;
-}	
+}       
 limits;
 
 typedef struct
@@ -68,6 +68,7 @@ typedef struct
     SDL_mutex *lock;
 }
 moomoo;
+
 
 
 typedef struct
@@ -84,7 +85,7 @@ typedef struct
 
 
 
-#include "gltext.c"
+#include "../gltext.c"
 
 float floabs(float x)
 {
@@ -101,7 +102,7 @@ float lv=1;
 void keyp(roteface* f, char ey)
 {
     if (f->t)
-        rote_vt_keypress(f->t,ey);
+	rote_vt_keypress(f->t,ey);
 }
 
 
@@ -136,12 +137,12 @@ int update_terminal(void *data)
 //     printf("UNLOCKED SELECT\n");
       rote_vt_update_thready(buf, 512, &br, d->t);
 //     printf("*end SELECT, locking %i*\n", d->lock);
-        _mutexP(d->lock);
+	_mutexP(d->lock);
 //        printf("LOCKED\n");
 
       if (br>0)
       {
-        /* inject the data into the terminal */
+	/* inject the data into the terminal */
 //        printf("*locked injecting\n");
 	rote_vt_inject(d->t, buf, br);
 //        printf("*locked injected\n");
@@ -153,13 +154,13 @@ int update_terminal(void *data)
       
       if(!d->t->childpid)
       {
-        printf("Segmentation Fault\n");
+	printf("Segmentation Fault\n");
 	SDL_Event e;
 	e.type=SDL_USEREVENT;
 	e.user.code=1;
 	e.user.data1=d->t;
 	SDL_PushEvent(&e);
-        _mutexV(d->lock);
+	_mutexV(d->lock);
 	return 777;
       }
       _mutexV(d->lock);
@@ -196,7 +197,54 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
     xx.w=w;
     xx.h=h;
     return &xx;
-}	
+}       
+
+
+#ifdef GL
+// adjust s and r1 to keep terminal on screen
+int zoomize(roteface *f)
+{
+	GLdouble model_view[16];
+	glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
+	GLdouble projection[16];
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+	GLint viewport[4];
+	viewport[0]=0;	viewport[1]=0; viewport[2]=1;	viewport[3]=1;
+	double a,b,c,d,e;	
+	gluProject(f->lim.x, f->lim.y, 0,model_view, projection, viewport,&a,&b,&c);
+	gluProject(f->lim.x2,f->lim.y2,0,model_view, projection, viewport,&d,&e,&c);
+	if(isnan(a))a=0.1;
+	if(isnan(b))b=0.1;
+	if(isnan(d))d=0.8;
+	if(isnan(e))e=0.8;
+	int eee=0;
+	if(d-a>0.97)
+	{eee++;
+	    sx*=0.9;}
+	if(d-a<0.9)
+	{eee++;
+	    sx*=1.01;}
+	if(floabs(b-e)<0.9)
+	{eee++;
+	    sy*=1.01;}
+	if(floabs(b-e)>0.91)
+	{eee++;
+	    sy*=0.9;}
+	if(a<f->x1)
+	{eee++;r1x+=0.01;}
+	if(a>f->x1+0.01)
+	{eee++;r1x-=0.1;}
+	if(b>f->y1)
+	{eee++;r1y-=0.1;}
+	if(b<f->y1-0.1)
+	{eee++;r1y+=0.1;}
+	//printf("%i",eee);
+	return eee;
+}
+//e.x1=0
+//e.y1=1;
+#endif
+
 	
 void resizooo(roteface *f, int x, int y, Uint8* duck)
 {
@@ -289,7 +337,7 @@ void lockterms(roteface * f)
     {
 	_mutexP(f->upd_t_data.lock);
 	f=f->next;
-//	printf(".\n");
+//      printf(".\n");
     }
 //    printf("done\n");
 }
@@ -370,7 +418,7 @@ roteface *getprevface(roteface* f1,roteface* f)
 	cyc=cyc->next;
     }
     return 0;
-}	
+}       
     
 
 
@@ -409,8 +457,10 @@ void  showfaces(roteface * g)
 	    glPushMatrix();
 	    glTranslatef(g->x,g->y,0);
 #endif
+	    gltx=g->x;
+	    glty=g->y;
 	    showface(g);
-            g=g->next;
+	    g=g->next;
 #ifdef GL
 	    glPopMatrix();
 #endif
@@ -432,14 +482,14 @@ void shownerv(struct state *nerv)
 void krychlus(roteface *g)
 {
 	int nf;
-//	glScalef(0.2,0.2,1);
-        nf=countfaces(g);
+//      glScalef(0.2,0.2,1);
+	nf=countfaces(g);
 	printf("%i\n " ,nf / 6);
 	while(g)
 	{
 	    showface(g);
 	    glTranslatef(200,200,0);
-            g=g->next;
+	    g=g->next;
 	}
 }
 #endif
@@ -464,7 +514,8 @@ int RunGLTest (void)
 	int done = 0;
 	int shrink=0;
 	int grow=0;
-	int gofullscreen=0;
+	int gofullscreen=1;
+	int escaped = 0;
 	int mustresize = 1;
 	int justresized = 0;
 	xy  ss = parsemodes(w,h,"mode",1,0,0);
@@ -512,8 +563,8 @@ int RunGLTest (void)
 	int dirty=1;
 	printf("mainloop descent commencing\n");
 	while( !done )
-	{	
-	        lockterms(face1);
+	{       
+		lockterms(face1);
 
 
 		if(dirty||faces_dirty(face1))
@@ -523,7 +574,7 @@ int RunGLTest (void)
 #ifdef GL
 			glClear(GL_COLOR_BUFFER_BIT);
 #else
-			SDL_FillRect	( s, NULL, 0 );
+			SDL_FillRect    ( s, NULL, 0 );
 
 #endif
 
@@ -582,7 +633,7 @@ int RunGLTest (void)
 				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
 			else if(gl_error==GL_INVALID_OPERATION)
 				printf("INVALID OPERATION, PATIENT EXPLODED\n");
-			else	fprintf( stderr, "testgl: OpenGL error: %d\n", gl_error );
+			else    fprintf( stderr, "testgl: OpenGL error: %d\n", gl_error );
 			
 		}
 #endif
@@ -597,19 +648,19 @@ int RunGLTest (void)
 		SDL_TimerID x=0;
 		if(dirty)
 		    x= SDL_AddTimer(55, NewTimerCallback, 0);
-		                     
+				     
 		unlockterms(face1);
-//		printf("---------unlocked wating\n");
+//              printf("---------unlocked wating\n");
 		SDL_Event event;
 		if(SDL_WaitEvent( &event ))
 		{
-	    	    lockterms(face1);
-//		    printf("---------locked goooin %i\n", event.type);
-		    if(x)SDL_RemoveTimer(x);x=0;	    	    
+		    lockterms(face1);
+//                  printf("---------locked goooin %i\n", event.type);
+		    if(x)SDL_RemoveTimer(x);x=0;                    
 		    do {
 			int mod=event.key.keysym.mod;
 			int key=event.key.keysym.sym;
-    			Uint8 *keystate = SDL_GetKeyState(NULL);
+			Uint8 *keystate = SDL_GetKeyState(NULL);
 
 			switch( event.type )
 			{
@@ -638,21 +689,25 @@ int RunGLTest (void)
 				}
 				break;
 				case SDL_KEYDOWN:
-				
+					if(!activeface->t)
+						add_terminal(activeface);
 
 					if(mod&KMOD_RSHIFT&&(key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 					{
+						dirty=1;
 						if(key==SDLK_PAGEUP)
 							tscroll+=9;
 						if(key==SDLK_PAGEDOWN)
 							tscroll-=9;
 						if(tscroll<0)tscroll=0;
-//						printf("scroll:%i,logl:%i, log&%i, t:%i ,b:%i\n", tscroll,activeface->t->logl, activeface->t->log,activeface->t->scrolltop,activeface->t->scrollbottom);
+//                                              printf("scroll:%i,logl:%i, log&%i, t:%i ,b:%i\n", tscroll,activeface->t->logl, activeface->t->log,activeface->t->scrolltop,activeface->t->scrollbottom);
 					}
 					else
-					if(key==SDLK_RCTRL||mod&KMOD_RCTRL)
+					if(key==SDLK_RCTRL||mod&KMOD_RCTRL||escaped)
 					{
 						dirty=1;
+						escaped=0;
+						if(key==SDLK_RCTRL) escaped=1;
 						switch (key)
 						{
 							case SDLK_TAB:
@@ -691,10 +746,10 @@ int RunGLTest (void)
 							break;
 #ifdef GL
 							case SDLK_F9:
-							    lv-=1;	glLineWidth(lv);
+							    lv-=1;      glLineWidth(lv);
 							break;
 							case SDLK_F10:
-							    lv+=1;	glLineWidth(lv);
+							    lv+=1;      glLineWidth(lv);
 							break;
 #endif
 							case SDLK_F11:
@@ -728,12 +783,12 @@ int RunGLTest (void)
 								if(nerv)
 								{
 									nerverot_free(nerv);
-							        	dirty=1;
+									dirty=1;
 									nerv=0;
 								}
 								else
 								{
-							        	nerv=nerverot_init(w,h);
+									nerv=nerverot_init(w,h);
 									
 									dirty=1;
 								}
@@ -794,45 +849,45 @@ int RunGLTest (void)
 						magic( "knp");
 					    else
 					    if ( (key == SDLK_INSERT) )
-					    	magic( "kich1");
+						magic( "kich1");
 					    else
 					    if ( (key == SDLK_PAGEUP) )
 						magic ( "kpp" );
 					    else
 					    if ( (key == SDLK_RETURN) )
-						keyp(activeface,10);
+						keyp(activeface,13);
 					    else
 					    if( event.key.keysym.unicode && ( (event.key.keysym.unicode & 0xFF80) == 0 ) )
 						keyp(activeface, event.key.keysym.unicode);
 					}
 				break;
-	 			case SDL_QUIT:
+				case SDL_QUIT:
 					done = 1;
 					break;
 #ifndef GL
-	 			case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEBUTTONDOWN:
 					rote_vt_mousedown(activeface->t,event.button.x/13, event.button.y/26);
 					break;
-	 			case SDL_MOUSEBUTTONUP:
+				case SDL_MOUSEBUTTONUP:
 					rote_vt_mouseup  (activeface->t,event.button.x/13, event.button.y/26);
 					break;
-	 			case SDL_MOUSEMOTION:
+				case SDL_MOUSEMOTION:
 					rote_vt_mousemove(activeface->t,event.button.x/13, event.button.y/26);
 					break;
 #endif
 				case SDL_VIDEORESIZE:
 				    {
 					w=event.resize.w;h=event.resize.h;
-//					printf("videoresize %i %i\n", w,h);
+//                                      printf("videoresize %i %i\n", w,h);
 					dirty=1;
 					if (s=SDL_SetVideoMode( w,h, bpp, s->flags ) ) 
-//						printf("hmm\n");
+//                                              printf("hmm\n");
 					wm(w,h);
 				    if(!justresized)
 
 					mustresize=1;
-				        justresized=0;
-				        
+					justresized=0;
+					
 				    }
 
 					break;
@@ -845,25 +900,25 @@ int RunGLTest (void)
 		    while (SDL_PollEvent(&event));
 		    if (shrink||grow)
 		    { 
-		        resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
-		        wm(w,h);
+			resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
+			wm(w,h);
 		    }
 		    if (mustresize)
 		    {
 			mustresize=0;
 			justresized=1;
-//			if(activeface->t->cols!=event.resize.w/13/rastio||
-//			    activeface->t->rows!=event.resize.h/26/rastio)
+//                      if(activeface->t->cols!=event.resize.w/13/rastio||
+//                          activeface->t->rows!=event.resize.h/26/rastio)
 				//rote_vt_resize(activeface->t,event.resize.h/26/rastio ,event.resize.w/13/rastio);
 		    }
 		    if(gofullscreen)
 			if(s->flags & SDL_FULLSCREEN )
 			{
-    			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
-			
+			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
+			    printf("gooin !fuulin");
 			}
 			else
-    			    s=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
+			    s=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
 		    gofullscreen=0;
 		    unlockterms(face1);
 		}

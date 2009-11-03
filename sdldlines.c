@@ -1,0 +1,42 @@
+SDL_Surface *gltextsdlsurface;
+Uint32 barvicka;
+int have_first=0;
+int gltx,glty;
+
+void glBegin(int haha)
+{
+    have_first=0;
+}
+
+inline void glColor4f(float r,float g,float b,float a)
+{
+    if (a==0)
+	barvicka=0;
+    else
+	barvicka=SDL_MapRGBA( gltextsdlsurface->format ,r*255,g*255,b*255,a*255);
+}
+
+void dooooot(float x,float y)
+{
+    static Uint32 firstc;
+    static Sint16 firstx, firsty;
+        x=x+gltx;
+        y=y+glty;
+    if (y<1)y=1;    if (x<1)x=1;
+    if(y>gltextsdlsurface->h-2)y=gltextsdlsurface->h-2;
+    if(x>gltextsdlsurface->w-2)x=gltextsdlsurface->w-2;
+    if(have_first)
+    {
+	if(barvicka&&firstc)
+	    Draw_Line(gltextsdlsurface,firstx,firsty,x,y,barvicka);
+	firstx=x;	firsty=y;
+	firstc=barvicka;
+    }
+    else
+    {
+	have_first=1;
+	firstx=x;
+	firsty=y;
+	firstc=barvicka;
+    }
+}
