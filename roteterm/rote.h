@@ -127,6 +127,7 @@ typedef struct RoteTerm_ {
    pid_t childpid;              /* pid of the child process running in the
                                  * terminal; 0 for none. This is READ-ONLY. */
 
+    int cursorhidden;
    RoteTermPrivate *pd;         /* private state data */
    /* --- dirtiness flags: the following flags will be raised when the
     * corresponding items are modified. They can only be unset by YOU

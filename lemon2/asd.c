@@ -74,6 +74,7 @@ inline void dooooot(float x,float y)
 #include "../gltext.c"
 
 double rastio=1;
+int theme=1;
 
 
 typedef struct
@@ -416,8 +417,8 @@ void focusline(roteface * activeface)
     if(angel>2*3.14159265358979323846264)angel=0;
     glEnd();
 #else
-    Draw_Line(gltextsdlsurface,activeface->x,activeface->y,activeface->x+100,activeface->y,barvicka);
-    Draw_Line(gltextsdlsurface,activeface->x,activeface->y+100,activeface->x,activeface->y,barvicka);
+    DrawLine(gltextsdlsurface,activeface->x,activeface->y,activeface->x+100,activeface->y,barvicka);
+    DrawLine(gltextsdlsurface,activeface->x,activeface->y+100,activeface->x,activeface->y,barvicka);
 #endif
 
 }
@@ -475,8 +476,8 @@ void  showfaces(roteface * g)
 	    glTranslatef(g->x,g->y,0);
 #endif
 #ifdef SDLD
-	    gltx=g->x;
-	    glty=g->y;
+	    gltx=g->x-cam.x;
+	    glty=g->y-cam.y;
 #endif
 	    showface(g);
 	    g=g->next;
@@ -684,21 +685,21 @@ int RunGLTest (void)
 			switch( event.type )
 			{
 			
-#ifdef GL
 				case SDL_MOUSEMOTION:
 				if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
 				{
+					dirty=1;
 					activeface->x+=event.motion.xrel;
 					activeface->y+=event.motion.yrel;
 				}
 				if((SDL_BUTTON(3)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
 				{
+					dirty=1;
 					cam.x-=event.motion.xrel;
 					cam.y-=event.motion.yrel;
 				}
 				
 				break;
-#endif
 				case SDL_KEYUP:
 				{
 					if ( (key == SDLK_RCTRL) )
@@ -779,6 +780,16 @@ int RunGLTest (void)
 							    done=1;
 							    
 							break;
+							case SDLK_LEFT:
+							    theme--;
+							    if (theme<0)theme=0;
+							    
+							    break;
+							case SDLK_RIGHT:
+							    theme++;
+							    if (theme>2)theme=2;
+							    
+							    break;
 							case SDLK_PAGEUP:
 							     mode++;
 							     if(mode>mm)mode= mm;
@@ -885,7 +896,7 @@ int RunGLTest (void)
 				case SDL_QUIT:
 					done = 1;
 					break;
-#ifndef GL
+/*#ifndef GL
 				case SDL_MOUSEBUTTONDOWN:
 					rote_vt_mousedown(activeface->t,event.button.x/13, event.button.y/26);
 					break;
@@ -895,7 +906,7 @@ int RunGLTest (void)
 				case SDL_MOUSEMOTION:
 					rote_vt_mousemove(activeface->t,event.button.x/13, event.button.y/26);
 					break;
-#endif
+#endif*/
 				case SDL_VIDEORESIZE:
 				    {
 					w=event.resize.w;h=event.resize.h;

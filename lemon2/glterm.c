@@ -122,10 +122,17 @@ void draw_terminal(roteface *f)
 	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
 	    int color=((rt->cells[i][j].attr));
 	    
-	    glColor4f(1,color/255.0,color/255.0,1);
-	    //if(color!=112)printf("%i", color);
+	    if(!theme)
+	        glColor4f(1,color/255.0,color/255.0,1);
+	    else if (theme==1)
+	        glColor4f(color/255.0,1,color/255.0,1);
+	    else if (theme==2)
+	        glColor4f(color/255.0,color/255.0,1,1);
+
+		
+
 	    	    
-	    isundercursor=(!tscroll)&&((rt->ccol==j)&&(rt->crow==i));
+	    isundercursor=(!rt->cursorhidden)&&(!tscroll)&&((rt->ccol==j)&&(rt->crow==i));
 	    //actually , not selected but under cursor
 /*
 #ifdef GL

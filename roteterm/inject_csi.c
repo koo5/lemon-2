@@ -316,7 +316,12 @@ void rote_es_interpret_csi(RoteTerm *rt) {
      {
 //	P s = 1 → Application Cursor Keys (DECCKM)
     }
-     else if (!strncmp(rt->pd->esbuf, "[?1001s", 4))
+     else if (!strncmp(rt->pd->esbuf, "[?25l", 5))
+	rt->cursorhidden=1;
+     else if (!strncmp(rt->pd->esbuf, "[?25h", 5))
+	rt->cursorhidden=0;
+    
+     else if (!strncmp(rt->pd->esbuf, "[?1001s", 7))
      {
 //    Save DEC Private Mode Values. P s values are the same as for DECSET.
     }

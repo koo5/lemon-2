@@ -138,6 +138,7 @@ RoteTerm *rote_vt_create(int rows, int cols) {
 
    rt->log=0;
    rt->logl=0;
+    rt->cursorhidden=0;
    /* create the cell matrix */
    rt->cells = (RoteCell**) malloc(sizeof(RoteCell*) * rt->rows);
    for (i = 0; i < rt->rows; i++) {
