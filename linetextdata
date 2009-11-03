@@ -1,4 +1,4 @@
-#include "more-mess/fgetln.c"
+//#include "more-mess/fgetln.c"
 char ** l2=0; // non-builtin
 int l2numitems=0;// font
 void freel2(void)

@@ -34,33 +34,47 @@
 #include <stdio.h>
 #include <signal.h>
 #include <X11/Xlib.h>
-#include <roteterm/rote.h>
+#include <../roteterm/rote.h>
+#include "../XY.h"
 #include "modes.c"
-#include "more-mess/rdfl.c"
-#include "more-mess/resize.c"
+#include "../more-mess/rdfl.c"
+#include "../more-mess/resize.c"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
 #ifdef GL
 #include "SDL_opengl.h"
+
 #ifdef nerve
-#include "toys/nerverot/stolenfromglu"
-#include "toys/nerverot/nerverot.c"
+#include "../toys/nerverot/stolenfromglu"
+#include "../toys/nerverot/nerverot.c"
 #endif
+
 #else
 #include "SDL_draw.h"
 #endif
+
 #include "initsdl.c"
 #include "screenshot.c"
 
-char *newtermmsg;//
-xy cam;//
 
-
-typedef struct 
+#ifdef GL
+inline void dooooot(float x,float y)
 {
-    int x,y,x2,y2;
-}       
-limits;
+    glVertex2f(x,y);
+}
+#endif
+
+#ifdef SDLD
+#include "../sdldlines.c"
+#endif
+
+
+
+
+#include "../gltext.c"
+
+double rastio=1;
+
 
 typedef struct
 {
@@ -68,8 +82,6 @@ typedef struct
     SDL_mutex *lock;
 }
 moomoo;
-
-
 
 typedef struct
 {
@@ -84,8 +96,13 @@ typedef struct
 } roteface;
 
 
+#include "glterm.c"
 
-#include "../gltext.c"
+char *newtermmsg;//
+xy cam;//
+
+
+
 
 float floabs(float x)
 {
@@ -200,7 +217,7 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
 }       
 
 
-#ifdef GL
+#ifdef Limits
 // adjust s and r1 to keep terminal on screen
 int zoomize(roteface *f)
 {
@@ -457,8 +474,10 @@ void  showfaces(roteface * g)
 	    glPushMatrix();
 	    glTranslatef(g->x,g->y,0);
 #endif
+#ifdef SDLD
 	    gltx=g->x;
 	    glty=g->y;
+#endif
 	    showface(g);
 	    g=g->next;
 #ifdef GL
@@ -554,7 +573,7 @@ int RunGLTest (void)
 	printf("still?\n");
 	add_terminal(face1);
 	printf("2threaad\n");
-	loadl2();
+	loadl2("l2");
 	struct state *nerv=0;
 #ifdef nerve
 	nerv=nerverot_init(w,h);
@@ -739,7 +758,7 @@ int RunGLTest (void)
 							    savemode(w,h);
 							break;
 							case SDLK_F8:
-							    loadl2();
+							    loadl2("l2");
 							break;
 							case SDLK_p:
 							    saveScreenshot();

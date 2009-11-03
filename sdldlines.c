@@ -2,8 +2,13 @@ SDL_Surface *gltextsdlsurface;
 Uint32 barvicka;
 int have_first=0;
 int gltx,glty;
+#define GL_LINE_STRIP 0
 
-void glBegin(int haha)
+void glEnd()
+{
+}
+
+void glBegin(int aha)
 {
     have_first=0;
 }

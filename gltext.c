@@ -1,21 +1,7 @@
 float xoom, yoom;
 float zoomx, zoomy;
-#include "XY.h"
+//#include "XY.h"
 #include "linetextdata"
-
-#ifdef GL
-inline void dooooot(float x,float y)
-{
-    glVertex2f(x,y);
-}
-#endif
-#ifdef S3D
-#include "s3dlines"
-#endif
-#ifdef SDLD
-#include "sdldlines.c"
-#endif
-
 
 
 
@@ -25,7 +11,9 @@ void azspillit(xy lok,char *x,float a,float z)
 {
 
     int first=1; /*were drawin 1st dot*/
+#ifdef SDLD
     have_first=0;
+#endif
     int xdot,ydot;
     float fxdot;
     float fydot;
@@ -42,7 +30,11 @@ void azspillit(xy lok,char *x,float a,float z)
         {
             x++;
             x++;
+#ifdef SDLD
+
             have_first=0;
+#endif
+
             first=1;
         }
         else

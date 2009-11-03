@@ -37,9 +37,9 @@
  */
 #include <errno.h> 
 #include "string.h"
-char *
-fgetln(FILE *fp,
-	size_t *len)
+
+
+char *fgetln(FILE *fp,	size_t *len)
 {
 
 	char *buf = NULL;

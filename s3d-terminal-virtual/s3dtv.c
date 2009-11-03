@@ -5,7 +5,11 @@ int dirty;
 #include "stdio.h"
 #include "stdlib.h"
 #include "roteterm/rote.h"
+
+#include "s3dlines"
 #include "../gltext.c"
+//tohle patri ksobe
+
 int showhex=0;
 int ok=0;
 int butt=0;

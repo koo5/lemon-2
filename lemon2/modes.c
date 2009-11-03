@@ -6,10 +6,10 @@ long long strtonum(const char *nptr, long long minval, long long maxval, const c
 #endif
 
 #ifndef HAVE_FGETLN
-#include "more-mess/fgetln.c"
+#include "../more-mess/fgetln.c"
 #endif
 
-#include "XY.h"        
+//#include "../XY.h"        
 
 // modes are compared by w so 2 cant have same ws
 struct XY parsemodeline(char *r)
