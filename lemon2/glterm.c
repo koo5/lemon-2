@@ -1,5 +1,6 @@
 int halflight;
 
+
 void draw_text(char *a)
 {
     if(!a)return;
@@ -89,6 +90,9 @@ void draw_terminal(roteface *f)
 #endif
     xy lok;
     lok.x=0;    lok.y=0;
+
+
+
     int i,j;
     int isundercursor;
     for (i=0; i<rt->rows; i++)

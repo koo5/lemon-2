@@ -7,6 +7,7 @@ float zoomx, zoomy;
 
 
 
+
 void azspillit(xy lok,char *x,float a,float z)
 {
 
@@ -17,11 +18,11 @@ void azspillit(xy lok,char *x,float a,float z)
     int xdot,ydot;
     float fxdot;
     float fydot;
-    int flip2=1;
+    int flip2=0;
     int flip=0;
     while ((*x)&&(*(x+1)))
     {
-        flip2=flip2&&!((*x==45)&&x++);
+        flip2=flip2||((*x==45)&&x++);//bug
         if (!(*(x+1)))break; // -
         flip=flip||((*x==124)&&x++);
         if (!(*(x+1)))break; // |

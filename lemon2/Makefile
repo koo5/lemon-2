@@ -32,10 +32,12 @@ TARGETS = lsdl lgl
 all: $(TARGETS)
 
 
-lgl$(EXE): $(srcdir)/asd.c
-	$(CC)   -o $@ $? -O2  -lpng $(GLLIBS) $(CFLIBS) -Dnerve
+lgl$(EXE): $(srcdir)/../gltext.c glterm.c $(srcdir)/asd.c
+	$(CC)   -o $@ asd.c  -O2  -lpng $(GLLIBS) $(CFLIBS) -Dnerve
 
-lsdl$(EXE): $(srcdir)/asd.c
-	$(CC)  -o $@ $? -DSDLD  $(CFLIBS) -O2  -lpng   -Xlinker   \
+lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c glterm.c 
+	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS) -O2  -lpng   -Xlinker   \
 	    -g  /usr/local/lib/libSDL_draw.a
 
+clean:
+	rm ./lgl ./lsdl

@@ -1,5 +1,5 @@
 SDL_Surface *gltextsdlsurface;
-Uint32 barvicka;
+Uint32 barvicka=255;
 int have_first=0;
 int gltx,glty;
 #define GL_LINE_STRIP 0
