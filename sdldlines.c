@@ -18,7 +18,7 @@ inline void glColor4f(float r,float g,float b,float a)
     if (a==0)
 	barvicka=0;
     else
-	barvicka=SDL_MapRGBA( gltextsdlsurface->format ,r*255,g*255,b*255,a*255);
+	barvicka=SDL_MapRGBA( gltextsdlsurface->format ,r*255.0f,g*255.0f,b*255.0f,a*255.0f);
 }
 
 void dooooot(float x,float y)

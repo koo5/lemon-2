@@ -315,7 +315,7 @@ void add_terminal(roteface * f)
 {
     printf("adding terminal|");
     RoteTerm* t;
-    t= rote_vt_create(25,80);
+    t= rote_vt_create(25,90);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     f->t=t;
     f->upd_t_data.lock=SDL_CreateMutex();
@@ -528,8 +528,8 @@ int RunGLTest (void)
 	cam.x=0;
 	cam.y=0;
 	int bpp;
-	int w = 200;
-	int h = 200;
+	int w = 1280;
+	int h = 800;
 	int done = 0;
 	int shrink=0;
 	int grow=0;
@@ -775,7 +775,9 @@ int RunGLTest (void)
 							    shrink=1;
 							break;
 							case SDLK_F12:
-							    grow=1;
+							    //grow=1;
+							    done=1;
+							    
 							break;
 							case SDLK_PAGEUP:
 							     mode++;
@@ -931,13 +933,17 @@ int RunGLTest (void)
 				//rote_vt_resize(activeface->t,event.resize.h/26/rastio ,event.resize.w/13/rastio);
 		    }
 		    if(gofullscreen)
+		    {
+			dirty=1;
 			if(s->flags & SDL_FULLSCREEN )
 			{
+			
 			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
 			    printf("gooin !fuulin");
 			}
 			else
 			    s=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
+		    }
 		    gofullscreen=0;
 		    unlockterms(face1);
 		}

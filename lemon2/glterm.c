@@ -119,7 +119,11 @@ void draw_terminal(roteface *f)
 			zspillit(lok,"aaza",1);
 		//halflight=0;
 	    }
-	    //bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
+	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
+	    int color=((rt->cells[i][j].attr));
+	    
+	    glColor4f(1,color/255.0,color/255.0,1);
+	    //if(color!=112)printf("%i", color);
 	    	    
 	    isundercursor=(!tscroll)&&((rt->ccol==j)&&(rt->crow==i));
 	    //actually , not selected but under cursor
