@@ -100,7 +100,7 @@ static void spillit(xy lok,char *x)
 
 
 
-static xy draw(xy lok,unsigned int i)
+static xy draw(xy lok,unsigned int i, double s)
 {
     xy nlok;
     nlok=lok;
@@ -111,40 +111,41 @@ static xy draw(xy lok,unsigned int i)
             if (l2[i])
                 if (strlen(l2[i]))
                 {
-                    zspillit(lok,l2[i],0.7);
+                    zspillit(lok,l2[i],0.7*s);
                     return nlok;
                 }
 
     if (!((i<65)||((i>90)&&(i<97))||(i>122)))
     {
         if ((i>='A')&&(i<='Z'))
-            zspillit(lok,chrz[i-'A'],0.8);
+            zspillit(lok,chrz[i-'A'],0.8*s);
         else
         {
-            zspillit(lok,chrz[i-'a'],0.5);
+            zspillit(lok,chrz[i-'a'],0.5*s);
         }
         return nlok;
     }
     else if ((i>47)&&(i<58))
     {
         nlok.x=lok.x+26;
-        zspillit(lok, nums[i-48],0.8);
+        zspillit(lok, nums[i-48],0.8*s);
         return nlok;
     }
     else if (i==32)
         return nlok;
     else if (i==37)
-        spillit(lok, "azza  @ddgg        -|  @ddgg        ");
+        zspillit(lok, "azza  @ddgg        -|  @ddgg        ",s);
     else if (i==283)
     {
-        draw(lok, 'e');
-        spillit(lok, "haofxa");
+        draw(lok, 'e',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==353)
     {
-        draw(lok, 's');
-        spillit(lok, "haofxa");
+        draw(lok, 's',s);
+        zspillit(lok, "haofxa",s);
     }
+/*
     else if (i==269)
     {
         draw(lok, 'c');
@@ -215,8 +216,9 @@ static xy draw(xy lok,unsigned int i)
         draw(lok, 'I');
         spillit(lok, "ofxa");
     }
-    if (i==211)
-    {//29;5~29;5~ /              mmmMMmmmmmmmmmmmmm//////jjJKL mjjjjjj       jj   /
+    else if (i==211)
+    {
+    //29;5~29;5~ 
         draw(lok, 'O');
         spillit(lok, "ofxa");
     }
@@ -260,99 +262,99 @@ static xy draw(xy lok,unsigned int i)
         draw(lok, 'n');
         spillit(lok, "haofxa");
     }
-
+*/
     else if (i==38)
-        zspillit(lok, "zzaggangarozzr",0.9);
+        zspillit(lok, "zzaggangarozzr",0.9*s);
     else if (i==34)
-        spillit(lok, "iaig  qaqg");
+        zspillit(lok, "iaig  qaqg",s);
     else if (i==35)
-        spillit(lok, "hahz  uauz  ahzh  auzu");
+        zspillit(lok, "hahz  uauz  ahzh  auzu",s);
     else if (i==33)
-        spillit(lok, "oaoq  ouoz");
+        zspillit(lok, "oaoq  ouoz",s);
     else if (i==64)
-        spillit(lok, "ozaooaxoovkoohov");
+        zspillit(lok, "ozaooaxoovkoohov",s);
     else if (i==123)
-        spillit(lok, "gadddlaodrdwgz");
+        zspillit(lok, "gadddlaodrdwgz",s);
     else if (i==125)
-        spillit(lok, "|gadddlaodrdwgz");
+        zspillit(lok, "|gadddlaodrdwgz",s);
     else if (i==8217)
-        spillit(lok, "kfma");
+        zspillit(lok, "kfma",s);
     else if (i==91)
-        spillit(lok, "oddddwow");
+        zspillit(lok, "oddddwow",s);
     else if (i==93)
-        spillit(lok, "|oddddwow");
+        zspillit(lok, "|oddddwow",s);
     else if (i==94)
-        spillit(lok, "ahoazh");
+        zspillit(lok, "ahoazh",s);
     else if (i==39)
-        spillit(lok, "oaoj");
+        zspillit(lok, "oaoj",s);
     else if (i==96)
-        spillit(lok, "mcqg");
+        zspillit(lok, "mcqg",s);
     else if (i==92)
-        spillit(lok, sgns[19]);
+        zspillit(lok, sgns[19],s);
     else if ((i==9492))
-        spillit(lok, "oaoozo");
+        zspillit(lok, "oaoozo",s);
     else if ((i==9488))
-        spillit(lok, "aooooz");
+        zspillit(lok, "aooooz",s);
     else if ((i==9496))
-        spillit(lok, "aooooa");
+        zspillit(lok, "aooooa",s);
     else if ((i==9484))
-        spillit(lok, "ozoozo");
+        zspillit(lok, "ozoozo",s);
     else if (i==9672)
-        spillit(lok, sgns[24]);
+        zspillit(lok, sgns[24],s);
     else if (i==36)
-        spillit(lok, sgns[23]);
+        zspillit(lok, sgns[23],s);
     else if (i==9662)
-        spillit(lok, sgns[22]);
+        zspillit(lok, sgns[22],s);
     else if (i==9652)
-        spillit(lok, sgns[25]);
+        zspillit(lok, sgns[25],s);
     else if (i==9500)
-        spillit(lok, sgns[21]);
+        zspillit(lok, sgns[21],s);
     else if (i==9472)
-        zspillit(lok, "aozo",1);
+        zspillit(lok, "aozo",s);
     else if (i==9474)
-        zspillit(lok, "oaoz",1);
+        zspillit(lok, "oaoz",s);
     else if (i==9618)
-        zspillit(lok, "aszsoaas  -aszsoaas",1);
+        zspillit(lok, "aszsoaas  -aszsoaas",s);
     else if (i==32)
-        spillit(lok, sgns[18]);
+        zspillit(lok, sgns[18],s);
     else if (i==63)
-        spillit(lok, sgns[17]);
+        zspillit(lok, sgns[17],s);
     else if (i==58)
-        spillit(lok, sgns[16]);
+        zspillit(lok, sgns[16],s);
     else if (i==126)
-        spillit(lok, sgns[15]);
+        zspillit(lok, sgns[15],s);
     else if (i==46)
-        spillit(lok, sgns[14]);
+        zspillit(lok, sgns[14],s);
     else if (i==95)
-        spillit(lok, sgns[13]);
+        zspillit(lok, sgns[13],s);
     else if (i==45)
-        spillit(lok, sgns[12]);
+        zspillit(lok, sgns[12],s);
     else if (i==43)
-        spillit(lok, sgns[11]);
+        zspillit(lok, sgns[11],s);
     else if (i==44)
-        spillit(lok, sgns[10]);
+        zspillit(lok, sgns[10],s);
     else if (i==47)
-        spillit(lok, sgns[9]);
+        zspillit(lok, sgns[9],s);
     else if (i==41)
-        spillit(lok, sgns[8]);
+        zspillit(lok, sgns[8],s);
     else if (i==40)
-        spillit(lok, sgns[7]);
+        zspillit(lok, sgns[7],s);
     else if (i==59)
-        spillit(lok, sgns[6]);
+        zspillit(lok, sgns[6],s);
     else if (i==42)
-        spillit(lok, sgns[5]);
+        zspillit(lok, sgns[5],s);
     else if (i==61)
-        spillit(lok, sgns[4]);
+        zspillit(lok, sgns[4],s);
     else if (i==62)
-        spillit(lok, sgns[3]);
+        zspillit(lok, sgns[3],s);
     else if (i==60)
-        spillit(lok, sgns[2]);
+        zspillit(lok, sgns[2],s);
     else if (i==10)
-        spillit(lok, sgns[1]);
+        zspillit(lok, sgns[1],s);
     else if (!i)
-        spillit(lok, sgns[0]);
+        zspillit(lok, sgns[0],s);
     else if (i==124)
-        spillit(lok, sgns[20]);
+        zspillit(lok, sgns[20],s);
 
 }
 
@@ -365,7 +367,7 @@ void draw_line(int x,int y,const char *a)
     do
     {
 
-        lok=draw(lok,*a);
+        lok=draw(lok,*a,1);
         lok.x+=4;
         if (!*a)
             break;

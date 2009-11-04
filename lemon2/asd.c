@@ -712,8 +712,10 @@ int RunGLTest (void)
 				break;
 				case SDL_KEYDOWN:
 					if(!activeface->t)
+					{
 						add_terminal(activeface);
-
+						dirty=1;
+					}
 					if(mod&KMOD_RSHIFT&&(key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 					{
 						dirty=1;

@@ -10,7 +10,7 @@ void draw_text(char *a)
   glBegin(GL_LINE_STRIP);
   do 
   {
-	lok=draw(lok,*a);
+	lok=draw(lok,*a,1);
 	if (*a==10)
 	{
 	    lok.x=0;
@@ -33,7 +33,7 @@ void lokdraw_line(xy lok,const char *a)
 glBegin(GL_LINE_STRIP);
 do 
 {
-	lok=draw(lok,*a);
+	lok=draw(lok,*a,1);
 	lok.x+=4;
 	if (!*a)
 	    break;
@@ -166,7 +166,7 @@ void draw_terminal(roteface *f)
 //#endif
 	    {
 		if(!rt->log||!tscroll)
-		    draw(lok,rt->cells[i][j].ch);
+		    draw(lok,rt->cells[i][j].ch,f->scale);
 		else
 		    if(in(rt->scrolltop,i,rt->scrollbottom))
 			if(rt->logl=i-rt->scrolltop)
@@ -176,14 +176,14 @@ void draw_terminal(roteface *f)
 				{
 				    if(tscroll-i-rt->scrolltop<rt->logl)
 				    {
-					//if(gotlog)gotlog=gotlog&&rt->log[tscroll-i-rt->scrolltop][j].ch;
-					//if(gotlog)
-				        //draw(lok,rt->log[tscroll-i-rt->scrolltop][j].ch);
+					if(gotlog)gotlog=gotlog&&rt->log[tscroll-i-rt->scrolltop][j].ch;
+					if(gotlog)
+				    	    draw(lok,rt->log[tscroll-i-rt->scrolltop][j].ch,f->scale);
 				        printf("%i,%i\n", tscroll-i-rt->scrolltop,j);
 				    }
 				}
 				else
-				    draw(lok,rt->cells[i-tscroll][j].ch);
+				    draw(lok,rt->cells[i-tscroll][j].ch,f->scale);
 			    }
 		
 		
