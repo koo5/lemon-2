@@ -128,7 +128,9 @@ void draw_terminal(roteface *f)
 	        glColor4f(color/255.0,1,color/255.0,1);
 	    else if (theme==2)
 	        glColor4f(color/255.0,color/255.0,1,1);
-
+	    else if (theme==3)
+	        glColor4f(1,1,color/255.0,1);
+//	    printf("%d", color);
 		
 
 	    	    
@@ -174,9 +176,9 @@ void draw_terminal(roteface *f)
 				int r= i-tscroll;
 				if(r<0)
 				{
-				    if(tscroll-i-rt->scrolltop<rt->logl)
+				    if(tscroll+i-rt->scrolltop<rt->logl)
 				    {
-					if(gotlog)gotlog=gotlog&&rt->log[tscroll-i-rt->scrolltop][j].ch;
+					if(gotlog)gotlog=gotlog&&rt->log[tscroll+i-rt->scrolltop][j].ch;
 					if(gotlog)
 				    	    draw(lok,rt->log[tscroll-i-rt->scrolltop][j].ch,f->scale);
 				        printf("%i,%i\n", tscroll-i-rt->scrolltop,j);

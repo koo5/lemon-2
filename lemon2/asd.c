@@ -791,7 +791,7 @@ int RunGLTest (void)
 							    break;
 							case SDLK_RIGHT:
 							    theme++;
-							    if (theme>2)theme=2;
+							    if (theme>3)theme=3;
 							    
 							    break;
 							case SDLK_PAGEUP:

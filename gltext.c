@@ -1,5 +1,6 @@
-float xoom, yoom;
-float zoomx, zoomy;
+/*float xoom, yoom;
+float zoomx, zoomy;*/
+
 //#include "XY.h"
 #include "linetextdata"
 
@@ -8,7 +9,9 @@ float zoomx, zoomy;
 
 
 
-void azspillit(xy lok,char *x,float a,float z)
+void azspillit(xy lok,char *x,
+float a,float z)
+// x scale, y scale
 {
 
     int first=1; /*were drawin 1st dot*/
@@ -22,7 +25,7 @@ void azspillit(xy lok,char *x,float a,float z)
     int flip=0;
     while ((*x)&&(*(x+1)))
     {
-        flip2=flip2||((*x==45)&&x++);//bug
+        flip2=flip2||((*x==45)&&x++);//*(x++)
         if (!(*(x+1)))break; // -
         flip=flip||((*x==124)&&x++);
         if (!(*(x+1)))break; // |
@@ -114,6 +117,9 @@ static xy draw(xy lok,unsigned int i, double s)
                     zspillit(lok,l2[i],0.7*s);
                     return nlok;
                 }
+
+/*from now on its the builtin glyphs*/
+
 
     if (!((i<65)||((i>90)&&(i<97))||(i>122)))
     {
