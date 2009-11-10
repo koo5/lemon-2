@@ -36,23 +36,26 @@ static void cursor_line_down(RoteTerm *rt) {
 
    /* must scroll the scrolling region up by 1 line, and put cursor on 
     * last line of it */
+   rt->log=(RoteCell **)555;//realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
+    if(!rt) exit(1);
    rt->crow = rt->scrollbottom;
-   
-
-   rt->log=(RoteCell **)realloc(rt->log,rt->logl*sizeof(RoteCell**)+2*sizeof(RoteCell**));
-    
-
+    if(!rt) exit(1);
+/*
    if(rt->log)
    {
+
+	rt->log[rt->logl+1]=0;
+	rt->log[rt->logl]=malloc((1+rt->cols)*sizeof(RoteCell));
 	rt->logl++;
-	rt->log[rt->logl]=0;
-	rt->log[rt->logl-1]=malloc((1+rt->cols)*sizeof(RoteCell));
+   
+        
+        if(rt->logl&&rt->log[rt->logl-1])
+	{
+	    memcpy(rt->log[rt->logl-1], rt->cells[rt->scrolltop], sizeof(RoteCell) * rt->cols);
+	    rt->log[rt->logl-1][rt->cols].ch=0;
+	}
    }
-   if(rt->logl&&rt->log[rt->logl-1])
-   {
-	memcpy(rt->log[rt->logl-1], rt->cells[rt->scrolltop], sizeof(RoteCell) * rt->cols);
-	rt->log[rt->logl-1][rt->cols].ch=0;
-   }
+  */
    for (i = rt->scrolltop; i < rt->scrollbottom; i++) {
       rt->line_dirty[i] = true;
       memcpy(rt->cells[i], rt->cells[i+1], sizeof(RoteCell) * rt->cols);
