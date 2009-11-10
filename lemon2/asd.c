@@ -494,7 +494,7 @@ void shownerv(struct state *nerv)
 {
     nerverot_update(nerv);
     glPushMatrix();
-    //glTranslatef(0,0,-5.5);
+    glTranslatef(0,0,1.5);
     nerverot_draw(3,nerv);
     glPopMatrix();
 }
@@ -536,7 +536,8 @@ int RunGLTest (void)
 	int done = 0;
 	int shrink=0;
 	int grow=0;
-	int gofullscreen=1;
+	int gofullscreen=0;
+	
 	int escaped = 0;
 	int mustresize = 1;
 	int justresized = 0;

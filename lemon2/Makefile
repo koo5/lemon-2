@@ -32,7 +32,7 @@ TARGETS = lsdl lgl
 all: $(TARGETS)
 
 
-lgl$(EXE): $(srcdir)/../gltext.c glterm.c $(srcdir)/asd.c
+lgl$(EXE): $(srcdir)/../gltext.c glterm.c $(srcdir)/asd.c ../roteterm/*
 	$(CC)   -o $@ asd.c  -O2  -lpng $(GLLIBS) $(CFLIBS) -Dnerve
 
 lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c glterm.c 
