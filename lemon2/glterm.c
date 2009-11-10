@@ -81,26 +81,38 @@ void draw_terminal(roteface *f)
     char *trmsqrm=0;
     static int oldcrow, oldccol;
     RoteTerm * rt=f->t;
-#ifdef GL
-//    lx=0;ly=0;lw=0;lh=0; 
-//    glimits=1;
-    
-    glPushMatrix();
-    glBegin(GL_LINE_STRIP);
-#endif
     xy lok;
-    lok.x=0;    lok.y=0;
+    lok.x=0;
 
+    int scroll=min(tscroll,rt->logl);
+    int j=0;
+    int i;
+    if(rt->log)
+    {
+	for (i=0; i<scroll; i++)
+	{
+	    if(!rt->log[i])break;
+	    lok.y=-(1+i)*26*f->scale;
+	    while(rt->log[i][j].ch)
+	    {
+		lok.x=j*13*f->scale;
+	        draw(lok,rt->log[i][j].ch,f->scale);
+	        j++;
+	    }
+	}
+    }
 
-
-    int i,j;
     int isundercursor;
     for (i=0; i<rt->rows; i++)
     {
-	lok.y=i*26*f->scale;
+	lok.y=(scroll+i)*26*f->scale;
 	int gotlog=1;
 	for (j=0; j<rt->cols; j++)
 	{
+#ifdef GL
+    glBegin(GL_LINE_STRIP);
+#endif
+
 	    lok.x=j*13*f->scale;
 	    if(!tscroll)//draw_edges_between_different_bgs
 	    {
@@ -136,10 +148,11 @@ void draw_terminal(roteface *f)
 	    	    
 	    isundercursor=(!rt->cursorhidden)&&(!tscroll)&&((rt->ccol==j)&&(rt->crow==i));
 	    //actually , not selected but under cursor
-/*
+
 #ifdef GL
 	    if(isundercursor) //do nice rotation animation hehe
 	    {
+		static int rotor;
 		zspillit(lok,nums[0],1.2);
 		if((oldcrow!=rt->crow)||(oldccol!=rt->ccol))
 		    rotor=0;
@@ -151,7 +164,7 @@ void draw_terminal(roteface *f)
 		    glRotatef(rotor+=17,0,1,0);
 		    glBegin(GL_LINE_STRIP);
 			xy molok;molok.x=-13;molok.y=-13;
-			draw(molok,rt->cells[i][j].ch);
+			draw(molok,rt->cells[i][j].ch,f->scale);
 		    glEnd();
 		    glPopMatrix();
 		glPopMatrix();
@@ -159,37 +172,17 @@ void draw_terminal(roteface *f)
 	    }
 	    else
 #else
-*/
+
 	    if(isundercursor)
 	    {	// but still cursor square
 		zspillit(lok,nums[0],1.2*f->scale);
 	    }
 
-//#endif
-	    {
-		if(!rt->log||!tscroll)
-		    draw(lok,rt->cells[i][j].ch,f->scale);
-		else
-		    if(in(rt->scrolltop,i,rt->scrollbottom))
-			if(rt->logl=i-rt->scrolltop)
-			    {
-				int r= i-tscroll;
-				if(r<0)
-				{
-				    if(tscroll+i-rt->scrolltop<rt->logl)
-				    {
-					if(gotlog)gotlog=gotlog&&rt->log[tscroll+i-rt->scrolltop][j].ch;
-					if(gotlog)
-				    	    draw(lok,rt->log[tscroll-i-rt->scrolltop][j].ch,f->scale);
-				        printf("%i,%i\n", tscroll-i-rt->scrolltop,j);
-				    }
-				}
-				else
-				    draw(lok,rt->cells[i-tscroll][j].ch,f->scale);
-			    }
-		
-		
-	    }
+#endif
+	    draw(lok,rt->cells[i][j].ch,f->scale);
+#ifdef GL
+	    glEnd();
+#endif
 	}
 
     }
@@ -209,7 +202,6 @@ void draw_terminal(roteface *f)
     }
 #ifdef GL
 
-    glEnd();
     glPopMatrix();
     oldcrow=rt->crow;//4 cursor rotation
     oldccol=rt->ccol;
