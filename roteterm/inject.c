@@ -28,34 +28,37 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #define true 1
 #define false 0
 
-static void cursor_line_down(RoteTerm *rt) {
-   int i;
-   rt->crow++;
-   rt->curpos_dirty = true;
-   if (rt->crow <= rt->scrollbottom) return;
-
-   /* must scroll the scrolling region up by 1 line, and put cursor on 
-    * last line of it */
-   rt->log=(RoteCell **)555;//realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
-    if(!rt) exit(1);
-   rt->crow = rt->scrollbottom;
-    if(!rt) exit(1);
-/*
-   if(rt->log)
+void appendlog(RoteTerm *rt)
+{
+   void* new;
+   new = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
+   if(new)
    {
-
+        rt->log=(RoteCell **)new;
 	rt->log[rt->logl+1]=0;
 	rt->log[rt->logl]=malloc((1+rt->cols)*sizeof(RoteCell));
 	rt->logl++;
    
-        
-        if(rt->logl&&rt->log[rt->logl-1])
+	if(rt->log[rt->logl-1])
 	{
 	    memcpy(rt->log[rt->logl-1], rt->cells[rt->scrolltop], sizeof(RoteCell) * rt->cols);
 	    rt->log[rt->logl-1][rt->cols].ch=0;
 	}
    }
-  */
+}
+
+static void cursor_line_down(RoteTerm *rt) {
+    printf("hello\n\n\n\n\n\n");
+   int i;
+   rt->crow++;
+   rt->curpos_dirty = true;
+   if (rt->crow <= rt->scrollbottom) return;
+
+    appendlog(rt);
+   /* must scroll the scrolling region up by 1 line, and put cursor on 
+    * last line of it */
+   rt->crow = rt->scrollbottom;
+
    for (i = rt->scrolltop; i < rt->scrollbottom; i++) {
       rt->line_dirty[i] = true;
       memcpy(rt->cells[i], rt->cells[i+1], sizeof(RoteCell) * rt->cols);
@@ -72,6 +75,7 @@ static void cursor_line_down(RoteTerm *rt) {
 }
 
 static void cursor_line_up(RoteTerm *rt) {
+    printf("test\n");
    int i;
    rt->crow--;
    rt->curpos_dirty = true;

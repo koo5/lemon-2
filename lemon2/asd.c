@@ -308,17 +308,17 @@ roteface * add_face(void)
 {
     roteface * f=(roteface*)malloc(sizeof(roteface));
     f->next=0;
-    f->x=0;
-    f->y=1;
+    f->x=200;
+    f->y=100;
     f->t=0;
-    f->scale=1;
+    f->scale=0.1;
 }
 
 void add_terminal(roteface * f)
 {
     printf("adding terminal|");
     RoteTerm* t;
-    t= rote_vt_create(25,90);
+    t= rote_vt_create(25,60);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     f->t=t;
     f->upd_t_data.lock=SDL_CreateMutex();
@@ -537,7 +537,6 @@ int RunGLTest (void)
 	int shrink=0;
 	int grow=0;
 	int gofullscreen=0;
-	
 	int escaped = 0;
 	int mustresize = 1;
 	int justresized = 0;
