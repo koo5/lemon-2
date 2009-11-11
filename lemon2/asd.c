@@ -173,7 +173,7 @@ int update_terminal(void *data)
       
       if(!d->t->childpid)
       {
-	printf("Segmentation Fault\n");
+//	printf("Segmentation Fault\n");
 	SDL_Event e;
 	e.type=SDL_USEREVENT;
 	e.user.code=1;
@@ -321,11 +321,13 @@ void add_terminal(roteface * f)
     t= rote_vt_create(25,60);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     f->t=t;
+#ifdef threaded
     f->upd_t_data.lock=SDL_CreateMutex();
     f->upd_t_data.t=t;
 //    printf("upd_t_data.lock=%i", f->upd_t_data.lock);
     SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
     printf("|added.\n");
+#endif
 }
 
 void cycle(roteface *face1, roteface **g)
@@ -352,6 +354,8 @@ int faces_dirty(roteface * f)
 
 void lockterms(roteface * f)
 {
+#ifdef threaded
+
 //    printf("locking terms\n");
     while(f&&f->t)
     {
@@ -360,14 +364,18 @@ void lockterms(roteface * f)
 //      printf(".\n");
     }
 //    printf("done\n");
+#endif
 }
 void unlockterms(roteface * f)
 {
+#ifdef threaded
+
     while(f&&f->t)
     {
 	_mutexV(f->upd_t_data.lock);
 	f=f->next;
     }
+#endif
 }
 
 void faceclean(roteface *f)
@@ -516,8 +524,29 @@ void krychlus(roteface *g)
 }
 #endif
 
-
-
+#ifndef threaded
+void updateterminal(RoteTerm *t)
+{
+    rote_vt_update(t);
+      if(!t->childpid)
+      {
+	SDL_Event e;
+	e.type=SDL_USEREVENT;
+	e.user.code=1;
+	e.user.data1=t;
+	SDL_PushEvent(&e);
+      }
+}
+void updateterminals(roteface *g)
+{
+	while(g)
+	{
+	    if(g->t)
+		updateterminal(g->t);
+	    g=g->next;
+	}
+}
+#endif
 
 int RunGLTest (void)
 {
@@ -588,7 +617,6 @@ int RunGLTest (void)
 	{       
 		lockterms(face1);
 
-
 		if(dirty||faces_dirty(face1))
 		{
 			dirty=0;
@@ -597,7 +625,6 @@ int RunGLTest (void)
 			glClear(GL_COLOR_BUFFER_BIT);
 #else
 			SDL_FillRect    ( s, NULL, 0 );
-
 #endif
 
 #ifndef GL
@@ -667,13 +694,16 @@ int RunGLTest (void)
 		    SDL_ClearError();
 		}
 
+
+		SDL_Event event;
 		SDL_TimerID x=0;
+#ifdef threaded
 		if(dirty)
+#endif
 		    x= SDL_AddTimer(55, NewTimerCallback, 0);
 				     
 		unlockterms(face1);
 //              printf("---------unlocked wating\n");
-		SDL_Event event;
 		if(SDL_WaitEvent( &event ))
 		{
 		    lockterms(face1);
@@ -961,6 +991,9 @@ int RunGLTest (void)
 		    }
 		    gofullscreen=0;
 		    unlockterms(face1);
+#ifndef threaded
+		    updateterminals(face1);
+#endif
 		}
 
 	}

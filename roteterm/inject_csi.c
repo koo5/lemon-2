@@ -328,13 +328,12 @@ void rote_es_interpret_csi(RoteTerm *rt) {
      else if ((!strncmp(rt->pd->esbuf, "[?1049h", 7))||(!strncmp(rt->pd->esbuf, "[?1049l", 7)))
      {
 //    Save DEC Private Mode Values. P s values are the same as for DECSET.
-    fprintf(stderr,  "you pressed ctrl-o!\n");
     }    
 
 
 
     else
-      fprintf(stderr, "Ignoring private-mode CSI: <%s>\n", rt->pd->esbuf);
+//      fprintf(stderr, "Ignoring private-mode CSI: <%s>\n", rt->pd->esbuf);
       return; 
    }
 
@@ -384,8 +383,9 @@ void rote_es_interpret_csi(RoteTerm *rt) {
       case 'u': /* restore cursor location */
          interpret_csi_RESTORECUR(rt, csiparam, param_count); break;
 //      #ifdef DEBUG
-      default:
-         fprintf(stderr, "Unrecogized CSI: <%s>\n", rt->pd->esbuf); break;
+      default: 
+//         fprintf(stderr, "Unrecogized CSI: <%s>\n", rt->pd->esbuf); break;
+	break;
 //      #endif
    }
 }

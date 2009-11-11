@@ -3,10 +3,19 @@
 
 
 srcdir  = .
-
+# 
 CC      = gcc-4  -g -ggdb 
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
-CFLIBS =   -DXTHREADS  -DREENTRANT -I/usr/local/include  -L/usr/lib -lSDL -L/usr/X11R6/lib  -lutil -L/usr/local/lib     -L/usr/local/lib   `pkg-config --libs x11`  `pkg-config --cflags x11` -I/usr/include -I/usr/local/include -I./  -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib   ../roteterm/inject_csi.c ../roteterm/inject.c ../roteterm/rote_keymap.c ../roteterm/rote.c ../more-mess/wtf.c -lncurses 
+CFLIBS = -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
+  -I/usr/local/include \
+ -L/usr/lib -lSDL -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
+    -L/usr/local/lib   `pkg-config --libs x11`\
+      `pkg-config --cflags x11`\
+       -I/usr/include -I/usr/local/include -I./ \
+        -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib \
+          ../roteterm/inject_csi.c ../roteterm/inject.c\
+           ../roteterm/rote_keymap.c ../roteterm/rote.c \
+           ../more-mess/wtf.c -lncurses 
 
 pl=$(shell uname)
 
@@ -33,10 +42,10 @@ all: $(TARGETS)
 
 
 lgl$(EXE): $(srcdir)/../gltext.c glterm.c $(srcdir)/asd.c ../roteterm/*
-	$(CC)   -o $@ asd.c  -O2  -lpng $(GLLIBS) $(CFLIBS) -Dnerve
+	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve
 
 lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c glterm.c 
-	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS) -O2  -lpng   -Xlinker   \
+	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
 	    -g  /usr/local/lib/libSDL_draw.a
 
 clean:

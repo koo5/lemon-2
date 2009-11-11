@@ -92,8 +92,8 @@ void draw_terminal(roteface *f)
 	for (i=0; i<scroll; i++)
 	{
 	    if(!rt->log[i])break;
-	    lok.y=-(1+i)*26*f->scale;
-	    while(rt->log[i][j].ch)
+	    lok.y=(scroll-i-1)*26*f->scale;
+	    while(rt->log[i][j].ch!=2)
 	    {
 		lok.x=j*13*f->scale;
 	        draw(lok,rt->log[i][j].ch,f->scale);

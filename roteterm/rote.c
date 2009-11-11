@@ -169,7 +169,7 @@ RoteTerm *rote_vt_create(int rows, int cols) {
    rt->scrollbottom = rt->rows - 1;
    rt->docellmouse=0;
 //   #ifdef DEBUG
-   fprintf(stderr, "Created a %d x %d terminal.\n", rt->rows, rt->cols);
+//   fprintf(stderr, "Created a %d x %d terminal.\n", rt->rows, rt->cols);
 //   #endif
    
    return rt;
@@ -237,7 +237,7 @@ pid_t rote_vt_forkpty(RoteTerm *rt, const char *command) {
       /* Now we will exec /bin/sh -c command. */
       execl("/bin/sh", "/bin/sh", "-c", command, NULL);
 
-      fprintf(stderr, "\nexecl() failed.\nCommand: '%s'\n", command);
+//      fprintf(stderr, "\nexecl() failed.\nCommand: '%s'\n", command);
       exit(127);  /* error exec'ing */
    }
 
@@ -306,7 +306,7 @@ void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) {
       {
              errno=0;
     	    rote_vt_forsake_child(rt);
-    	    printf("dfsdfdfsHAHA!/n");
+//    	    printf("dfsdfdfsHAHA!/n");
       }
       if (bytesread <= 0) return;
       *br=bytesread;

@@ -42,13 +42,12 @@ void appendlog(RoteTerm *rt)
 	if(rt->log[rt->logl-1])
 	{
 	    memcpy(rt->log[rt->logl-1], rt->cells[rt->scrolltop], sizeof(RoteCell) * rt->cols);
-	    rt->log[rt->logl-1][rt->cols].ch=0;
+	    rt->log[rt->logl-1][rt->cols].ch=2;
 	}
    }
 }
 
 static void cursor_line_down(RoteTerm *rt) {
-    printf("hello\n\n\n\n\n\n");
    int i;
    rt->crow++;
    rt->curpos_dirty = true;
@@ -75,7 +74,6 @@ static void cursor_line_down(RoteTerm *rt) {
 }
 
 static void cursor_line_up(RoteTerm *rt) {
-    printf("test\n");
    int i;
    rt->crow--;
    rt->curpos_dirty = true;
@@ -183,13 +181,13 @@ static void handle_control_char(RoteTerm *rt, char c) {
          cancel_escape_sequence(rt);
          break;
       case '\a': /* bell */
-         printf("DING, DING!");
+//         printf("DING, DING!");
          /* do nothing for now... maybe a visual bell would be nice? */
          break;
     
       #ifdef DEBUG
       default:
-         fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
+//         fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
          break;
       #endif
    }
@@ -210,14 +208,14 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
    if (rt->pd->handler) {
       /* call custom handler */
       #ifdef DEBUG
-      fprintf(stderr, "Calling custom handler for ES <%s>.\n", rt->pd->esbuf);
+//      fprintf(stderr, "Calling custom handler for ES <%s>.\n", rt->pd->esbuf);
       #endif
 
       int answer = (*(rt->pd->handler))(rt, rt->pd->esbuf);
       if (answer == ROTE_HANDLERESULT_OK) {
          /* successfully handled */
          #ifdef DEBUG
-         fprintf(stderr, "Handler returned OK. Done with escape sequence.\n");
+//         fprintf(stderr, "Handler returned OK. Done with escape sequence.\n");
          #endif
 
          cancel_escape_sequence(rt);
@@ -227,7 +225,7 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
          /* handler might handle it when more characters are appended to 
           * it. So for now we don't interpret it */
          #ifdef DEBUG
-         fprintf(stderr, "Handler returned NOTYET. Waiting for more chars.\n");
+//         fprintf(stderr, "Handler returned NOTYET. Waiting for more chars.\n");
          #endif
 
          return;
@@ -238,7 +236,7 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
        * but we can still try handling it ourselves, so 
        * we proceed normally. */
       #ifdef DEBUG
-      fprintf(stderr, "Handler returned NOWAY. Trying our handlers.\n");
+//      fprintf(stderr, "Handler returned NOWAY. Trying our handlers.\n");
       #endif
    }
 
@@ -252,7 +250,7 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
    if (firstchar != '[' && firstchar != ']') {
       /* unrecognized escape sequence. Let's forget about it. */
       #ifdef DEBUG
-      fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);
+//      fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);
       #endif
 
       cancel_escape_sequence(rt);
@@ -269,7 +267,7 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
 
       /* rote_es_interpret_xterm_es(rt);     -- TODO!*/
       #ifdef DEBUG
-      fprintf(stderr, "Ignored XTerm ES.\n");
+//      fprintf(stderr, "Ignored XTerm ES.\n");
       #endif
       cancel_escape_sequence(rt);
    }

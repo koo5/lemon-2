@@ -36,7 +36,7 @@ void rote_vt_keypress(RoteTerm *rt, int i)
 
     rote_vt_write(rt, &c, 1); /* not special, just write it */
     }
-    else printf("no rt\n");
+//    else printf("no rt\n");
 }
 
 
@@ -56,16 +56,16 @@ void rote_vt_terminfo(RoteTerm *rt, char *c)
     char *u=tigetstr(c);
     if (u)
     {
-	if (u==(char *)-1)
-	    printf("bubak\n");
-	else
+	//if (u==(char *)-1)
+//	    printf("bubak\n");
+	//else
 	{
 	//    printf("%s\n",u);
 	    tputs(u,1,_rtput);
 	}
     }
     }
-    else printf("no rt\n");
+//    else printf("no rt\n");
 }
 
 
