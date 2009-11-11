@@ -193,8 +193,10 @@ static void interpret_csi_ICH(RoteTerm *rt, int param[], int pcount) {
    for (i = rt->cols - 1; i >= rt->ccol + n; i--)
       rt->cells[rt->crow][i] = rt->cells[rt->crow][i - n];
    for (i = rt->ccol; i < rt->ccol + n; i++) {
+   if(i<rt->cols){
       rt->cells[rt->crow][i].ch = 0x20;
       rt->cells[rt->crow][i].attr = rt->curattr;
+   }
    }
 
    rt->line_dirty[rt->crow] = true;

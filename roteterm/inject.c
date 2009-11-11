@@ -43,6 +43,7 @@ void appendlog(RoteTerm *rt)
 	{
 	    memcpy(rt->log[rt->logl-1], rt->cells[rt->scrolltop], sizeof(RoteCell) * rt->cols);
 	    rt->log[rt->logl-1][rt->cols].ch=2;
+	    rt->log[rt->logl-1][0].ch='l';
 	}
    }
 }

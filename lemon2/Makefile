@@ -6,7 +6,7 @@ srcdir  = .
 # 
 CC      = gcc-4  -g -ggdb 
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
-CFLIBS = -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
+CFLIBS = -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
  -L/usr/lib -lSDL -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
     -L/usr/local/lib   `pkg-config --libs x11`\
@@ -44,7 +44,7 @@ all: $(TARGETS)
 lgl$(EXE): $(srcdir)/../gltext.c glterm.c $(srcdir)/asd.c ../roteterm/*
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve
 
-lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c glterm.c 
+lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c glterm.c  ../roteterm/*
 	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
 	    -g  /usr/local/lib/libSDL_draw.a
 
