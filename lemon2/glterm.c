@@ -89,18 +89,17 @@ void draw_terminal(roteface *f)
     int i;
     if(rt->log)
     {
-	for (i=0; i<scroll; i++)
+	for (i=rt->logl-scroll;i<rt->logl;i++)
 	{
 	    if(!rt->log[i])break;
-	    lok.y=(scroll-i-1)*26*f->scale;
-	    while(rt->log[i][j].ch!=2)
+	    lok.y=(i-rt->logl+scroll)*26*f->scale;
+//	    while(rt->log[i][j].ch!=2)
+	    for(j=0;j<rt->log[i][0].ch;j++)
 	    {
-//		printf("%c", rt->log[i][j].ch);
 		lok.x=j*13*f->scale;
-	        draw(lok,rt->log[i][j].ch,f->scale);
-	        j++;
+	        draw(lok,rt->log[i][j+1].ch,f->scale);
+//	        j++;
 	    }
-//	    printf("\n");
 	}
     }
 
