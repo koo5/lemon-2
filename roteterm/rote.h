@@ -107,9 +107,11 @@ typedef struct RoteTerm_ {
                                  * accomplish). */
 
     int logl;
+   RoteCell **log;         
+
     int docellmouse;
-   RoteCell **cells;            /* matrix of cells. This*/
-   RoteCell **log;            /* matrix of cells. This
+
+   RoteCell **cells;            /* matrix of cells. This
                                  * matrix is indexed as cell[row][column]
                                  * where 0 <= row < rows and
                                  *       0 <= col < cols
