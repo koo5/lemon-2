@@ -96,6 +96,7 @@ typedef struct
     void * next;
     moomoo upd_t_data;
     double scale;
+    int scroll;
 } roteface;
 
 
@@ -309,10 +310,11 @@ roteface * add_face(void)
 {
     roteface * f=(roteface*)malloc(sizeof(roteface));
     f->next=0;
-    f->x=200;
-    f->y=100;
+    f->x=0;
+    f->y=0;
     f->t=0;
-    f->scale=0.1;
+    f->scale=1;
+    f->scroll=0;
 }
 
 void add_terminal(roteface * f)
@@ -588,7 +590,7 @@ int RunGLTest (void)
 	int mustresize = 1;
 	int justresized = 0;
 	xy  ss = parsemodes(w,h,"mode",1,0,0);
-	printf("wtf\n");
+	printf("mmm..\n");
 	if (ss.x!=-1){w=ss.x;h=ss.y;};
 	SDL_Surface* s;
 #ifdef GL
@@ -764,14 +766,19 @@ int RunGLTest (void)
 						add_terminal(activeface);
 						dirty=1;
 					}
-					if(mod&KMOD_RSHIFT&&(key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
+					if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 					{
 						dirty=1;
 						if(key==SDLK_PAGEUP)
-							tscroll+=9;
+							activeface->scroll+=9;
 						if(key==SDLK_PAGEDOWN)
-							tscroll-=9;
-						if(tscroll<0)tscroll=0;
+							activeface->scroll-=9;
+						if(key==SDLK_END)
+							activeface->scroll=0;
+						if(key==SDLK_HOME)
+							if(activeface->t)
+							    activeface->scroll=activeface->t->logl;
+						if(activeface->scroll<0)activeface->scroll=0;
 //                                              printf("scroll:%i,logl:%i, log&%i, t:%i ,b:%i\n", tscroll,activeface->t->logl, activeface->t->log,activeface->t->scrolltop,activeface->t->scrollbottom);
 					}
 					else
@@ -1024,7 +1031,7 @@ int RunGLTest (void)
 int main(int argc, char *argv[])
 {
 	printf("hi\n");
-	printf("Ctrl+ Home End PgDn Delete to resize , f11 f12 to resize window, f9 f10 line width, \n");
+	printf("outdated info:Ctrl+ Home End PgDn Delete to resize , f11 f12 to resize window, f9 f10 line width, \n");
 	RunGLTest();
 	printf("finished.bye.\n");
 	return 0;

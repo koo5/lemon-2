@@ -84,7 +84,7 @@ void draw_terminal(roteface *f)
     xy lok;
     lok.x=0;
 
-    int scroll=min(tscroll,rt->logl);
+    int scroll=min(f->scroll,rt->logl);
     int j=0;
     int i;
     if(rt->log)

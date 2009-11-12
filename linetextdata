@@ -37,7 +37,7 @@ void loadl2(char * fln)
     l2numitems=0;
     while ((l2[l2numitems]=fgetln(fp, &len)))
     {
-        printf("%i",len);
+//        printf("%i",len);
         if (!len)printf ("_oooops_\n");
         l2[l2numitems][len-1]=0; // hrrrm turning newline into 0
         l2numitems++;
