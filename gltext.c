@@ -23,7 +23,7 @@ float a,float z)
     float fydot;
     int flip2=0;
     int flip=0;
-    int duped=0;
+    char* duped=0;
     while ((*x)&&(*(x+1)))
     {
         flip2=flip2||((*x==45)&&x++);//*(x++)

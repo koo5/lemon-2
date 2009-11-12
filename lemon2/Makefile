@@ -41,10 +41,10 @@ TARGETS = lsdl lgl
 all: $(TARGETS)
 
 
-lgl$(EXE): $(srcdir)/../gltext.c glterm.c $(srcdir)/asd.c ../roteterm/*
+lgl$(EXE): $(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve
 
-lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c glterm.c  ../roteterm/*
+lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c ./glterm.c  ../roteterm/* ../linetextdata
 	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
 	    -g  /usr/local/lib/libSDL_draw.a
 

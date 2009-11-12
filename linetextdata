@@ -8,7 +8,7 @@ void freel2(void)
     int t;
     for (t=0; t<l2numitems; t++)
     {
-        printf("%i\n",t);
+//        printf("%i\n",t);
         free(l2[t]);
     }
     free(l2);

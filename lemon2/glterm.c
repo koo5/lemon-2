@@ -95,12 +95,12 @@ void draw_terminal(roteface *f)
 	    lok.y=(scroll-i-1)*26*f->scale;
 	    while(rt->log[i][j].ch!=2)
 	    {
-		printf("%c", rt->log[i][j].ch);
+//		printf("%c", rt->log[i][j].ch);
 		lok.x=j*13*f->scale;
 	        draw(lok,rt->log[i][j].ch,f->scale);
 	        j++;
 	    }
-	    printf("\n");
+//	    printf("\n");
 	}
     }
 

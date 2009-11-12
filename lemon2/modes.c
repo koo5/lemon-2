@@ -94,6 +94,7 @@ xy parsemodes(int w,int h/*current w and h to know where to look while shrinking
 			}
 			oldr=r;
 		     }
+		     free(buf);
              }
              free(lbuf);
 	     fclose(fp);

@@ -81,6 +81,7 @@ typedef struct
 {
     RoteTerm* t;
     SDL_mutex *lock;
+    SDL_Thread *thr;
 }
 moomoo;
 
@@ -325,7 +326,7 @@ void add_terminal(roteface * f)
     f->upd_t_data.lock=SDL_CreateMutex();
     f->upd_t_data.t=t;
 //    printf("upd_t_data.lock=%i", f->upd_t_data.lock);
-    SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
+    f->upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
     printf("|added.\n");
 #endif
 }
@@ -459,7 +460,14 @@ void removeface(roteface **face1, roteface *f)
 	roteface * prev=getprevface(*face1, f);
 	if(prev)prev->next=f->next;
     }
-    rote_vt_destroy(f->t);
+    if(f->t)
+    {
+	rote_vt_destroy(f->t);
+#ifdef threaded
+	SDL_DestroyMutex(f->upd_t_data.lock);
+	SDL_KillThread(f->upd_t_data.thr);
+#endif
+    }
     free(f);
 }
 
@@ -547,6 +555,16 @@ void updateterminals(roteface *g)
 	}
 }
 #endif
+
+void freefaces(roteface *g)
+{
+	while(g)
+	{
+	    removeface(&g,g);
+	    if(g)g=g->next;
+	}
+
+}
 
 int RunGLTest (void)
 {
@@ -997,6 +1015,8 @@ int RunGLTest (void)
 		}
 
 	}
+	freefaces(face1);
+	freel2();
 	SDL_Quit( );
 	return(0);
 }
