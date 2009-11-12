@@ -47,8 +47,9 @@ float a,float z)
             if (*x==64) // @
                 if ((*(x+1))&&(*(x+2))&&(*(x+3))&&(*(x+4))&&(*(x+5))&&(*(x+6))&&(*(x+7))&&(*(x+8))&&(*(x+9))&&(*(x+10))&&(*(x+11))&&(*(x+12)))
                 {
-            	    duped=1;
+
                     x=strdup(x);
+            	    duped=x;
                     x[5]=x[3];
                     x[6]=x[2];
                     x[7]=x[1];
@@ -82,7 +83,7 @@ float a,float z)
             if (!*x)/*last dot*/
             {
                 dooooot(lok.x+fxdot,lok.y+fydot);
-                if(duped)free(x);
+                if(duped)free(duped);
                 return;
             }
             else // just ordinary dot
@@ -91,7 +92,7 @@ float a,float z)
             }
         }
     }
-    if(duped)free(x);
+    if(duped)free(duped);
 
 }
 
