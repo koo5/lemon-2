@@ -23,6 +23,7 @@ float a,float z)
     float fydot;
     int flip2=0;
     int flip=0;
+    int duped=0;
     while ((*x)&&(*(x+1)))
     {
         flip2=flip2||((*x==45)&&x++);//*(x++)
@@ -46,6 +47,7 @@ float a,float z)
             if (*x==64) // @
                 if ((*(x+1))&&(*(x+2))&&(*(x+3))&&(*(x+4))&&(*(x+5))&&(*(x+6))&&(*(x+7))&&(*(x+8))&&(*(x+9))&&(*(x+10))&&(*(x+11))&&(*(x+12)))
                 {
+            	    duped=1;
                     x=strdup(x);
                     x[5]=x[3];
                     x[6]=x[2];
@@ -80,6 +82,7 @@ float a,float z)
             if (!*x)/*last dot*/
             {
                 dooooot(lok.x+fxdot,lok.y+fydot);
+                if(duped)free(x);
                 return;
             }
             else // just ordinary dot
@@ -88,7 +91,7 @@ float a,float z)
             }
         }
     }
-
+    if(duped)free(x);
 
 }
 
@@ -151,124 +154,122 @@ static xy draw(xy lok,unsigned int i, double s)
         draw(lok, 's',s);
         zspillit(lok, "haofxa",s);
     }
-/*
+
     else if (i==269)
     {
-        draw(lok, 'c');
-        spillit(lok, "haofxa");
+        draw(lok, 'c',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==345)
     {
-        draw(lok, 'r');
-        spillit(lok, "haofxa");
+        draw(lok, 'r',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==382)
     {
-        draw(lok, 'z');
-        spillit(lok, "haofxa");
+        draw(lok, 'z',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==253)
     {
-        draw(lok, 'y');
-        spillit(lok, "ofxa");
+        draw(lok, 'y',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==225)
     {
-        draw(lok, 'a');
-        spillit(lok, "ofxa");
+        draw(lok, 'a',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==237)
     {
-        draw(lok, 'i');
-        spillit(lok, "ofxa");
+        draw(lok, 'i',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==233)
     {
-        draw(lok, 'e');
-        spillit(lok, "ofxa");
+        draw(lok, 'e',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==201)
     {
-        draw(lok, 'E');
-        spillit(lok, "ofxa");
+        draw(lok, 'E',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==282)
     {
-        draw(lok, 'E');
-        spillit(lok, "haofxa");
+        draw(lok, 'E',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==344)
     {
-        draw(lok, 'R');
-        spillit(lok, "haofxa");
+        draw(lok, 'R',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==356)
     {
-        draw(lok, 'T');
-        spillit(lok, "haofxa");
+        draw(lok, 'T',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==221)
     {
-        draw(lok, 'Y');
-        spillit(lok, "ofxa");
+        draw(lok, 'Y',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==218)
     {
-        draw(lok, 'U');
-        spillit(lok, "ofxa");
+        draw(lok, 'U',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==205)
     {
-        draw(lok, 'I');
-        spillit(lok, "ofxa");
+        draw(lok, 'I',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==211)
     {
-    //29;5~29;5~ 
-        draw(lok, 'O');
-        spillit(lok, "ofxa");
+        draw(lok, 'O',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==243)
     {
-        draw(lok, 'o');
-        spillit(lok, "ofxa");
+        draw(lok, 'o',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==193)
     {
-        draw(lok, 'A');
-        spillit(lok, "ofxa");
+        draw(lok, 'A',s);
+        zspillit(lok, "ofxa",s);
     }
     else if (i==352)
     {
-        draw(lok, 'S');
-        spillit(lok, "haofxa");
+        draw(lok, 'S',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==270)
     {
-        draw(lok, 'D');
-        spillit(lok, "haofxa");
+        draw(lok, 'D',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==381)
     {
-        draw(lok, 'Z');
-        spillit(lok, "haofxa");
+        draw(lok, 'Z',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==268)
     {
-        draw(lok, 'C');
-        spillit(lok, "haofxa");
+        draw(lok, 'C',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==327)
     {
-        draw(lok, 'N');
-        spillit(lok, "haofxa");
+        draw(lok, 'N',s);
+        zspillit(lok, "haofxa",s);
     }
     else if (i==328)
     {
-        draw(lok, 'n');
-        spillit(lok, "haofxa");
+        draw(lok, 'n',s);
+        zspillit(lok, "haofxa",s);
     }
-*/
     else if (i==38)
         zspillit(lok, "zzaggangarozzr",0.9*s);
     else if (i==34)

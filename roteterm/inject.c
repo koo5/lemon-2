@@ -40,8 +40,8 @@ void appendlog(RoteTerm *rt)
 	rt->logl++;
    
 	if(rt->log[rt->logl-1])
-	{//]
-//	    memcpy(rt->log[rt->logl-1],rt->cells[rt->scrolltop] , sizeof(RoteCell) * rt->cols);
+	{
+	    memcpy(rt->log[rt->logl-1],rt->cells[rt->scrolltop] , sizeof(RoteCell) * rt->cols);
 	    rt->log[rt->logl-1][3].ch=2;
 	    rt->log[rt->logl-1][0].ch='w';
 	    rt->log[rt->logl-1][1].ch='t';

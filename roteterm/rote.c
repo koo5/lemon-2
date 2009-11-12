@@ -183,6 +183,11 @@ void rote_vt_destroy(RoteTerm *rt) {
    free(rt->line_dirty);
    for (i = 0; i < rt->rows; i++) free(rt->cells[i]);
    free(rt->cells);
+   if(rt->log)
+   {
+    for (i = 0; i < rt->logl; i++) if(rt->log[i])free(rt->log[i]);
+    free(rt->log);
+   }
    free(rt);
 }
 /*
