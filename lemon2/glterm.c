@@ -182,9 +182,10 @@ void draw_terminal(roteface *f)
 	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
 	    int color=((rt->cells[i][j].attr));
 	    int c=ROTE_ATTR_XFG(color);//0-15
-	    printf("%i\n",c);
+//	    printf("%i\n",c);
 	    if(!theme)
 	        glColor4f(1,color/255.0,color/255.0,1);
+
 	    else if (theme==1)
 	        glColor4f(color/255.0,1,color/255.0,1);
 	    else if (theme==2)

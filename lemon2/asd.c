@@ -56,6 +56,7 @@
 #include "initsdl.c"
 #include "screenshot.c"
 
+char *fnfl="l2";
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -626,7 +627,7 @@ int RunGLTest (void)
 	printf("still?\n");
 	add_terminal(face1);
 	printf("2threaad\n");
-	loadl2("l2");
+	loadl2(fnfl);
 	struct state *nerv=0;
 #ifdef nerve
 	nerv=nerverot_init(w,h);
@@ -762,11 +763,6 @@ int RunGLTest (void)
 				}
 				break;
 				case SDL_KEYDOWN:
-					if(!activeface->t)
-					{
-						add_terminal(activeface);
-						dirty=1;
-					}
 					if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 					{
 						dirty=1;
@@ -819,7 +815,7 @@ int RunGLTest (void)
 							    savemode(w,h);
 							break;
 							case SDLK_F8:
-							    loadl2("l2");
+							    loadl2(fnfl);
 							break;
 							case SDLK_p:
 							    saveScreenshot();
@@ -895,6 +891,7 @@ int RunGLTest (void)
 						printf("debug messages r fun\n");
 						add_terminal(activeface);
 						activeface->next=add_face();
+						dirty=1;
 					    }
 					    if ( (key >= SDLK_F1) && (key <= SDLK_F15) )
 					    {
@@ -1033,6 +1030,11 @@ int main(int argc, char *argv[])
 {
 	printf("hi\n");
 	printf("outdated info:Ctrl+ Home End PgDn Delete to resize , f11 f12 to resize window, f9 f10 line width, \n");
+	int i;
+	for(i=1;i<argc;i++)
+	    if(!strcmp(argv[i],"-f"))
+		if(argc>i)
+		    fnfl=argv[i+1];
 	RunGLTest();
 	printf("finished.bye.\n");
 	return 0;
