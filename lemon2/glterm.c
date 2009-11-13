@@ -1,3 +1,50 @@
+
+typedef 
+struct 
+{
+char r,g,b;
+}
+color;
+
+
+color colors[16];
+
+void loadcolors(void)
+{
+    int i;
+    for (i=0;i<16;i++)
+    {
+	colors[i].r=255;
+	colors[i].g=255;
+	colors[i].b=255;
+    }
+    
+    FILE * fp = fopen("colors","r");
+    if (fp == NULL)
+    {
+        printf("cant load 'colors'\n");
+        return;
+    }
+    i=0;
+    char *c;
+    size_t len;
+    while(c=fgetln(fp, &len))
+    {
+	if(i>15)return;
+	if(len>=3)
+	{
+	    colors[i].r=c[0];
+	    colors[i].g=c[1];
+	    colors[i].b=c[2];
+	}
+	i++;
+    }
+}
+
+
+
+
+
 int halflight;
 
 
@@ -134,7 +181,8 @@ void draw_terminal(roteface *f)
 	    }
 	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
 	    int color=((rt->cells[i][j].attr));
-	    
+	    int c=ROTE_ATTR_XFG(color);//0-15
+	    printf("%i\n",c);
 	    if(!theme)
 	        glColor4f(1,color/255.0,color/255.0,1);
 	    else if (theme==1)
@@ -142,7 +190,7 @@ void draw_terminal(roteface *f)
 	    else if (theme==2)
 	        glColor4f(color/255.0,color/255.0,1,1);
 	    else if (theme==3)
-	        glColor4f(1,1,color/255.0,1);
+	        glColor4f(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
 //	    printf("%d", color);
 		
 

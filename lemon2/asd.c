@@ -590,6 +590,7 @@ int RunGLTest (void)
 	int mustresize = 1;
 	int justresized = 0;
 	xy  ss = parsemodes(w,h,"mode",1,0,0);
+	loadcolors();
 	printf("mmm..\n");
 	if (ss.x!=-1){w=ss.x;h=ss.y;};
 	SDL_Surface* s;
