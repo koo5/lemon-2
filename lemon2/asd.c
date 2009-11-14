@@ -431,8 +431,8 @@ void focusline(roteface * activeface)
     if(angel>2*3.14159265358979323846264)angel=0;
     glEnd();
 #else
-    DrawLine(gltextsdlsurface,activeface->x,activeface->y,activeface->x+100,activeface->y,barvicka);
-    DrawLine(gltextsdlsurface,activeface->x,activeface->y+100,activeface->x,activeface->y,barvicka);
+    DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y,    cam.x+activeface->x+100,cam.y+activeface->y,barvicka);
+    DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y+100,cam.x+activeface->x,    cam.y+activeface->y,barvicka);
 #endif
 
 }
@@ -740,18 +740,23 @@ int RunGLTest (void)
 			{
 			
 				case SDL_MOUSEMOTION:
-				if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
-				{
-					dirty=1;
-					activeface->x+=event.motion.xrel;
-					activeface->y+=event.motion.yrel;
-				}
-				if((SDL_BUTTON(3)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
-				{
-					dirty=1;
-					cam.x-=event.motion.xrel;
-					cam.y-=event.motion.yrel;
-				}
+					//if(escaped)
+					{
+						escaped=0;
+						if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
+						{
+							dirty=1;
+							activeface->x+=event.motion.xrel;
+							activeface->y+=event.motion.yrel;
+						}
+						if((SDL_BUTTON(3)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
+						{
+							dirty=1;
+							cam.x-=event.motion.xrel;
+						    	cam.y-=event.motion.yrel;
+						}
+					}
+					
 				
 				break;
 				case SDL_KEYUP:
