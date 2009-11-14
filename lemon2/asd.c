@@ -951,8 +951,16 @@ int RunGLTest (void)
 					    if ( (key == SDLK_RETURN) )
 						keyp(activeface,13);
 					    else
-					    if( event.key.keysym.unicode && ( (event.key.keysym.unicode & 0xFF80) == 0 ) )
-						keyp(activeface, event.key.keysym.unicode);
+					    if( event.key.keysym.unicode )//&& ( (event.key.keysym.unicode & 0xFF80) == 0 ) )
+						if(mod&KMOD_ALT)
+						{
+						    char c[2];
+						    c[0]=27;
+						    c[1]=key;
+						    rote_vt_write(activeface->t,c,2);
+						}
+						else
+						    keyp(activeface, event.key.keysym.unicode);
 					}
 				break;
 				case SDL_QUIT:
