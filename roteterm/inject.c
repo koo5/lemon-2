@@ -190,7 +190,7 @@ static void handle_control_char(RoteTerm *rt, char c) {
     
       #ifdef DEBUG
       default:
-//         fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
+         fprintf(stderr, "Unrecognized control char: %d (^%c)\n", c, c + '@');
          break;
       #endif
    }
@@ -253,7 +253,7 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
    if (firstchar != '[' && firstchar != ']') {
       /* unrecognized escape sequence. Let's forget about it. */
       #ifdef DEBUG
-//      fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);
+      fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);
       #endif
 
       cancel_escape_sequence(rt);

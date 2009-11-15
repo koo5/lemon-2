@@ -335,7 +335,7 @@ void rote_es_interpret_csi(RoteTerm *rt) {
 
 
     else
-//      fprintf(stderr, "Ignoring private-mode CSI: <%s>\n", rt->pd->esbuf);
+      fprintf(stderr, "Ignoring private-mode CSI: <%s>\n", rt->pd->esbuf);
       return; 
    }
 
@@ -386,7 +386,7 @@ void rote_es_interpret_csi(RoteTerm *rt) {
          interpret_csi_RESTORECUR(rt, csiparam, param_count); break;
 //      #ifdef DEBUG
       default: 
-//         fprintf(stderr, "Unrecogized CSI: <%s>\n", rt->pd->esbuf); break;
+         fprintf(stderr, "Unrecogized CSI: <%s>\n", rt->pd->esbuf); break;
 	break;
 //      #endif
    }

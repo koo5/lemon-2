@@ -376,6 +376,11 @@ void rote_vt_mousez(RoteTerm*vt,char s, int x, int y)
 {
     if (vt->docellmouse)
     {
+	if(x<0)return;
+	if(y<0)return;
+	if(x>vt->cols)return;
+	if(y>vt->rows)return;
+	
         char xy[6];
         xy[0]=27;
         xy[1]='[';

@@ -966,17 +966,33 @@ int RunGLTest (void)
 				case SDL_QUIT:
 					done = 1;
 					break;
-/*#ifndef GL
+#ifdef oops
 				case SDL_MOUSEBUTTONDOWN:
-					rote_vt_mousedown(activeface->t,event.button.x/13, event.button.y/26);
+					if(1)
+					{
+						int x=cam.x
+						+(-activeface->x
+						+event.button.x
+						)*activeface->scale
+						
+						/13;
+						int y=cam.y
+						+(-activeface->y
+						+event.button.y
+						)*activeface->scale
+						
+						/26;
+						rote_vt_mousedown(activeface->t,x,y);
+						printf("%i %i\n", x,y);
+					}
 					break;
-				case SDL_MOUSEBUTTONUP:
-					rote_vt_mouseup  (activeface->t,event.button.x/13, event.button.y/26);
-					break;
-				case SDL_MOUSEMOTION:
-					rote_vt_mousemove(activeface->t,event.button.x/13, event.button.y/26);
-					break;
-#endif*/
+//				case SDL_MOUSEBUTTONUP:
+//					rote_vt_mouseup  (activeface->t,event.button.x/13, event.button.y/26);
+//					break;
+//				case SDL_MOUSEMOTION:
+//					rote_vt_mousemove(activeface->t,event.button.x/13, event.button.y/26);
+//					break;
+#endif
 				case SDL_VIDEORESIZE:
 				    {
 					w=event.resize.w;h=event.resize.h;
@@ -1023,7 +1039,11 @@ int RunGLTest (void)
 			    printf("gooin !fuulin");
 			}
 			else
-			    s=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
+			{
+			    SDL_Surface *ns;
+			    ns=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
+			    if(ns)s=ns;
+			}
 		    }
 		    gofullscreen=0;
 		    unlockterms(face1);
@@ -1042,7 +1062,7 @@ int RunGLTest (void)
 int main(int argc, char *argv[])
 {
 	printf("hi\n");
-	printf("outdated info:Ctrl+ Home End PgDn Delete to resize , f11 f12 to resize window, f9 f10 line width, \n");
+	printf("outdated info:Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal, \n");
 	int i;
 	for(i=1;i<argc;i++)
 	    if(!strcmp(argv[i],"-f"))
