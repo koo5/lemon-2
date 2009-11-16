@@ -184,14 +184,14 @@ void draw_terminal(roteface *f)
 	    int c=ROTE_ATTR_XFG(color);//0-15
 //	    printf("%i\n",c);
 	    if(!theme)
-	        glColor4f(1,color/255.0,color/255.0,1);
+	        setcolor(1,color/255.0,color/255.0,1);
 
 	    else if (theme==1)
-	        glColor4f(color/255.0,1,color/255.0,1);
+	        setcolor(color/255.0,1,color/255.0,1);
 	    else if (theme==2)
-	        glColor4f(color/255.0,color/255.0,1,1);
+	        setcolor(color/255.0,color/255.0,1,1);
 	    else if (theme==3)
-	        glColor4f(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
+	        setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
 //	    printf("%d", color);
 		
 
@@ -252,7 +252,7 @@ void draw_terminal(roteface *f)
     }
 #ifdef GL
 
-    glPopMatrix();
+//    glPopMatrix();
     oldcrow=rt->crow;//4 cursor rotation
     oldccol=rt->ccol;
 

@@ -117,8 +117,8 @@ float floabs(float x)
 
 float r1x=0;
 float r1y=0;
-float sx=0.01;
-float sy=-0.01;
+float sx=1;
+float sy=1;
 float lv=1;
 
 void keyp(roteface* f, char ey)
@@ -196,18 +196,18 @@ int update_terminal(void *data)
 
 
 
-void wm(int w,int h)
+void wm(void)
 {
 #ifdef GL
 
-	glViewport( 0, 0, w, h );
+	glViewport( 0, 0, SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h );
+
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
-	glFrustum(-1, 1, -1, 1, 1.5, 10);
+	glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,1,-1);
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0,0,-4);
 #endif
 }
 	
@@ -512,10 +512,17 @@ void  showfaces(roteface * g)
 void shownerv(struct state *nerv)
 {
     nerverot_update(nerv);
-    glPushMatrix();
-    glTranslatef(0,0,1.5);
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity( );
+	glFrustum(-1, 1, -1, 1, 1.5, 10);
+
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+	glTranslatef(0,0,-2.5);
+    
     nerverot_draw(3,nerv);
-    glPopMatrix();
+
+    wm();
 }
 #endif
 
@@ -607,9 +614,9 @@ int RunGLTest (void)
 	SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
 #ifdef GL
-	newtermmsg=GetFileIntoCharPointer1("newtermmsg");
+//	newtermmsg=GetFileIntoCharPointer1("newtermmsg");
 	printf("pretty far\n");
-	wm(w,h);
+	wm();
 	int down=0;
 	glEnable(GL_BLEND);
 	glShadeModel(GL_FLAT);
@@ -659,7 +666,7 @@ int RunGLTest (void)
 				    dirty=1;
 				}
 				glPushMatrix();
-				glScalef(sx,sy,0.004);
+				glScalef(sx,sy,1);
 				glTranslatef(cam.x,cam.y,0);
 				
 
@@ -700,11 +707,13 @@ int RunGLTest (void)
 		gl_error = glGetError( );
 		if( gl_error != GL_NO_ERROR )
 		{
+			if(gl_error==GL_STACK_UNDERFLOW)
+				printf("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
 			if(gl_error==GL_STACK_OVERFLOW)
 				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
 			else if(gl_error==GL_INVALID_OPERATION)
 				printf("INVALID OPERATION, PATIENT EXPLODED\n");
-			else    fprintf( stderr, "testgl: OpenGL error: %d\n", gl_error );
+			else    fprintf( stderr, "testgl: OpenGL error: 0x%X\n", gl_error );
 			
 		}
 #endif
@@ -1000,7 +1009,7 @@ int RunGLTest (void)
 					dirty=1;
 					if (s=SDL_SetVideoMode( w,h, bpp, s->flags ) ) 
 //                                              printf("hmm\n");
-					wm(w,h);
+					wm();
 				    if(!justresized)
 
 					mustresize=1;
@@ -1019,7 +1028,7 @@ int RunGLTest (void)
 		    if (shrink||grow)
 		    { 
 			resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
-			wm(w,h);
+			wm();
 		    }
 		    if (mustresize)
 		    {
