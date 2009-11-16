@@ -322,7 +322,7 @@ void add_terminal(roteface * f)
 {
     printf("adding terminal|");
     RoteTerm* t;
-    t= rote_vt_create(25,60);
+    t= rote_vt_create(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/13);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     f->t=t;
 #ifdef threaded
