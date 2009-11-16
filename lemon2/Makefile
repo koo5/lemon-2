@@ -38,8 +38,8 @@ endif
 
 
 TARGETS = lsdl lgl
-all: $(TARGETS)
-
+all: lgl
+a: $(TARGETS)
 
 lgl$(EXE): $(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve
