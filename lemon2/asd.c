@@ -204,7 +204,7 @@ void wm(void)
 
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
-	glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,1,-1);
+	glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
