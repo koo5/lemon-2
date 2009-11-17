@@ -30,7 +30,7 @@ void loadl2(char * fln)
     l2=malloc(s);
     if (!l2)
     {
-        printf("no place 4 %i byttrez\n",s);
+        printf("no place 4 %i byttrez\n",(int)s);
         return;
     }
     size_t len;

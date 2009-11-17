@@ -322,6 +322,7 @@ void add_terminal(roteface * f)
 {
     printf("adding terminal|");
     RoteTerm* t;
+    printf("%i\n",SDL_GetVideoSurface()->h);
     t= rote_vt_create(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/13);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     f->t=t;
@@ -578,7 +579,7 @@ void freefaces(roteface *g)
 
 int RunGLTest (void)
 {
-
+	int startup=1;
 #ifdef GL
 	int mm=1;
 #else
@@ -632,8 +633,6 @@ int RunGLTest (void)
 	activeface =face1 ;
 	face1->next=add_face();
 	printf("still?\n");
-	add_terminal(face1);
-	printf("2threaad\n");
 	loadl2(fnfl);
 	struct state *nerv=0;
 #ifdef nerve
@@ -1005,7 +1004,7 @@ int RunGLTest (void)
 				case SDL_VIDEORESIZE:
 				    {
 					w=event.resize.w;h=event.resize.h;
-//                                      printf("videoresize %i %i\n", w,h);
+                                      printf("videoresize %i %i\n", w,h);
 					dirty=1;
 					if (s=SDL_SetVideoMode( w,h, bpp, s->flags ) ) 
 //                                              printf("hmm\n");
@@ -1016,8 +1015,10 @@ int RunGLTest (void)
 					justresized=0;
 					
 				    }
-
-					break;
+				    if(activeface->t)
+					rote_vt_resize(activeface->t, h/26,w/13);
+				    dirty=1;
+				break;
 				case SDL_USEREVENT:
 					if(event.user.code==1)
 					    RemoveTerm(&activeface,&face1, event.user.data1);
@@ -1053,8 +1054,15 @@ int RunGLTest (void)
 			    ns=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
 			    if(ns)s=ns;
 			}
+			gofullscreen=0;
 		    }
-		    gofullscreen=0;
+		    if(startup)
+		    {
+			startup=0;
+			add_terminal(face1);
+			printf("2threaad\n");
+		    }
+
 		    unlockterms(face1);
 #ifndef threaded
 		    updateterminals(face1);

@@ -25,7 +25,7 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #define gboolean int
 #define G_BEGIN_DECLS
 #define G_END_DECLS
-
+#include "signal.h"
 #include <pty.h>
 #include <stdio.h>
 #include <string.h>
@@ -112,8 +112,8 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 	rt->scrolltop=rt->rows-1;
     if (rt->scrollbottom>=rt->rows)
 	rt->scrollbottom=rt->rows-1;
-//    if(rt->childpid)
-//	kill(rt->childpid, 28);//SIGWINCH);
+    if(rt->childpid)
+	kill(rt->childpid, SIGWINCH);
 }
 
 void rote_vt_resize(RoteTerm *rt,int rows, int cols)
