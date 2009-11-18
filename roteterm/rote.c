@@ -112,8 +112,12 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 	rt->scrolltop=rt->rows-1;
     if (rt->scrollbottom>=rt->rows)
 	rt->scrollbottom=rt->rows-1;
-    if(rt->childpid)
-	kill(rt->childpid, SIGWINCH);
+//    if(rt->childpid>1)
+//    {
+//	int pgrp;
+//	if(ioctl(fd,TIOCGPGRP,&pgrp)!=-1)
+//	kill(-pgrp, SIGWINCH);//rt->childpid
+//    }
 }
 
 void rote_vt_resize(RoteTerm *rt,int rows, int cols)

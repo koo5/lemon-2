@@ -14,9 +14,9 @@ void loadcolors(void)
     int i;
     for (i=0;i<16;i++)
     {
-	colors[i].r=255;
-	colors[i].g=255;
-	colors[i].b=255;
+	colors[i].r=255/16*i;
+	colors[i].g=255/16*i;
+	colors[i].b=255/16*i;
     }
     
     FILE * fp = fopen("colors","r");
@@ -192,7 +192,7 @@ void draw_terminal(roteface *f)
 	        setcolor(color/255.0,color/255.0,1,1);
 	    else if (theme==3)
 	        setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
-//	    printf("%d", color);
+//	    printf("%d ", c);
 		
 
 	    	    

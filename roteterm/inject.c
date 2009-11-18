@@ -31,6 +31,7 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 void appendlog(RoteTerm *rt)
 {
    void* new;
+   if(rt->logl>2000) return;
    new = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
    if(new)
    {
