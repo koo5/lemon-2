@@ -75,7 +75,7 @@ inline void dooooot(float x,float y)
 #include "../gltext.c"
 
 double rastio=1;
-int theme=1;
+int theme=3;
 
 
 typedef struct
@@ -856,7 +856,7 @@ int RunGLTest (void)
 							    break;
 							case SDLK_RIGHT:
 							    theme++;
-							    if (theme>3)theme=3;
+							    if (theme>4)theme=4;
 							    
 							    break;
 							case SDLK_PAGEUP:

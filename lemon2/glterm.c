@@ -25,20 +25,8 @@ void loadcolors(void)
         printf("cant load 'colors'\n");
         return;
     }
-    i=0;
-    char *c;
-    size_t len;
-    while(c=fgetln(fp, &len))
-    {
-	if(i>15)return;
-	if(len>=3)
-	{
-	    colors[i].r=c[0];
-	    colors[i].g=c[1];
-	    colors[i].b=c[2];
-	}
-	i++;
-    }
+    fread(&colors,3,16,fp);
+    fclose(fp);
 }
 
 
@@ -183,14 +171,16 @@ void draw_terminal(roteface *f)
 	    int color=((rt->cells[i][j].attr));
 	    int c=ROTE_ATTR_XFG(color);//0-15
 //	    printf("%i\n",c);
+
 	    if(!theme)
 	        setcolor(1,color/255.0,color/255.0,1);
-
 	    else if (theme==1)
 	        setcolor(color/255.0,1,color/255.0,1);
 	    else if (theme==2)
 	        setcolor(color/255.0,color/255.0,1,1);
 	    else if (theme==3)
+	        setcolor(0.5+color/30,0.5+color/30,0.5+color/30,1);
+	    else if (theme==4)
 	        setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
 //	    printf("%d ", c);
 		
