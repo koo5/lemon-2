@@ -119,7 +119,7 @@ float r1x=0;
 float r1y=0;
 float sx=1;
 float sy=1;
-float lv=1;
+float lv=2;
 
 void keyp(roteface* f, char ey)
 {
@@ -598,10 +598,12 @@ int RunGLTest (void)
 	int escaped = 0;
 	int mustresize = 1;
 	int justresized = 0;
+
 	xy  ss = parsemodes(w,h,"mode",1,0,0);
 	loadcolors();
 	printf("mmm..\n");
 	if (ss.x!=-1){w=ss.x;h=ss.y;};
+
 	SDL_Surface* s;
 #ifdef GL
 	s=initsdl(w,h,&bpp,SDL_OPENGL
@@ -611,9 +613,11 @@ int RunGLTest (void)
 #endif
 
 	+0);printf("inito\n");
+
 	SDL_InitSubSystem( SDL_INIT_TIMER);
 	SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
+
 #ifdef GL
 //	newtermmsg=GetFileIntoCharPointer1("newtermmsg");
 	printf("pretty far\n");
@@ -624,8 +628,6 @@ int RunGLTest (void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glClearColor( 0.0, 0.0, 0.04, 0.0 );
 	glLineWidth(lv);
-#else
-	gltextsdlsurface=s;
 #endif
 	roteface *face1;
 	roteface *activeface;
@@ -635,6 +637,7 @@ int RunGLTest (void)
 	printf("still?\n");
 	loadl2(fnfl);
 	struct state *nerv=0;
+
 #ifdef nerve
 	nerv=nerverot_init(w,h);
 #endif
@@ -655,13 +658,14 @@ int RunGLTest (void)
 			SDL_FillRect    ( s, NULL, 0 );
 #endif
 
-#ifndef GL
-
-#else
+#ifdef GL
 
 				if(nerv)
 				{
+				    glLineWidth(1);
 				    shownerv(nerv);
+				    glLineWidth(lv);
+
 				    dirty=1;
 				}
 				glPushMatrix();
@@ -859,6 +863,19 @@ int RunGLTest (void)
 							    if (theme>4)theme=4;
 							    
 							    break;
+#ifdef GL
+
+							case SDLK_UP:
+							    lv++;
+							    glLineWidth(lv);
+
+							    break;
+							case SDLK_DOWN:
+							    lv--;
+							    glLineWidth(lv);
+
+							    break;
+#endif
 							case SDLK_PAGEUP:
 							     mode++;
 							     if(mode>mm)mode= mm;

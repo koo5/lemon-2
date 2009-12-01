@@ -10,6 +10,7 @@ double r,g,b,a;
 void setcolor(double rr,double gg,double bb,double aa)
 {
     r=rr;g=gg;b=bb;a=aa;
+    printf("%f %f %f %f\n",r,g,b,a);
 }
 
 
@@ -88,15 +89,15 @@ float a,float z)
             if(first)
     	    {
     		first=0;
-    		glColor4f(0,0,0,0);
+    		glColor4d(0,0,0,0);
                 dooooot(lok.x+fxdot,lok.y+fydot);
-                glColor4f(r,g,b,a);
+                glColor4d(r,g,b,a);
             }
 
             if (!*x)/*last dot*/
             {
                 dooooot(lok.x+fxdot,lok.y+fydot);
-    		glColor4f(0,0,0,0);
+    		glColor4d(0,0,0,0);
                 dooooot(lok.x+fxdot,lok.y+fydot);
                 if(duped)free(duped);
                 return;

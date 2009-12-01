@@ -13,7 +13,7 @@ void glBegin(int aha)
     have_first=0;
 }
 
-inline void glColor4f(float r,float g,float b,float a)
+inline void glColor4d(double r,double g,double b,double a)
 {
     if (a==0)
 	barvicka=0;
