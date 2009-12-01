@@ -171,7 +171,7 @@ void draw_terminal(roteface *f)
 	    int color=((rt->cells[i][j].attr));
 	    int c=ROTE_ATTR_XFG(color);//0-15
 
-	    printf("%i\n",c);
+//	    printf("%i\n",c);
 	    if(!theme)
 	        setcolor(1,color/255.0,color/255.0,1);
 	    else if (theme==1)
@@ -182,7 +182,7 @@ void draw_terminal(roteface *f)
 	    {
 		double wtf=0.5+color/30;
 	        setcolor(wtf,wtf,wtf,1);
-	        printf("%f\n", wtf);
+//	        printf("%f\n", wtf);
 	    }
 	    else if (theme==4)
 	        setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);

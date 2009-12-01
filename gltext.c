@@ -10,7 +10,7 @@ double r,g,b,a;
 void setcolor(double rr,double gg,double bb,double aa)
 {
     r=rr;g=gg;b=bb;a=aa;
-    printf("%f %f %f %f\n",r,g,b,a);
+//    printf("%f %f %f %f\n",r,g,b,a);
 }
 
 
