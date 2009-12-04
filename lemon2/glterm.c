@@ -172,21 +172,26 @@ void draw_terminal(roteface *f)
 	    int c=ROTE_ATTR_XFG(color);//0-15
 
 //	    printf("%i\n",c);
-	    if(!theme)
-	        setcolor(1,color/255.0,color/255.0,1);
-	    else if (theme==1)
-	        setcolor(color/255.0,1,color/255.0,1);
-	    else if (theme==2)
-	        setcolor(color/255.0,color/255.0,1,1);
-	    else if (theme==3)
+	    
+	    switch (f->theme)
+	    {
+	    case 0:
+	        setcolor(1,color/255.0,color/255.0,1);break;
+	    case 1:
+	        setcolor(color/255.0,1,color/255.0,1);break;
+	    case 2:
+	        setcolor(color/255.0,color/255.0,1,1);break;
+	    case 3:
 	    {
 		double wtf=0.5+color/30;
 	        setcolor(wtf,wtf,wtf,1);
 //	        printf("%f\n", wtf);
-	    }
-	    else if (theme==4)
+	    }break;
+	    case 4:
 	        setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
-//	    printf("%d ", c);
+//	    	printf("%d ", c);
+		break;
+	    }
 		
 
 	    	    

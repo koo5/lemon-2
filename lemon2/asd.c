@@ -75,8 +75,6 @@ inline void dooooot(float x,float y)
 #include "../gltext.c"
 
 double rastio=1;
-int theme=3;
-
 
 typedef struct
 {
@@ -98,6 +96,7 @@ typedef struct
     moomoo upd_t_data;
     double scale;
     int scroll;
+    int theme;
 } roteface;
 
 
@@ -105,7 +104,7 @@ typedef struct
 
 char *newtermmsg;//
 xy cam;//
-
+int global_tabbing=0;
 
 
 
@@ -316,6 +315,7 @@ roteface * add_face(void)
     f->t=0;
     f->scale=1;
     f->scroll=0;
+    f->theme=4;
 }
 
 void add_terminal(roteface * f)
@@ -501,7 +501,15 @@ void  showfaces(roteface * g, roteface * activeface)
 		gltx=g->x+cam.x;
 		glty=g->y+cam.y;
 	    #endif
+	    int th;
+	    if(global_tabbing)
+	    {
+		th=activeface->theme;
+		activeface->theme=1;
+	    }
 	    if(g->t||g==activeface)showface(g);
+	    if(global_tabbing)
+		activeface->theme=th;
 	    g=g->next;
 	    #ifdef GL
 		glPopMatrix();
@@ -580,6 +588,7 @@ int RunGLTest (void)
 	int grow=0;
 	int gofullscreen=0;
 	int escaped = 0;
+
 	int mustresize = 1;
 	int justresized = 0;
 	SDL_Surface* s;
@@ -756,6 +765,7 @@ int RunGLTest (void)
 					if ( (key == SDLK_RCTRL) )
 					{
 						dirty=1;
+						global_tabbing=0;
 					}
 				}
 				break;
@@ -785,6 +795,7 @@ int RunGLTest (void)
 						{
 							case SDLK_TAB:
 							    cycle(face1, &activeface);
+							    global_tabbing=1;
 							break;
 							case SDLK_F2:
 							    gofullscreen=1;
@@ -834,13 +845,13 @@ int RunGLTest (void)
 							    
 							break;
 							case SDLK_LEFT:
-							    theme--;
-							    if (theme<0)theme=0;
+							    activeface->theme--;
+							    if (activeface->theme<0)activeface->theme=0;
 							    
 							    break;
 							case SDLK_RIGHT:
-							    theme++;
-							    if (theme>4)theme=4;
+							    activeface->theme++;
+							    if (activeface->theme>4)activeface->theme=4;
 							    
 							    break;
 #ifdef GL
