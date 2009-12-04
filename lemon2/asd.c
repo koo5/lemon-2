@@ -653,7 +653,7 @@ int RunGLTest (void)
 			#ifdef GL
 				glClear(GL_COLOR_BUFFER_BIT);
 			#else
-				SDL_FillRect    ( s, NULL, 0 );
+				SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 			#endif
 
 			#ifdef GL
