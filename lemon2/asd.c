@@ -489,23 +489,23 @@ void RemoveTerm(roteface** activeface,roteface** f1, RoteTerm * Term)
 	(*f1)=(*f1)->next;
     }
 }
-void  showfaces(roteface * g)
+void  showfaces(roteface * g, roteface * activeface)
 {
 	while(g)
 	{
-#ifdef GL
-	    glPushMatrix();
-	    glTranslatef(g->x,g->y,0);
-#endif
-#ifdef SDLD
-	    gltx=g->x+cam.x;
-	    glty=g->y+cam.y;
-#endif
-	    showface(g);
+	    #ifdef GL
+		glPushMatrix();
+		glTranslatef(g->x,g->y,0);
+	    #endif
+	    #ifdef SDLD
+		gltx=g->x+cam.x;
+		glty=g->y+cam.y;
+	    #endif
+	    if(g->t||g==activeface)showface(g);
 	    g=g->next;
-#ifdef GL
-	    glPopMatrix();
-#endif
+	    #ifdef GL
+		glPopMatrix();
+	    #endif
 	}
 }
 
@@ -524,22 +524,6 @@ void shownerv(struct state *nerv)
     nerverot_draw(3,nerv);
 
     wm();
-}
-#endif
-
-#ifdef GL
-void krychlus(roteface *g)
-{
-	int nf;
-//      glScalef(0.2,0.2,1);
-	nf=countfaces(g);
-	printf("%i\n " ,nf / 6);
-	while(g)
-	{
-	    showface(g);
-	    glTranslatef(200,200,0);
-	    g=g->next;
-	}
 }
 #endif
 
@@ -577,6 +561,7 @@ void freefaces(roteface *g)
 
 }
 
+    
 int RunGLTest (void)
 {
 	int startup=1;
@@ -585,7 +570,6 @@ int RunGLTest (void)
 #else
 	int mm = 0;
 #endif
-	int mode=0;
 	cam.x=0;
 	cam.y=0;
 	int bpp;
@@ -598,110 +582,105 @@ int RunGLTest (void)
 	int escaped = 0;
 	int mustresize = 1;
 	int justresized = 0;
-
-	xy  ss = parsemodes(w,h,"mode",1,0,0);
-	loadcolors();
-	printf("mmm..\n");
-	if (ss.x!=-1){w=ss.x;h=ss.y;};
-
 	SDL_Surface* s;
-#ifdef GL
-	s=initsdl(w,h,&bpp,SDL_OPENGL
-
-#else
-	gltextsdlsurface=s=initsdl(w,h,&bpp,
-#endif
-
-	+0);printf("inito\n");
-
-	SDL_InitSubSystem( SDL_INIT_TIMER);
-	SDL_EnableUNICODE(1);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
-
-#ifdef GL
-//	newtermmsg=GetFileIntoCharPointer1("newtermmsg");
-	printf("pretty far\n");
-	wm();
-	int down=0;
-	glEnable(GL_BLEND);
-	glShadeModel(GL_FLAT);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glClearColor( 0.0, 0.0, 0.04, 0.0 );
-	glLineWidth(lv);
-#endif
 	roteface *face1;
 	roteface *activeface;
-	face1=add_face();
-	activeface =face1 ;
-	face1->next=add_face();
-	printf("still?\n");
-	loadl2(fnfl);
-	struct state *nerv=0;
 
+	void init(void)
+	{
+		loadcolors();
+		printf("mmm..\n");
+		xy ss = parsemodes(w,h,"mode",1,0,0);
+		if (ss.x!=-1){w=ss.x;h=ss.y;};
+	    #ifdef GL
+		s=initsdl(w,h,&bpp,SDL_OPENGL
+	    #else
+		gltextsdlsurface=s=initsdl(w,h,&bpp,
+	    #endif
+		+0);printf("inito\n");
+		SDL_EnableUNICODE(1);
+		SDL_InitSubSystem( SDL_INIT_TIMER);
+		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
+		newtermmsg=GetFileIntoCharPointer1("newtermmsg");
+		printf("pretty far\n");
+		loadl2(fnfl);
+	}
+	void initgl(void)
+	{
+	    #ifdef GL
+		wm();
+		int down=0;
+		glEnable(GL_BLEND);
+		glShadeModel(GL_FLAT);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glClearColor( 0.0, 0.0, 0.0, 0.0 );
+		glLineWidth(lv);
+	    #endif
+	}
+	void initfaces(void)
+	{
+		face1=add_face();
+		activeface =face1 ;
+		face1->next=add_face();
+		printf("still?\n");
+	}
 #ifdef nerve
+	struct state *nerv=0;
 	nerv=nerverot_init(w,h);
 #endif
 
+	init();
+	initgl();
+	initfaces();
 	int dirty=1;
 	printf("mainloop descent commencing\n");
 	while( !done )
 	{       
 		lockterms(face1);
-
 		if(dirty||faces_dirty(face1))
 		{
 			dirty=0;
 			facesclean(face1);
-#ifdef GL
-			glClear(GL_COLOR_BUFFER_BIT);
-#else
-			SDL_FillRect    ( s, NULL, 0 );
-#endif
+			#ifdef GL
+				glClear(GL_COLOR_BUFFER_BIT);
+			#else
+				SDL_FillRect    ( s, NULL, 0 );
+			#endif
 
-#ifdef GL
+			#ifdef GL
 
-				if(nerv)
-				{
-				    glLineWidth(1);
-				    shownerv(nerv);
-				    glLineWidth(lv);
+				#ifdef nerve
 
-				    dirty=1;
-				}
+					if(nerv)
+					{
+					    glLineWidth(1);
+					    shownerv(nerv);
+					    glLineWidth(lv);
+
+					    dirty=1;
+					}
+				#endif
+
 				glPushMatrix();
 				glScalef(sx,sy,1);
 				glTranslatef(cam.x,cam.y,0);
 				
 
-#endif
-				Uint8 * k;
-				int integer;
+			#endif
 
-				k=SDL_GetKeyState(&integer);
-				if(k[SDLK_RCTRL])
-					focusline(activeface);
-				int nf;
-				switch(mode)
-				{
-				    case 0:
-					showfaces(face1);
-				    break;
-#ifdef GL
-				    case 1:
-					krychlus(face1);
-				    break;
-#endif
-				}
-#ifdef GL
+			Uint8 * k;
+			int integer;
+			k=SDL_GetKeyState(&integer);
+			if(k[SDLK_RCTRL])
+				focusline(activeface);
+
+			showfaces(face1, activeface);
+			#ifdef GL
 				glPopMatrix();
-#endif
-
-
-#ifndef GL
-			SDL_UpdateRect(s,0,0,0,0);
-#else
-			SDL_GL_SwapBuffers( );
-#endif
+	    			SDL_GL_SwapBuffers( );
+			#else
+				SDL_UpdateRect(s,0,0,0,0);
+			#endif
 			facesclean(face1);
 			
 		}
@@ -716,16 +695,16 @@ int RunGLTest (void)
 				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
 			else if(gl_error==GL_INVALID_OPERATION)
 				printf("INVALID OPERATION, PATIENT EXPLODED\n");
-			else    fprintf( stderr, "testgl: OpenGL error: 0x%X\n", gl_error );
-			
+			else    
+				printf("testgl: OpenGL error: 0x%X\n", gl_error );
 		}
 #endif
 		char* sdl_error;
 		sdl_error = SDL_GetError( );
 		if( sdl_error[0] != '\0' )
 		{
-		    fprintf(stderr, "testgl: SDL error '%s'\n", sdl_error);
-		    SDL_ClearError();
+			printf("testgl: SDL error '%s'\n", sdl_error);
+			SDL_ClearError();
 		}
 
 
@@ -742,7 +721,8 @@ int RunGLTest (void)
 		{
 		    lockterms(face1);
 //                  printf("---------locked goooin %i\n", event.type);
-		    if(x)SDL_RemoveTimer(x);x=0;                    
+		    if(x)SDL_RemoveTimer(x);
+		    x=0;
 		    do {
 			int mod=event.key.keysym.mod;
 			int key=event.key.keysym.sym;
@@ -876,14 +856,6 @@ int RunGLTest (void)
 
 							    break;
 #endif
-							case SDLK_PAGEUP:
-							     mode++;
-							     if(mode>mm)mode= mm;
-							break;
-							case SDLK_INSERT:
-							     mode--;
-							     if(mode<0)mode= 0;
-							break;
 							case SDLK_END:
 							    resizooo(activeface, 0,1,keystate);
 							break;
@@ -907,7 +879,6 @@ int RunGLTest (void)
 								else
 								{
 									nerv=nerverot_init(w,h);
-									
 									dirty=1;
 								}
 							break;
@@ -1095,6 +1066,7 @@ int RunGLTest (void)
 
 int main(int argc, char *argv[])
 {
+
 	printf("hi\n");
 	printf("outdated info:Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal, \n");
 	int i;
