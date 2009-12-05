@@ -98,9 +98,8 @@ typedef struct
 } roteface;
 
 
-#define TYPE roteface
 #include "linkedlist.c"
-
+linkedlist(roteface)
 
 #include "glterm.c"
 
