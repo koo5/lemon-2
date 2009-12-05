@@ -98,6 +98,10 @@ typedef struct
 } roteface;
 
 
+#define TYPE roteface
+#include "linkedlist.c"
+
+
 #include "glterm.c"
 
 char *ntfl;
@@ -454,15 +458,8 @@ roteface *getprevface(roteface* f1,roteface* f)
     
 
 
-void removeface(roteface **face1, roteface *f)
+roteface* removeface(roteface *face1, roteface *f)
 {
-    if(*face1==f)
-	*face1=f->next;
-    else
-    {
-	roteface * prev=getprevface(*face1, f);
-	if(prev)prev->next=f->next;
-    }
     if(f->t)
     {
 	rote_vt_destroy(f->t);
@@ -472,20 +469,19 @@ void removeface(roteface **face1, roteface *f)
 #endif
     }
     free(f);
+    return rotefacelistremove(face1,f);
 }
 
-void RemoveTerm(roteface** activeface,roteface** f1, RoteTerm * Term)
+roteface * RemoveTerm(roteface* f1, RoteTerm * Term)
 {
-    while(f1)
+    roteface *next=f1;
+    while(next)
     {
-	if((*f1)->t==Term)
+	if((next)->t==Term)
 	{
-	    removeface(f1, *f1);
-	    if(*activeface==*f1)
-		*activeface=(*f1)->next;
-	    return;
+	    return removeface(f1, next);
 	}
-	(*f1)=(*f1)->next;
+	next=next->next;
     }
 }
 void  showfaces(roteface * g, roteface * activeface)
@@ -561,10 +557,7 @@ void updateterminals(roteface *g)
 void freefaces(roteface *g)
 {
 	while(g)
-	{
-	    removeface(&g,g);
-	    if(g)g=g->next;
-	}
+	    g=removeface(g,g);
 
 }
 
@@ -1019,7 +1012,15 @@ int RunGLTest (void)
 				break;
 				case SDL_USEREVENT:
 					if(event.user.code==1)
-					    RemoveTerm(&activeface,&face1, event.user.data1);
+					{
+					    if(activeface->t==event.user.data1)
+					    {
+						activeface=activeface->next;
+						if(!activeface)
+						    activeface=face1;
+					    }
+					    face1=RemoveTerm(face1, event.user.data1);
+					}
 					break;
 			}
 		    }
