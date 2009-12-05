@@ -6,7 +6,7 @@ unsigned char r,g,b;
 }
 color;
 
-
+char *clfl;
 color colors[16];
 
 void loadcolors(void)
@@ -19,7 +19,7 @@ void loadcolors(void)
 	colors[i].b=255/16*i;
     }
     
-    FILE * fp = fopen("colors","r");
+    FILE * fp = fopen(clfl,"r");
     if (fp == NULL)
     {
         printf("cant load 'colors'\n");

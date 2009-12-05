@@ -41,14 +41,13 @@
 #include "../more-mess/resize.c"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
+
 #ifdef GL
 #include "SDL_opengl.h"
-
 #ifdef nerve
 #include "../toys/nerverot/stolenfromglu"
 #include "../toys/nerverot/nerverot.c"
 #endif
-
 #else
 #include "SDL_draw.h"
 #endif
@@ -69,10 +68,9 @@ inline void dooooot(float x,float y)
 #include "../sdldlines.c"
 #endif
 
-
-
-
 #include "../gltext.c"
+
+#include "getexecname.c"
 
 double rastio=1;
 
@@ -102,6 +100,7 @@ typedef struct
 
 #include "glterm.c"
 
+char *ntfl;
 char *newtermmsg;//
 xy cam;//
 int global_tabbing=0;
@@ -610,7 +609,7 @@ int RunGLTest (void)
 		SDL_EnableUNICODE(1);
 		SDL_InitSubSystem( SDL_INIT_TIMER);
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
-		newtermmsg=GetFileIntoCharPointer1("newtermmsg");
+		newtermmsg=GetFileIntoCharPointer1(ntfl);
 		printf("pretty far\n");
 		loadl2(fnfl);
 	}
@@ -1080,6 +1079,20 @@ int main(int argc, char *argv[])
 
 	printf("hi\n");
 	printf("outdated info:Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal, \n");
+
+	char *path;
+	path=getexepath();
+	if(path)
+	{
+		char* n=strrchr(path, 0);
+		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));
+		fnfl=strdup(strcat(path, "l2"));
+		*n=0;
+		clfl=strdup(strcat(path, "colors"));
+		*n=0;
+		ntfl=strdup(strcat(path, "newtermmsg"));
+		free(path);
+	}
 	int i;
 	for(i=1;i<argc;i++)
 	    if(!strcmp(argv[i],"-f"))
