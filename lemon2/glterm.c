@@ -18,7 +18,7 @@ void loadcolors(void)
 	colors[i].g=255/16*i;
 	colors[i].b=255/16*i;
     }
-    
+    if(!clfl)return;
     FILE * fp = fopen(clfl,"r");
     if (fp == NULL)
     {

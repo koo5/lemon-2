@@ -467,8 +467,9 @@ roteface* removeface(roteface *face1, roteface *f)
 	SDL_KillThread(f->upd_t_data.thr);
 #endif
     }
+    roteface * ret= rotefacelistremove(face1,f);
     free(f);
-    return rotefacelistremove(face1,f);
+    return ret;
 }
 
 roteface * RemoveTerm(roteface* f1, RoteTerm * Term)
@@ -601,7 +602,7 @@ int RunGLTest (void)
 		SDL_EnableUNICODE(1);
 		SDL_InitSubSystem( SDL_INIT_TIMER);
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
-		newtermmsg=GetFileIntoCharPointer1(ntfl);
+		if(ntfl)newtermmsg=GetFileIntoCharPointer1(ntfl);
 		printf("pretty far\n");
 		loadl2(fnfl);
 	}
@@ -889,6 +890,7 @@ int RunGLTest (void)
 					}
 					else
 					{
+					    activeface->scroll=0;
 					    if(activeface->t==0)
 					    {
 						printf("debug messages r fun\n");
@@ -1060,11 +1062,13 @@ int RunGLTest (void)
 			add_terminal(face1);
 			printf("2threaad\n");
 		    }
-
-		    unlockterms(face1);
-#ifndef threaded
-		    updateterminals(face1);
-#endif
+		    if(!done)
+		    {
+			unlockterms(face1);
+			#ifndef threaded
+				updateterminals(face1);
+			#endif
+		    }
 		}
 
 	}
@@ -1084,8 +1088,9 @@ int main(int argc, char *argv[])
 	path=getexepath();
 	if(path)
 	{
-		char* n=strrchr(path, 0);
+		printf("%s\n", path);
 		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));
+		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l2"));
 		*n=0;
 		clfl=strdup(strcat(path, "colors"));

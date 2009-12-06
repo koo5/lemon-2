@@ -18,6 +18,7 @@ void freel2(void)
 
 void loadl2(char * fln)
 {
+    if(!fln)return;
     FILE * fp = fopen(fln,"r");
     if (fp == NULL)
     {
