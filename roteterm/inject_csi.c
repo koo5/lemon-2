@@ -336,7 +336,7 @@ void rote_es_interpret_csi(RoteTerm *rt) {
 
     else
       fprintf(stderr, "Ignoring private-mode CSI: <%s>\n", rt->pd->esbuf);
-      return; 
+    return; 
    }
 
    /* parse numeric parameters */

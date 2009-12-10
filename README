@@ -1,0 +1,10 @@
+lemon2:
+right ctrl +
+f2:fullscreen
+f9,10:scale -,+
+f12:quit
+tab: cycle thru terminals and empty terminal
+
+any key:spawn bash in empty terminal
+mouse: move terminal, camera or both
+
