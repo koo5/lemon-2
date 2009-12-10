@@ -512,6 +512,22 @@ void  showfaces(roteface * g, roteface * activeface)
 	}
 }
 
+void clipin(roteface *f,int noes)
+{
+    char * r=rotoclipin();
+    char *s=r;
+    if(s)
+    {
+    while(*r)
+    {
+	if((noes && (*r)!=10 && (*r)!=13 ) || !noes) keyp(f,*r);
+	r++;
+    }
+    free(s);
+    }
+}
+
+
 #ifdef nerve
 void shownerv(struct state *nerv)
 {
@@ -776,6 +792,11 @@ int RunGLTest (void)
 							    activeface->scroll=activeface->t->logl;
 						if(activeface->scroll<0)activeface->scroll=0;
 //                                              printf("scroll:%i,logl:%i, log&%i, t:%i ,b:%i\n", tscroll,activeface->t->logl, activeface->t->log,activeface->t->scrolltop,activeface->t->scrollbottom);
+					}
+					else
+					if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
+					{
+					    clipin(activeface,0);
 					}
 					else
 					if(key==SDLK_RCTRL||mod&KMOD_RCTRL||escaped)

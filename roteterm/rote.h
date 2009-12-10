@@ -316,3 +316,4 @@ void rote_vt_mousedown(RoteTerm *vt, int x, int y);
 void rote_vt_mouseup(RoteTerm *vt, int x, int y);
 void rote_vt_mousemove(RoteTerm *vt, int x, int y);
 
+char *rotoclipin(void);

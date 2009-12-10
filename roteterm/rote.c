@@ -408,3 +408,21 @@ void rote_vt_mousemove(RoteTerm *vt, int x, int y)
 {
     rote_vt_mousez(vt,'@',x,y);
 }
+
+
+char * rotoclipin(void)
+{
+    char *buf;
+    RoteTerm *t;
+    t = rote_vt_create(10,10);
+    rote_vt_forkpty(t, "xclip -o");
+    int i,br=0;
+    buf=malloc(512);
+    rote_vt_update_thready(buf, 6, &br,t);
+    //?
+    buf[br]=0;
+    rote_vt_forsake_child(t);
+    rote_vt_destroy(t);
+    if(br>0)return buf;
+    else { free(buf);return     0;}
+}
