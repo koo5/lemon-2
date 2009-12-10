@@ -1021,6 +1021,7 @@ int RunGLTest (void)
 						    activeface=face1;
 					    }
 					    face1=RemoveTerm(face1, event.user.data1);
+					    dirty=1;
 					}
 					break;
 			}
