@@ -527,6 +527,21 @@ void clipin(roteface *f,int noes)
     }
 }
 
+void clipoutlastline(roteface *f)
+{
+    if(f->t->crow<1)return;
+    int i;
+    char *s=malloc(f->t->cols+1);
+    s[f->t->cols]=0;
+    for (i=0;i<f->t->cols;i++)
+	s[i]=f->t->cells[f->t->crow-1][i].ch;
+    rotoclipout(s);
+//    printf("%s\n",s);
+    free(s);
+}
+
+
+
 
 #ifdef nerve
 void shownerv(struct state *nerv)
@@ -806,6 +821,9 @@ int RunGLTest (void)
 						if(key==SDLK_RCTRL) escaped=1;
 						switch (key)
 						{
+							case SDLK_INSERT:
+							    clipoutlastline(activeface);
+							    break;
 							case SDLK_TAB:
 							    cycle(face1, &activeface);
 							    global_tabbing=1;

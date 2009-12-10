@@ -426,3 +426,26 @@ char * rotoclipin(void)
     if(br>0)return buf;
     else { free(buf);return     0;}
 }
+
+void rotoclipout(char * x)
+{
+    char *buf;
+    RoteTerm *t;
+    t = rote_vt_create(10,10);
+    rote_vt_forkpty(t, "xclip -i");
+    rote_vt_update(t);
+    rote_vt_write(t,x,strlen(x));
+    rote_vt_write(t,"\4",1);
+    rote_vt_write(t,"\4",1);
+    rote_vt_update(t);
+    rote_vt_update(t);
+    rote_vt_update(t);
+    rote_vt_update(t);
+    rote_vt_update(t);
+
+    rote_vt_forsake_child(t);
+    rote_vt_destroy(t);
+}
+
+
+
