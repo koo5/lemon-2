@@ -129,7 +129,7 @@ static xy draw(xy lok,unsigned int i, double s)
     nlok=lok;
     nlok.x+=30;
 
-    if (l2)
+    if (do_l2&&l2)
         if (i<l2numitems)
             if (l2[i])
                 if (strlen(l2[i]))

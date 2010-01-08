@@ -56,6 +56,7 @@
 #include "screenshot.c"
 
 char *fnfl="l2";
+int do_l2=1;
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -856,9 +857,6 @@ int RunGLTest (void)
 							case SDLK_F8:
 							    loadl2(fnfl);
 							break;
-							case SDLK_p:
-							    saveScreenshot();
-							break;
 							case SDLK_F9:
 							    activeface->scale-=0.05;
 							    
@@ -874,6 +872,13 @@ int RunGLTest (void)
 							    //grow=1;
 							    done=1;
 							    
+							break;
+							case SDLK_p:
+							    saveScreenshot();
+							break;
+							case SDLK_l:
+							    do_l2=!do_l2;
+							    dirty=1;
 							break;
 							case SDLK_LEFT:
 							    activeface->theme--;
