@@ -1,3 +1,9 @@
+sudo aptitude install libncurses-dev libsdl-dev  git-core xclip
+git clone  git://github.com/koo5/lemon.git
+cd lemon/lemon2
+make
+
+
 lemon2:
 right ctrl +
 f2:fullscreen
