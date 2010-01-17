@@ -1037,6 +1037,9 @@ int RunGLTest (void)
 //					rote_vt_mousemove(activeface->t,event.button.x/13, event.button.y/26);
 //					break;
 #endif
+				case SDL_VIDEOEXPOSE:
+					dirty=1;
+					break;
 				case SDL_VIDEORESIZE:
 				    {
 					w=event.resize.w;h=event.resize.h;
