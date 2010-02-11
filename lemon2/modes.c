@@ -52,7 +52,7 @@ xy parsemodes(int w,int h/*current w and h to know where to look while shrinking
 {
 	     xy r,fail;
 	     xy oldr;
-	     oldr.x=-1;
+	     oldr.x=-1;	     oldr.y=-1;
 	     fail=oldr;
 	     FILE * fp = fopen(file,"r");
 	     if (fp == NULL) 

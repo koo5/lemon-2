@@ -63,10 +63,6 @@ int wtf(unsigned char x)
         }
         else if (len==4)
         {
-            b[pos]=b[pos]|((b[pos-1]&3)<<6);
-            b[pos-1]=((b[pos-1]&60) >> 2) | ((b[pos-2]&15) << 4);
-            etf=b[pos]+b[pos-1]*256;
-            pos=0;
             return 1;
         }
         pos=0;

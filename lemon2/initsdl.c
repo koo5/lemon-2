@@ -11,7 +11,7 @@ SDL_Surface *initsdl(int w,int h,int *bppp,Uint32 flags)
 	static int bpp=0; 
 	Uint32 video_flags;
 	video_flags = flags;
-	int rgb_size[3];
+	int rgb_size[3]={0,0,0};
 	printf("yoyoyo\n");
 	if (flags& SDL_OPENGL)
 	{

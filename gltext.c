@@ -116,14 +116,15 @@ void zspillit(xy lok,char *x,float z)
 {
     azspillit(lok,x,z,z);
 }
+/*
 static void spillit(xy lok,char *x)
 {
     zspillit(lok,x,1);
 }
+*/
 
 
-
-static xy draw(xy lok,unsigned int i, double s)
+xy draw(xy lok,unsigned int i, double s)
 {
     xy nlok;
     nlok=lok;
@@ -379,7 +380,7 @@ static xy draw(xy lok,unsigned int i, double s)
         zspillit(lok, sgns[0],s);
     else if (i==124)
         zspillit(lok, sgns[20],s);
-
+    return nlok;
 }
 
 

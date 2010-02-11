@@ -172,9 +172,9 @@ char *reallygetexename(void)
 	
 char *getexepath(void)
 {
-    char *x,*y;
-    if(x=reallygetexename())
-	if(y=strrchr(x, '/'));
+    char *x,*y=0;
+    if((x=reallygetexename()))
+	if((y=strrchr(x, '/')));
 	{
 	    *(y+1)=0;
 	    return x;

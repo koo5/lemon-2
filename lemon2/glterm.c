@@ -11,7 +11,7 @@ color colors[16];
 
 void loadcolors(void)
 {
-    int i;
+    int i,useless;
     for (i=0;i<16;i++)
     {
 	colors[i].r=255/16*i;
@@ -25,7 +25,7 @@ void loadcolors(void)
         printf("cant load 'colors'\n");
         return;
     }
-    fread(&colors,3,16,fp);
+    useless=fread(&colors,3,16,fp);
     fclose(fp);
 }
 
@@ -142,7 +142,7 @@ void draw_terminal(roteface *f)
     for (i=0; i<rt->rows; i++)
     {
 	lok.y=(scroll+i)*26*f->scale;
-	int gotlog=1;
+//	int gotlog=1;
 	for (j=0; j<rt->cols; j++)
 	{
 #ifdef GL
@@ -167,7 +167,7 @@ void draw_terminal(roteface *f)
 			zspillit(lok,"aaza",f->scale);
 		//halflight=0;
 	    }
-	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
+//	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
 	    int color=((rt->cells[i][j].attr));
 	    int c=ROTE_ATTR_XFG(color);//0-15
 

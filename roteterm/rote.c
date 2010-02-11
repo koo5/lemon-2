@@ -416,7 +416,7 @@ char * rotoclipin(void)
     RoteTerm *t;
     t = rote_vt_create(10,10);
     rote_vt_forkpty(t, "xclip -o");
-    int i,br=0;
+    int br=0;
     buf=malloc(512);
     rote_vt_update_thready(buf, 6, &br,t);
     //?
@@ -429,7 +429,6 @@ char * rotoclipin(void)
 
 void rotoclipout(char * x)
 {
-    char *buf;
     RoteTerm *t;
     t = rote_vt_create(10,10);
     rote_vt_forkpty(t, "xclip -i");

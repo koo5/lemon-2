@@ -21,7 +21,7 @@ pl=$(shell uname)
 
 ifeq ($(pl),Linux)
 CC      = gcc  -g -ggdb 
-PYLIBS = `/usr/bin/python2.5-config --cflags`  `/usr/bin/python2.5-config --libs ` 
+PYLIBS = -DPYTHON `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
 CFLIBS += -DLINUX -pthread `pkg-config --libs sdl` `pkg-config --cflags sdl` 
 GLLIBS += -lGL
 # -lSDL_ttf 
@@ -38,15 +38,20 @@ endif
 
 
 TARGETS = lsdl lgl
-all: lgl
+all: lglpy
 a: $(TARGETS)
 
-lgl$(EXE): $(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata
+X=$(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata
+
+lgl$(EXE): $(X)
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve
+
+lglpy$(EXE): $(X)
+	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve $(PYLIBS)
 
 lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c ./glterm.c  ../roteterm/* ../linetextdata
 	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
 	    -g  /usr/local/lib/libSDL_draw.a
 
 clean:
-	rm ./lgl ./lsdl
+	rm ./lgl ./lsdl ./lglpy

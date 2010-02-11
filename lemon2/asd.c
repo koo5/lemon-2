@@ -56,7 +56,7 @@
 #include "screenshot.c"
 
 char *fnfl="l2";
-int do_l2=1;
+int do_l2=0;
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -316,9 +316,10 @@ roteface * add_face(void)
     f->x=0;
     f->y=0;
     f->t=0;
-    f->scale=1;
+    f->scale=0.75;
     f->scroll=0;
     f->theme=4;
+    return f;
 }
 
 void add_terminal(roteface * f)
@@ -326,7 +327,7 @@ void add_terminal(roteface * f)
     printf("adding terminal|");
     RoteTerm* t;
     printf("%i\n",SDL_GetVideoSurface()->h);
-    t= rote_vt_create(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/13);
+    t= rote_vt_create(SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     f->t=t;
 #ifdef threaded
@@ -418,6 +419,7 @@ int countfaces(roteface* f)
 	i++;
 	f=f->next;
     }
+    return i;
 }
 
 void focusline(roteface * activeface)
@@ -484,6 +486,7 @@ roteface * RemoveTerm(roteface* f1, RoteTerm * Term)
 	}
 	next=next->next;
     }
+    return 0;
 }
 void  showfaces(roteface * g, roteface * activeface)
 {
@@ -497,7 +500,7 @@ void  showfaces(roteface * g, roteface * activeface)
 		gltx=g->x+cam.x;
 		glty=g->y+cam.y;
 	    #endif
-	    int th;
+	    int th=0;
 	    if(global_tabbing)
 	    {
 		th=activeface->theme;
@@ -598,7 +601,7 @@ int RunGLTest (void)
 {
 	int startup=1;
 #ifdef GL
-	int mm=1;
+//	int mm=1;
 #else
 	int mm = 0;
 #endif
@@ -642,7 +645,7 @@ int RunGLTest (void)
 	{
 	    #ifdef GL
 		wm();
-		int down=0;
+//		int down=0;
 		glEnable(GL_BLEND);
 		glShadeModel(GL_FLAT);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -859,10 +862,17 @@ int RunGLTest (void)
 							break;
 							case SDLK_F9:
 							    activeface->scale-=0.05;
+							    if(activeface->t)
+								rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
+							    dirty=1;
+
 							    
 							break;
 							case SDLK_F10:
 							    activeface->scale+=0.05;
+							    if(activeface->t)
+								rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
+							    dirty=1;
 
 							break;
 							case SDLK_F11:
@@ -928,6 +938,14 @@ int RunGLTest (void)
 									nerv=nerverot_init(w,h);
 									dirty=1;
 								}
+							break;
+							case SDLK_COMMA:
+								if(nerv)
+									nerverot_cycledown(nerv);
+							break;
+							case SDLK_PERIOD:
+								if(nerv)
+									nerverot_cycleup(nerv);
 							break;
 #endif
 						}
@@ -996,7 +1014,8 @@ int RunGLTest (void)
 						keyp(activeface,13);
 					    else
 					    if( event.key.keysym.unicode )//&& ( (event.key.keysym.unicode & 0xFF80) == 0 ) )
-						if(mod&KMOD_ALT)
+					    {
+					    	if(mod&KMOD_ALT)
 						{
 						    char c[2];
 						    c[0]=27;
@@ -1005,6 +1024,7 @@ int RunGLTest (void)
 						}
 						else
 						    keyp(activeface, event.key.keysym.unicode);
+					    }
 					}
 				break;
 				case SDL_QUIT:
@@ -1043,9 +1063,9 @@ int RunGLTest (void)
 				case SDL_VIDEORESIZE:
 				    {
 					w=event.resize.w;h=event.resize.h;
-                                      printf("videoresize %i %i\n", w,h);
+                                        printf("videoresize %i %i\n", w,h);
 					dirty=1;
-					if (s=SDL_SetVideoMode( w,h, bpp, s->flags ) ) 
+					if( (s=SDL_SetVideoMode( w,h, bpp, s->flags )) ) 
 //                                              printf("hmm\n");
 					wm();
 				    if(!justresized)
@@ -1055,7 +1075,7 @@ int RunGLTest (void)
 					
 				    }
 				    if(activeface->t)
-					rote_vt_resize(activeface->t, h/26,w/13);
+					rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
 				    dirty=1;
 				break;
 				case SDL_USEREVENT:
@@ -1116,6 +1136,10 @@ int RunGLTest (void)
 			#ifndef threaded
 				updateterminals(face1);
 			#endif
+		    }
+		    else
+		    {
+			savemode(w,h);
 		    }
 		}
 

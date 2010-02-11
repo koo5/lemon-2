@@ -1033,7 +1033,7 @@ static void threed_draw (struct state *st)
 {
     int n;
     int m = 0;
-    float fun;
+    float fun=0.5;
 
     GLint viewport[4];// Space For Viewport xywh
     GLdouble winx, winy, winz;// Space For Returned Projected Coords

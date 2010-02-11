@@ -83,7 +83,7 @@ void writePNG(SDL_Surface *surface, char *filename)
 
 #ifdef GL
 
-SDL_Surface* getScreenshot()
+SDL_Surface* getScreenshot(void)
 {
     SDL_Surface *mScreen;
     mScreen=SDL_GetVideoSurface();
