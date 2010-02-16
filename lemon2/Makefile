@@ -35,7 +35,7 @@ endif
 
 
 TARGETS = lsdl lgl
-all: lglpy
+all: lgl
 a: $(TARGETS)
 
 X=$(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata
