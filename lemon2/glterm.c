@@ -202,10 +202,10 @@ void draw_terminal(roteface *f)
 	    if(isundercursor) //do nice rotation animation hehe
 	    {
 		static int rotor;
-		zspillit(lok,nums[0],1.2);
+//		zspillit(lok,nums[0],1.2);
 		if((oldcrow!=rt->crow)||(oldccol!=rt->ccol))
 		    rotor=0;
-		zspillit(lok,nums[0],2);//cursor
+		zspillit(lok,nums[0],2.2);//cursor
 		glEnd();
 		glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);

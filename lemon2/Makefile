@@ -12,7 +12,7 @@ CFLIBS = -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
         -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib \
           ../roteterm/inject_csi.c ../roteterm/inject.c\
            ../roteterm/rote_keymap.c ../roteterm/rote.c \
-           ../more-mess/wtf.c -lncurses 
+           ../more-mess/wtf.c -lncurses  ../tpl/tpl.c
 
 pl=$(shell uname)
 

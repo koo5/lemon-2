@@ -41,7 +41,7 @@
 #include "../more-mess/resize.c"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
-
+#include "../tpl/tpl.h"
 #ifdef GL
 #include "SDL_opengl.h"
 #ifdef nerve
@@ -64,6 +64,18 @@ inline void dooooot(float x,float y)
     glVertex2f(x,y);
 }
 #endif
+
+
+static
+void
+logit(const char * iFormat, ...)
+{
+    va_list argp;
+    va_start(argp, iFormat);
+    vprintf(iFormat, argp);
+    va_end(argp);
+    printf("\n");
+}
 
 #ifdef SDLD
 #include "../sdldlines.c"
@@ -89,7 +101,7 @@ typedef struct
     RoteTerm *t;
     int lastxresize;
     int lastyresize;
-    float x,y;
+    double x,y;
     limits lim;
     void * next;
     moomoo upd_t_data;
@@ -338,6 +350,21 @@ void add_terminal(roteface * f)
     printf("|added.\n");
 #endif
 }
+void add_term(roteface * f,int c,int r)
+{
+    printf("adding terminal|");
+    RoteTerm* t;
+    t= rote_vt_create(c,r);
+    rote_vt_forkpty((RoteTerm*) t, "bash");
+    f->t=t;
+#ifdef threaded
+    f->upd_t_data.lock=SDL_CreateMutex();
+    f->upd_t_data.t=t;
+//    printf("upd_t_data.lock=%i", f->upd_t_data.lock);
+    f->upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
+    printf("|added.\n");
+#endif
+}
 
 void cycle(roteface *face1, roteface **g)
 {
@@ -361,6 +388,12 @@ int faces_dirty(roteface * f)
     return 0;
 }
 
+void lockterm(roteface * f)
+{
+#ifdef threaded
+	_mutexP(f->upd_t_data.lock);
+#endif
+}
 void lockterms(roteface * f)
 {
 #ifdef threaded
@@ -431,8 +464,18 @@ void focusline(roteface * activeface)
     glBegin(GL_LINES);
     glColor3f(1,1,0);
     glVertex2i(0,0);
-//    glVertex2f(activeface->x, activeface->y);
     glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
+    if(activeface->t)
+    {
+    glVertex2f(activeface->x, activeface->y);
+    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
+    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
+    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
+    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
+    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);    
+    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);    
+    glVertex2f(activeface->x, activeface->y);
+    }
     angel+=0.1;
     if(angel>2*3.14159265358979323846264)angel=0;
     glEnd();
@@ -596,6 +639,84 @@ void freefaces(roteface *g)
 
 }
 
+roteface * loadfaces(void)
+{
+    roteface * result=0, * next=0;
+    roteface *g;
+
+    tpl_node *tn;
+    double a,b,c;
+    int32_t t,cols,rows;
+    tn = tpl_map("A(fffiii)",&a,&b,&c,&t,&cols,&rows);
+    tpl_load(tn,TPL_FILE, "faces");
+    while(tpl_unpack(tn,1)>0)
+    {
+	g=(roteface*)malloc(sizeof(roteface));
+	g->scale=a;
+	g->x=b;
+	g->y=c;
+	if(t)
+	{
+	    logit("adding term with %i %i", rows,cols);
+	    add_term(g,rows,cols);
+	}
+	else
+	    g->t=0;
+	g->next=0;
+	g->scroll=0;
+	g->theme=4;
+
+	if(!result)
+	    result=g;
+	if(next)
+	    next->next=g;
+	next=g;
+    }
+    tpl_free(tn);
+    return result;
+}
+                            
+void savefaces(roteface * f1)
+{
+    tpl_node *tn;
+    double a,b,c;
+    int32_t t,cols,rows;
+    tn = tpl_map("A(fffiii)",&a,&b,&c,&t,&cols,&rows);
+    while(f1)
+    {
+
+	a=f1->scale;
+	b=f1->x;
+	c=f1->y;
+	t=f1->t?1:0;
+	logit("saving face with t:%i", t);
+	cols=f1->t?f1->t->cols:0;
+	rows=f1->t?f1->t->rows:0;
+	
+	tpl_pack(tn,1);
+	f1=f1->next;
+    }
+    tpl_dump(tn, TPL_FILE, "faces");
+    tpl_free(tn);
+}
+
+roteface *mousefocus(roteface *af, roteface *f1)
+{
+    int mx;
+    int my;
+    SDL_GetMouseState(&mx,&my);
+    roteface * result=af;
+    while(f1&&f1->t)
+    {
+	int ax=mx-cam.x;
+	int ay=my-cam.y;
+	if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*f1->t->rows>ay)&&(f1->x+f1->scale*13*f1->t->cols>ax))
+	    result=f1;
+	
+	f1=f1->next;
+    }
+    return result;
+}
     
 int RunGLTest (void)
 {
@@ -667,7 +788,9 @@ int RunGLTest (void)
 
 	init();
 	initgl();
-	initfaces();
+	activeface=face1=loadfaces();
+	if(!face1)
+	    initfaces();
 	int dirty=1;
 	printf("mainloop descent commencing\n");
 	while( !done )
@@ -707,7 +830,7 @@ int RunGLTest (void)
 			Uint8 * k;
 			int integer;
 			k=SDL_GetKeyState(&integer);
-			if(k[SDLK_RCTRL])
+//			if(k[SDLK_RCTRL])
 				focusline(activeface);
 
 			showfaces(face1, activeface);
@@ -784,6 +907,8 @@ int RunGLTest (void)
 						    	cam.y-=event.motion.yrel;
 						}
 					}
+					if(!SDL_GetMouseState(0,0))
+						activeface=mousefocus(activeface,face1);
 					
 				
 				break;
@@ -875,6 +1000,17 @@ int RunGLTest (void)
 							    dirty=1;
 
 							break;
+							case SDLK_MINUS:
+							    activeface->scale-=0.05;
+							    dirty=1;
+
+							    
+							break;
+							case SDLK_EQUALS:
+							    activeface->scale+=0.05;
+							    dirty=1;
+
+							break;
 							case SDLK_F11:
 							    shrink=1;
 							break;
@@ -890,29 +1026,52 @@ int RunGLTest (void)
 							    do_l2=!do_l2;
 							    dirty=1;
 							break;
-							case SDLK_LEFT:
+							case SDLK_a:
 							    activeface->theme--;
 							    if (activeface->theme<0)activeface->theme=0;
 							    
 							    break;
-							case SDLK_RIGHT:
+							case SDLK_s:
 							    activeface->theme++;
 							    if (activeface->theme>4)activeface->theme=4;
 							    
 							    break;
 #ifdef GL
 
-							case SDLK_UP:
+							case SDLK_d:
 							    lv++;
 							    glLineWidth(lv);
 
 							    break;
-							case SDLK_DOWN:
+							case SDLK_f:
 							    lv--;
 							    glLineWidth(lv);
 
 							    break;
+							
 #endif
+							case SDLK_UP:
+							    dirty=1;
+							    cam.y+=50;
+							    activeface=mousefocus(activeface,face1);
+							    
+							    break;
+							case SDLK_DOWN:
+							    dirty=1;
+							    cam.y-=50;
+							    activeface=mousefocus(activeface,face1);
+							    break;
+							case SDLK_LEFT:
+							    dirty=1;
+							    cam.x+=50;
+							    activeface=mousefocus(activeface,face1);
+							    break;
+							case SDLK_RIGHT:
+							    dirty=1;
+							    cam.x-=50;
+							    activeface=mousefocus(activeface,face1);
+							    break;
+							
 							case SDLK_END:
 							    resizooo(activeface, 0,1,keystate);
 							break;
@@ -1131,9 +1290,10 @@ int RunGLTest (void)
 		    if(startup)
 		    {
 			startup=0;
-			add_terminal(face1);
+			if(!face1->t)
+			    add_terminal(face1);
 			printf("2threaad\n");
-			lockterms(face1);
+			lockterm(face1);
 		    }
 		    if(!done)
 		    {
@@ -1145,6 +1305,7 @@ int RunGLTest (void)
 		    else
 		    {
 			savemode(w,h);
+			savefaces(face1);
 		    }
 		}
 
