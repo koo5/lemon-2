@@ -646,7 +646,7 @@ int RunGLTest (void)
 	    #ifdef GL
 		wm();
 //		int down=0;
-		glEnable(GL_BLEND);
+//		glEnable(GL_BLEND);
 		glShadeModel(GL_FLAT);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glClearColor( 0.0, 0.0, 0.0, 0.0 );
@@ -948,6 +948,10 @@ int RunGLTest (void)
 									nerverot_cycleup(nerv);
 							break;
 #endif
+#ifdef PYTHON
+							
+#endif
+
 						}
 					}
 					else
@@ -1129,6 +1133,7 @@ int RunGLTest (void)
 			startup=0;
 			add_terminal(face1);
 			printf("2threaad\n");
+			lockterms(face1);
 		    }
 		    if(!done)
 		    {
@@ -1149,6 +1154,16 @@ int RunGLTest (void)
 	SDL_Quit( );
 	return(0);
 }
+
+#ifdef PYTHON
+static PyMethodDef xyzzy_methods[] = 
+{
+{"play",pplay,METH_VARARGS, "Return the meaning of everything."},
+{"printline",pprint_line,METH_VARARGS, "Return the meaning of everything."},
+{"adjs",padjustscrolling,METH_VARARGS, "Return the meaning of everything."},
+{NULL,NULL}/* sentinel */
+};
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -1175,7 +1190,22 @@ int main(int argc, char *argv[])
 	    if(!strcmp(argv[i],"-f"))
 		if(argc>i)
 		    fnfl=argv[i+1];
+#ifdef PYTHON
+	Py_Initialize();
+        PyImport_AddModule("xyzzy");
+	Py_InitModule("xyzz", xyzzy_methods);
+	PyRun_SimpleString("import xyzzy");
+        char *f=rdfl("yes");
+	if (f)
+    	    PyRun_SimpleString(f);
+#endif
 	RunGLTest();
 	printf("finished.bye.\n");
 	return 0;
 }
+
+
+
+
+
+

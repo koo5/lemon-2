@@ -1,6 +1,3 @@
-# Makefile to build the SDL tests
-
-
 
 srcdir  = .
 # 
@@ -31,7 +28,7 @@ py=/usr/ports/lang/python/2.5/w-Python-2.5.4/Python-2.5.4/
 CFLIBS += -I$(py) -I$(py)/Include  $(py)/libpython2.5.a -R/usr/X11R6/lib -lintl  -liconv -lreadline
 
 else ifeq ($(pl),CYGWIN_NT-6.0)
-CFLIBS += -DWINDOWS -I/usr/include/ncurses -I/usr/local/include/SDL
+CFLIBS += -DWINDOWS -I/usr/include/ncurses -I/usr/local/include/SDL -I/usr/include/SDL
 
 endif
 
