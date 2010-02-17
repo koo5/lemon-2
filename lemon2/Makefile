@@ -3,7 +3,7 @@ srcdir  = .
 # 
 CC      = gcc-4  -g -ggdb 
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
-CFLIBS = -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
+CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
  -L/usr/lib -lSDL -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
     -L/usr/local/lib   `pkg-config --libs x11`\

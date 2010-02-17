@@ -110,11 +110,15 @@ void getlimits(RoteTerm *rt, limits *l)
     l->y2=rt->rows*26;
 }
 
+typedef struct 
+{
+    int oldcrow, oldccol;
+}draw_terminal_data;
+
 int tscroll=0;
 void draw_terminal(roteface *f)
 {
     char *trmsqrm=0;
-    static int oldcrow, oldccol;
     RoteTerm * rt=f->t;
     xy lok;
     lok.x=0;
@@ -199,18 +203,16 @@ void draw_terminal(roteface *f)
 	    //actually , not selected but under cursor
 
 #ifdef GL
-	    if(isundercursor) //do nice rotation animation hehe
+	    if(isundercursor)
 	    {
-		static int rotor;
-//		zspillit(lok,nums[0],1.2);
-		if((oldcrow!=rt->crow)||(oldccol!=rt->ccol))
-		    rotor=0;
-		zspillit(lok,nums[0],2.2);//cursor
+		if((f->oldcrow!=rt->crow)||(f->oldccol!=rt->ccol))
+		    f->rotor=0;//if cursor moved, reset letter rotor
+		zspillit(lok,nums[0],2.2);//draw cursor
 		glEnd();
 		glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glPushMatrix();
-		    glRotatef(rotor+=17,0,1,0);
+		    glRotatef(f->rotor+=17,0,1,0);
 		    glBegin(GL_LINE_STRIP);
 			xy molok;molok.x=-13;molok.y=-13;
 			draw(molok,rt->cells[i][j].ch,f->scale);
@@ -252,9 +254,9 @@ void draw_terminal(roteface *f)
 #ifdef GL
 
 //    glPopMatrix();
-    oldcrow=rt->crow;//4 cursor rotation
-    oldccol=rt->ccol;
-
+    f->oldcrow=rt->crow;//4 cursor rotation
+    f->oldccol=rt->ccol;
+    
 
 #endif
 /*

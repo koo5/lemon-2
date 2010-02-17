@@ -2,9 +2,9 @@
 * Description:
 * Author: koom,,, <>
 * Created at: Sat Jul 25 04:25:26 CEST 2009
-* Computer: koom-desktop 
+* Computer: koom-desktop
 * System: Linux 2.6.28-11-generic on i686
-*    
+*
 * Copyright (c) 2009 koom,,,  All rights reserved.
 *
 ********************************************************************/
@@ -108,6 +108,8 @@ typedef struct
     double scale;
     int scroll;
     int theme;
+    int oldcrow, oldccol;
+    double rotor;
 } roteface;
 
 
@@ -187,7 +189,7 @@ int update_terminal(void *data)
 	e.user.code=0;
 	SDL_PushEvent(&e);
       }
-      
+
       if(!d->t->childpid)
       {
 //	printf("Segmentation Fault\n");
@@ -224,7 +226,7 @@ void wm(void)
 	glLoadIdentity();
 #endif
 }
-	
+
 SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
 {
     static SDL_Rect xx ;
@@ -233,63 +235,17 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
     xx.w=w;
     xx.h=h;
     return &xx;
-}       
-
-
-#ifdef Limits
-// adjust s and r1 to keep terminal on screen
-int zoomize(roteface *f)
-{
-	GLdouble model_view[16];
-	glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
-	GLdouble projection[16];
-	glGetDoublev(GL_PROJECTION_MATRIX, projection);
-	GLint viewport[4];
-	viewport[0]=0;	viewport[1]=0; viewport[2]=1;	viewport[3]=1;
-	double a,b,c,d,e;	
-	gluProject(f->lim.x, f->lim.y, 0,model_view, projection, viewport,&a,&b,&c);
-	gluProject(f->lim.x2,f->lim.y2,0,model_view, projection, viewport,&d,&e,&c);
-	if(isnan(a))a=0.1;
-	if(isnan(b))b=0.1;
-	if(isnan(d))d=0.8;
-	if(isnan(e))e=0.8;
-	int eee=0;
-	if(d-a>0.97)
-	{eee++;
-	    sx*=0.9;}
-	if(d-a<0.9)
-	{eee++;
-	    sx*=1.01;}
-	if(floabs(b-e)<0.9)
-	{eee++;
-	    sy*=1.01;}
-	if(floabs(b-e)>0.91)
-	{eee++;
-	    sy*=0.9;}
-	if(a<f->x1)
-	{eee++;r1x+=0.01;}
-	if(a>f->x1+0.01)
-	{eee++;r1x-=0.1;}
-	if(b>f->y1)
-	{eee++;r1y-=0.1;}
-	if(b<f->y1-0.1)
-	{eee++;r1y+=0.1;}
-	//printf("%i",eee);
-	return eee;
 }
-//e.x1=0
-//e.y1=1;
-#endif
 
-	
+
 void resizooo(roteface *f, int x, int y, Uint8* duck)
 {
     if(!f->t)return;
     int up=duck[SDLK_HOME]||(y==-1);
-    int dw=duck[SDLK_END]||(y==1);    
-    int lf=duck[SDLK_DELETE]||(x==-1);    
-    int ri=duck[SDLK_PAGEDOWN]||(x==1);   
-    
+    int dw=duck[SDLK_END]||(y==1);
+    int lf=duck[SDLK_DELETE]||(x==-1);
+    int ri=duck[SDLK_PAGEDOWN]||(x==1);
+
     if(up)
     y=-1;
     if(dw)
@@ -298,7 +254,7 @@ void resizooo(roteface *f, int x, int y, Uint8* duck)
     x=-1;
     if(ri)
     x=1;
-    
+
     if((!x+f->lastxresize||!y+f->lastyresize)||(SDL_GetTicks()-f->last_resize>100)||!f->last_resize)
     {
 	rote_vt_resize(f->t, f->t->rows+y,f->t->cols+x);
@@ -316,9 +272,9 @@ Uint32 NewTimerCallback(Uint32 interval, void *param)
 	e.type=SDL_USEREVENT;
 	SDL_PushEvent(&e);
 	return interval;
-}    
+}
 
-	
+
 
 
 roteface * add_face(void)
@@ -465,18 +421,18 @@ void focusline(roteface * activeface)
     glColor3f(1,1,0);
     glVertex2i(0,0);
     glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
-    if(activeface->t)
+/*    if(activeface->t)
     {
     glVertex2f(activeface->x, activeface->y);
     glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
     glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
     glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
     glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
-    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);    
-    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);    
+    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
+    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
     glVertex2f(activeface->x, activeface->y);
     }
-    angel+=0.1;
+*/    angel+=0.1;
     if(angel>2*3.14159265358979323846264)angel=0;
     glEnd();
 #else
@@ -499,8 +455,8 @@ roteface *getprevface(roteface* f1,roteface* f)
 	cyc=cyc->next;
     }
     return 0;
-}       
-    
+}
+
 
 
 roteface* removeface(roteface *face1, roteface *f)
@@ -594,16 +550,16 @@ void clipoutlastline(roteface *f)
 void shownerv(struct state *nerv)
 {
     nerverot_update(nerv);
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity( );
-	glFrustum(-1, 1, -1, 1, 1.5, 10);
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-	glTranslatef(0,0,-2.5);
-    
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity( );
+    glFrustum(-1, 1, -1, 1, 1.5, 10);
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+    glTranslatef(0,0,-2.5);
+    glPushAttrib(GL_BLEND);
+    glEnable(GL_BLEND);
     nerverot_draw(3,nerv);
-
+    glPopAttrib();
     wm();
 }
 #endif
@@ -657,7 +613,7 @@ roteface * loadfaces(void)
 	g->y=c;
 	if(t)
 	{
-	    logit("adding term with %i %i", rows,cols);
+	    logit("adding term with %i %i, scale %f", rows,cols,a);
 	    add_term(g,rows,cols);
 	}
 	else
@@ -675,7 +631,7 @@ roteface * loadfaces(void)
     tpl_free(tn);
     return result;
 }
-                            
+
 void savefaces(roteface * f1)
 {
     tpl_node *tn;
@@ -689,10 +645,10 @@ void savefaces(roteface * f1)
 	b=f1->x;
 	c=f1->y;
 	t=f1->t?1:0;
-	logit("saving face with t:%i", t);
+	logit("saving face with t:%i,scale %f", t,a);
 	cols=f1->t?f1->t->cols:0;
 	rows=f1->t?f1->t->rows:0;
-	
+
 	tpl_pack(tn,1);
 	f1=f1->next;
     }
@@ -712,12 +668,12 @@ roteface *mousefocus(roteface *af, roteface *f1)
 	int ay=my-cam.y;
 	if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*f1->t->rows>ay)&&(f1->x+f1->scale*13*f1->t->cols>ax))
 	    result=f1;
-	
+
 	f1=f1->next;
     }
     return result;
 }
-    
+
 int RunGLTest (void)
 {
 	int startup=1;
@@ -794,7 +750,7 @@ int RunGLTest (void)
 	int dirty=1;
 	printf("mainloop descent commencing\n");
 	while( !done )
-	{       
+	{
 		lockterms(face1);
 		if(dirty||faces_dirty(face1))
 		{
@@ -823,7 +779,7 @@ int RunGLTest (void)
 				glPushMatrix();
 				glScalef(sx,sy,1);
 				glTranslatef(cam.x,cam.y,0);
-				
+
 
 			#endif
 
@@ -841,7 +797,7 @@ int RunGLTest (void)
 				SDL_UpdateRect(s,0,0,0,0);
 			#endif
 			facesclean(face1);
-			
+
 		}
 #ifdef GL
 		GLenum gl_error;
@@ -854,7 +810,7 @@ int RunGLTest (void)
 				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
 			else if(gl_error==GL_INVALID_OPERATION)
 				printf("INVALID OPERATION, PATIENT EXPLODED\n");
-			else    
+			else
 				printf("testgl: OpenGL error: 0x%X\n", gl_error );
 		}
 #endif
@@ -873,7 +829,7 @@ int RunGLTest (void)
 		if(dirty)
 #endif
 		    x= SDL_AddTimer(55, NewTimerCallback, 0);
-				     
+
 		unlockterms(face1);
 //              printf("---------unlocked wating\n");
 		if(SDL_WaitEvent( &event ))
@@ -889,7 +845,7 @@ int RunGLTest (void)
 
 			switch( event.type )
 			{
-			
+
 				case SDL_MOUSEMOTION:
 					//if(escaped)
 					{
@@ -909,8 +865,8 @@ int RunGLTest (void)
 					}
 					if(!SDL_GetMouseState(0,0))
 						activeface=mousefocus(activeface,face1);
-					
-				
+
+
 				break;
 				case SDL_KEYUP:
 				{
@@ -948,6 +904,33 @@ int RunGLTest (void)
 						dirty=1;
 						escaped=0;
 						if(key==SDLK_RCTRL) escaped=1;
+						if(keystate[SDLK_UP])
+						{
+						    dirty=1;
+						    cam.y+=50;
+						    activeface=mousefocus(activeface,face1);
+						}
+						if(keystate[SDLK_DOWN])
+						{
+						    dirty=1;
+						    cam.y-=50;
+						    activeface=mousefocus(activeface,face1);
+						}
+						if(keystate[SDLK_LEFT])
+						{
+						    dirty=1;
+						    cam.x+=50;
+						    activeface=mousefocus(activeface,face1);
+						}
+						if(keystate[SDLK_RIGHT])
+						{
+						    dirty=1;
+						    cam.x-=50;
+						    activeface=mousefocus(activeface,face1);
+						}
+
+
+
 						switch (key)
 						{
 							case SDLK_INSERT:
@@ -991,7 +974,7 @@ int RunGLTest (void)
 								rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
 							    dirty=1;
 
-							    
+
 							break;
 							case SDLK_F10:
 							    activeface->scale+=0.05;
@@ -1004,7 +987,7 @@ int RunGLTest (void)
 							    activeface->scale-=0.05;
 							    dirty=1;
 
-							    
+
 							break;
 							case SDLK_EQUALS:
 							    activeface->scale+=0.05;
@@ -1017,7 +1000,7 @@ int RunGLTest (void)
 							case SDLK_F12:
 							    //grow=1;
 							    done=1;
-							    
+
 							break;
 							case SDLK_p:
 							    saveScreenshot();
@@ -1029,12 +1012,12 @@ int RunGLTest (void)
 							case SDLK_a:
 							    activeface->theme--;
 							    if (activeface->theme<0)activeface->theme=0;
-							    
+
 							    break;
 							case SDLK_s:
 							    activeface->theme++;
 							    if (activeface->theme>4)activeface->theme=4;
-							    
+
 							    break;
 #ifdef GL
 
@@ -1048,30 +1031,9 @@ int RunGLTest (void)
 							    glLineWidth(lv);
 
 							    break;
-							
+
 #endif
-							case SDLK_UP:
-							    dirty=1;
-							    cam.y+=50;
-							    activeface=mousefocus(activeface,face1);
-							    
-							    break;
-							case SDLK_DOWN:
-							    dirty=1;
-							    cam.y-=50;
-							    activeface=mousefocus(activeface,face1);
-							    break;
-							case SDLK_LEFT:
-							    dirty=1;
-							    cam.x+=50;
-							    activeface=mousefocus(activeface,face1);
-							    break;
-							case SDLK_RIGHT:
-							    dirty=1;
-							    cam.x-=50;
-							    activeface=mousefocus(activeface,face1);
-							    break;
-							
+
 							case SDLK_END:
 							    resizooo(activeface, 0,1,keystate);
 							break;
@@ -1108,7 +1070,7 @@ int RunGLTest (void)
 							break;
 #endif
 #ifdef PYTHON
-							
+
 #endif
 
 						}
@@ -1201,13 +1163,13 @@ int RunGLTest (void)
 						+(-activeface->x
 						+event.button.x
 						)*activeface->scale
-						
+
 						/13;
 						int y=cam.y
 						+(-activeface->y
 						+event.button.y
 						)*activeface->scale
-						
+
 						/26;
 						rote_vt_mousedown(activeface->t,x,y);
 						printf("%i %i\n", x,y);
@@ -1228,14 +1190,14 @@ int RunGLTest (void)
 					w=event.resize.w;h=event.resize.h;
                                         printf("videoresize %i %i\n", w,h);
 					dirty=1;
-					if( (s=SDL_SetVideoMode( w,h, bpp, s->flags )) ) 
+					if( (s=SDL_SetVideoMode( w,h, bpp, s->flags )) )
 //                                              printf("hmm\n");
 					wm();
 				    if(!justresized)
 
 					mustresize=1;
 					justresized=0;
-					
+
 				    }
 				    if(activeface->t)
 					rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
@@ -1258,7 +1220,7 @@ int RunGLTest (void)
 		    }
 		    while (SDL_PollEvent(&event));
 		    if (shrink||grow)
-		    { 
+		    {
 			resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
 			wm();
 		    }
@@ -1275,7 +1237,7 @@ int RunGLTest (void)
 			dirty=1;
 			if(s->flags & SDL_FULLSCREEN )
 			{
-			
+
 			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
 			    printf("gooin !fuulin");
 			}
@@ -1291,9 +1253,10 @@ int RunGLTest (void)
 		    {
 			startup=0;
 			if(!face1->t)
+			{
 			    add_terminal(face1);
-			printf("2threaad\n");
-			lockterm(face1);
+                lockterm(face1);
+			}
 		    }
 		    if(!done)
 		    {
@@ -1317,7 +1280,7 @@ int RunGLTest (void)
 }
 
 #ifdef PYTHON
-static PyMethodDef xyzzy_methods[] = 
+static PyMethodDef xyzzy_methods[] =
 {
 {"play",pplay,METH_VARARGS, "Return the meaning of everything."},
 {"printline",pprint_line,METH_VARARGS, "Return the meaning of everything."},
