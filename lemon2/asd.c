@@ -131,8 +131,6 @@ float floabs(float x)
 
 float r1x=0;
 float r1y=0;
-float sx=1;
-float sy=1;
 float lv=2;
 
 void keyp(roteface* f, char ey)
@@ -419,6 +417,12 @@ void focusline(roteface * activeface)
     glColor3f(1,1,0);
     glVertex2i(0,0);
     glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
+    glVertex2i(0,0);
+    glVertex2f(csize*sin(angel+3.14159265358979323846264/2)+activeface->x,csize*cos(angel+3.14159265358979323846264/2)+activeface->y);
+    glVertex2i(0,0);
+    glVertex2f(csize*sin(angel+3.14159265358979323846264)+activeface->x,csize*cos(angel+3.14159265358979323846264)+activeface->y);
+    glVertex2i(0,0);
+    glVertex2f(csize*sin(angel+1.5*3.14159265358979323846264)+activeface->x,csize*cos(angel+1.5*3.14159265358979323846264)+activeface->y);
 /*    if(activeface->t)
     {
     glVertex2f(activeface->x, activeface->y);
@@ -662,8 +666,8 @@ roteface *mousefocus(roteface *af, roteface *f1)
     roteface * result=af;
     while(f1&&f1->t)
     {
-	int ax=mx-cam.x;
-	int ay=my-cam.y;
+	int ax=(mx-cam.x);
+	int ay=(my-cam.y);
 	if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*f1->t->rows>ay)&&(f1->x+f1->scale*13*f1->t->cols>ax))
 	    result=f1;
 
@@ -671,6 +675,18 @@ roteface *mousefocus(roteface *af, roteface *f1)
     }
     return result;
 }
+
+void zoomem(roteface *z,double y)
+{
+    while(z)
+    {
+	z->scale+=y;
+	z->x=z->x+z->x*y;
+	z->y=z->y+z->y*y;
+	z=z->next;
+    }
+}
+
 
 int RunGLTest (void)
 {
@@ -721,11 +737,12 @@ int RunGLTest (void)
 	    #ifdef GL
 		wm();
 //		int down=0;
-//		glEnable(GL_BLEND);
+		glDisable(GL_BLEND);
 		glShadeModel(GL_FLAT);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glClearColor( 0.0, 0.0, 0.0, 0.0 );
 		glLineWidth(lv);
+		glHint(                    GL_LINE_SMOOTH_HINT,GL_NICEST);
 	    #endif
 	}
 	void initfaces(void)
@@ -775,7 +792,6 @@ int RunGLTest (void)
 				#endif
 
 				glPushMatrix();
-				glScalef(sx,sy,1);
 				glTranslatef(cam.x,cam.y,0);
 
 
@@ -942,19 +958,19 @@ int RunGLTest (void)
 							    gofullscreen=1;
 							break;
 							case SDLK_F3:
-							    sx-=0.01;
+							    
 							    dirty=1;
 							break;
 							case SDLK_F4:
-							    sy-=0.01;
+							    
 							    dirty=1;
 							break;
 							case SDLK_F5:
-							    sy+=0.01;
+							    ;
 							    dirty=1;
 							break;
 							case SDLK_F6:
-							    sx+=0.01;
+							    ;
 							    dirty=1;
 							break;
 
@@ -979,6 +995,15 @@ int RunGLTest (void)
 							    dirty=1;
 
 							break;
+							case SDLK_RETURN:
+							    zoomem(face1,0.05);
+							    dirty=1;
+							    break;
+							case SDLK_BACKSPACE:
+							    zoomem(face1,-0.05);
+							    dirty=1;
+							    break;
+							
 							case SDLK_MINUS:
 							    activeface->scale-=0.05;
 							    dirty=1;
