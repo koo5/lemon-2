@@ -1,7 +1,3 @@
-/*float xoom, yoom;
-float zoomx, zoomy;*/
-
-//#include "XY.h"
 #include "linetextdata"
 
 

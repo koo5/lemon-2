@@ -1,4 +1,3 @@
-//#include "more-mess/fgetln.c"
 char ** l2=0; // non-builtin
 int l2numitems=0;// font
 void freel2(void)
@@ -8,7 +7,6 @@ void freel2(void)
     int t;
     for (t=0; t<l2numitems; t++)
     {
-//        printf("%i\n",t);
         free(l2[t]);
     }
     free(l2);

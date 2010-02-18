@@ -85,8 +85,6 @@ logit(const char * iFormat, ...)
 
 #include "getexecname.c"
 
-double rastio=1;
-
 typedef struct
 {
     RoteTerm* t;
@@ -944,22 +942,20 @@ int RunGLTest (void)
 							    gofullscreen=1;
 							break;
 							case SDLK_F3:
-							    rastio+=0.05;
-							    mustresize=1;
+							    sx-=0.01;
 							    dirty=1;
 							break;
 							case SDLK_F4:
-							    rastio-=0.05;
-							    mustresize=1;
+							    sy-=0.01;
 							    dirty=1;
 							break;
 							case SDLK_F5:
-							    sx-=0.001;
-							    sy+=0.001;
+							    sy+=0.01;
+							    dirty=1;
 							break;
 							case SDLK_F6:
-							    sx+=0.001;
-							    sy-=0.001;
+							    sx+=0.01;
+							    dirty=1;
 							break;
 
 							case SDLK_F7:
@@ -1228,9 +1224,6 @@ int RunGLTest (void)
 		    {
 			mustresize=0;
 			justresized=1;
-//                      if(activeface->t->cols!=event.resize.w/13/rastio||
-//                          activeface->t->rows!=event.resize.h/26/rastio)
-				//rote_vt_resize(activeface->t,event.resize.h/26/rastio ,event.resize.w/13/rastio);
 		    }
 		    if(gofullscreen)
 		    {
