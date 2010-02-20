@@ -43,6 +43,9 @@ X=$(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata
 lgl$(EXE): $(X)
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve
 
+lgls3d$(EXE): $(X)
+	$(CC)   -o $@ -D swallows3d asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve ../s3d-0.2.1.1/server/*c -I../s3d-0.2.1.1/
+
 lglpy$(EXE): $(X)
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve $(PYLIBS)
 

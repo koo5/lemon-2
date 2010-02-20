@@ -55,6 +55,10 @@
 #include "initsdl.c"
 #include "screenshot.c"
 
+#ifdef swallows3d
+#include "../s3d-0.2.1.1/server/global.h"
+#endif
+
 char *fnfl="l2";
 int do_l2=0;
 
@@ -713,7 +717,7 @@ int RunGLTest (void)
 	roteface *face1;
 	roteface *activeface;
 
-	void init(void)
+	void myinit(void)
 	{
 		loadcolors();
 		printf("mmm..\n");
@@ -757,8 +761,12 @@ int RunGLTest (void)
 	nerv=nerverot_init(w,h);
 #endif
 
-	init();
+	myinit();
 	initgl();
+	
+	init();//s3d
+	
+	
 	activeface=face1=loadfaces();
 	if(!face1)
 	    initfaces();
@@ -770,6 +778,9 @@ int RunGLTest (void)
 		if(dirty||faces_dirty(face1))
 		{
 			dirty=0;
+			user_main();
+			network_main();
+			graphics_main();
 			facesclean(face1);
 			#ifdef GL
 				glClear(GL_COLOR_BUFFER_BIT);

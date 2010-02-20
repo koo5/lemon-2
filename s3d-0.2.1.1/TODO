@@ -1,0 +1,6 @@
+general:
+	* FULLSCREEN!
+dot_mcp:
+	* sane paths for applications
+cmake:
+	* Apple todo: won't find -lX11 (for s3d_x11gate) while compiling
