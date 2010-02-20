@@ -249,7 +249,7 @@ static int process_args(int argc, char **argv)
 	}
 	return(0);
 }
-/*  things to be done when program is started */
+/*  things to be done when program is started 
 int main(int argc, char **argv)
 {
 	process_args(argc, argv);
@@ -258,3 +258,4 @@ int main(int argc, char **argv)
 	quit();
 	return(0);
 }
+*/

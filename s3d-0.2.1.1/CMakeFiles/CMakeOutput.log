@@ -1,1 +1,362 @@
 The system is: Linux - 2.6.31-sabayon - i686
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CompilerIdC/a.out"
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CompilerIdC/a.out"
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CompilerIdC/a.out"
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CompilerIdC/a.out"
+
+The system is: Linux - 2.6.31-16-generic - i686
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CompilerIdC/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/testCCompiler.c.o
+/usr/bin/gcc    -o CMakeFiles/cmTryCompileExec.dir/testCCompiler.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc        CMakeFiles/cmTryCompileExec.dir/testCCompiler.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o
+/usr/bin/gcc    -o CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-2.6/Modules/CMakeCCompilerABI.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc        CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Performing C SOURCE FILE Test SUPPORT_WALL succeded with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -DSUPPORT_WALL   -Wall -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DSUPPORT_WALL   CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0;}
+Performing C SOURCE FILE Test SUPPORT_WEXTRA succeded with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -DSUPPORT_WEXTRA   -Wextra -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DSUPPORT_WEXTRA   CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0;}
+Performing C SOURCE FILE Test SUPPORT_PEDANTIC succeded with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -DSUPPORT_PEDANTIC   -pedantic -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DSUPPORT_PEDANTIC   CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0;}
+Determining if the function XOpenDisplay exists in the /usr/lib/libX11.so;/usr/lib/libXext.so passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=XOpenDisplay   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=XOpenDisplay   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic -lX11 -lXext 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function gethostbyname exists passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=gethostbyname   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=gethostbyname   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function connect exists passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=connect   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=connect   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function remove exists passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=remove   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=remove   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function shmat exists passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=shmat   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=shmat   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function IceConnectionNumber exists in the ICE passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=IceConnectionNumber   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=IceConnectionNumber   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic -lICE 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if files pthread.h exist passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFiles.c.o
+/usr/bin/gcc    -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFiles.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CheckIncludeFiles.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc        CMakeFiles/cmTryCompileExec.dir/CheckIncludeFiles.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function pthread_create exists in the pthread passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=pthread_create   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic -lpthread 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function shmget exists passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=shmget   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=shmget   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Determining if the function signal exists passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=signal   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=signal   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Performing C SOURCE FILE Test SIG_T_DEFINED succeded with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -DSIG_T_DEFINED   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DSIG_T_DEFINED   CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+Source file was:
+#include<signal.h>
+	int main() {
+	sig_t test;
+	return 0;
+}
+Determining if the function socket exists passed with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o
+/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=socket   -o CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-2.6/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DCHECK_FUNCTION_EXISTS=socket   CMakeFiles/cmTryCompileExec.dir/CheckFunctionExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+
+Performing C SOURCE FILE Test HAVE_GCCVISIBILITY succeded with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc  -DHAVE_GCCVISIBILITY -DHAVE_GCCVISIBILITY   -fvisibility=hidden -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DHAVE_GCCVISIBILITY   CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0;}
+Performing C SOURCE FILE Test UNUSEDPARAM_ATTRIBUTE succeded with the following output:
+Change Dir: /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -DUNUSEDPARAM_ATTRIBUTE   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DUNUSEDPARAM_ATTRIBUTE   CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/kook/lemon/s3d-0.2.1.1/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused))) { return 0; }

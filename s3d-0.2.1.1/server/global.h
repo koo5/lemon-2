@@ -393,9 +393,9 @@ void checkLeak(void);
 void *debugMalloc(unsigned int length, int tag);
 void *debugRealloc(void *memory, unsigned int length, int tag);
 void debugFree(void *memoryParameter);
-#define malloc(x)  debugMalloc(x,42)
-#define free(x)   debugFree(x);
-#define realloc(x,y) debugRealloc(x,y,42)
+//#define malloc(x)  debugMalloc(x,42)
+//#define free(x)   debugFree(x);
+//#define realloc(x,y) debugRealloc(x,y,42)
 #endif
 
 /* endian.c */

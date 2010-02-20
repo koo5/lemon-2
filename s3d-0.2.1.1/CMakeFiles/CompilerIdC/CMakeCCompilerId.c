@@ -25,13 +25,7 @@
 # define COMPILER_ID "Compaq"
 
 #elif defined(__IBMC__)
-# if defined(__COMPILER_VER__)
-#  define COMPILER_ID "zOS"
-# elif __IBMC__ >= 800
-#  define COMPILER_ID "XL"
-# else
-#  define COMPILER_ID "VisualAge"
-# endif
+# define COMPILER_ID "VisualAge"
 
 #elif defined(__PGI)
 # define COMPILER_ID "PGI"
@@ -58,7 +52,7 @@
 #elif defined(SDCC)
 # define COMPILER_ID "SDCC"
 
-#elif defined(_SGI_COMPILER_VERSION) || defined(_COMPILER_VERSION)
+#elif defined(_COMPILER_VERSION)
 # define COMPILER_ID "MIPSpro"
 
 /* This compiler is either not known or is too old to define an
