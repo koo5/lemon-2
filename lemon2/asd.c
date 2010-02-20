@@ -764,8 +764,9 @@ int RunGLTest (void)
 	myinit();
 	initgl();
 	
+#ifdef swallows3d
 	init();//s3d
-	
+#endif
 	
 	activeface=face1=loadfaces();
 	if(!face1)
@@ -778,9 +779,11 @@ int RunGLTest (void)
 		if(dirty||faces_dirty(face1))
 		{
 			dirty=0;
+			#ifdef swallows3d
 			user_main();
 			network_main();
 			graphics_main();
+			#endif
 			facesclean(face1);
 			#ifdef GL
 				glClear(GL_COLOR_BUFFER_BIT);
