@@ -42,6 +42,7 @@ int winw, winh;
 
 /*  this detects and opens the SDL things */
 
+
 int graphics_init(void)
 {
 	GLfloat shin[] = {16.0};
@@ -101,7 +102,7 @@ int graphics_init(void)
 /*  this is to be called when the window is resized or created ... */
 void graphics_reshape(int w, int h)
 {
-	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+//	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
 	winw = w;
 	winh = h;
 	glMatrixMode(GL_PROJECTION);
@@ -111,8 +112,8 @@ void graphics_reshape(int w, int h)
 	else
 		glFrustum(-1.0, 1.0, -(1.0*h) / w, (1.0*h) / w, 1.0, 5000);
 	glMatrixMode(GL_MODELVIEW);
-	if (procs_p != NULL)
-		event_cam_changed();
+//	if (procs_p != NULL)
+//		event_cam_changed();
 }
 void render_virtual_object(struct t_obj *o)
 {
@@ -332,31 +333,44 @@ void graphics_main(void)
 	GLfloat light0_amb[] = {1.0, 1.0, 1.0, 1.0};
 
 	select_mode = 0;
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  /*  clear screen */
+//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  /*  clear screen */
 	/*  set up the cam ... */
+	gle();
 	glMatrixMode(GL_MODELVIEW);
+	gle();
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_amb);
+	gle();
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diff);
+	gle();
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light0_spec);
+	gle();
 	glLightfv(GL_LIGHT0, GL_SHININESS, light0_shininess);
+	gle();
 
 	glLoadIdentity();
+	gle();
 
 	mySetMatrix(p->object[0]->m);
+	gle();
 	myInvert();
+	gle();
 	myGetMatrix(m);
+	gle();
 	glMultMatrixf(m);
+	gle();
 	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+	gle();
 
 	/*glRotatef(-cam.rotate.z, 0.0,0.0,1.0);
 	glRotatef(-cam.rotate.x, 1.0,0.0,0.0);
 	glRotatef(-cam.rotate.y, 0.0,1.0,0.0);
 	glTranslatef(-cam.translate.x,-cam.translate.y,-cam.translate.z);*/
-
+	gle();
 	glPushMatrix();  /*  save the cam */
 	render_by_mcp();
 	glPopMatrix();  /*  restore the cam */
+	gle();
 	glLoadIdentity();
 	glMultMatrixf(m);
 
@@ -364,7 +378,7 @@ void graphics_main(void)
 #ifdef G_SDL
 	case FRAME_SDL:
 		/* SDL will glFlush itself */
-		SDL_GL_SwapBuffers();
+//		SDL_GL_SwapBuffers();
 		break;
 #endif
 #ifdef G_GLX

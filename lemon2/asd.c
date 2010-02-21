@@ -691,6 +691,25 @@ void zoomem(roteface *z,double y)
     }
 }
 
+void gle(void)
+{
+#ifdef GL
+		GLenum gl_error;
+		gl_error = glGetError( );
+		if( gl_error != GL_NO_ERROR )
+		{
+			if(gl_error==GL_STACK_UNDERFLOW)
+				printf("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
+			if(gl_error==GL_STACK_OVERFLOW)
+				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
+			else if(gl_error==GL_INVALID_OPERATION)
+				printf("INVALID OPERATION, PATIENT EXPLODED\n");
+			else
+				printf("testgl: OpenGL error: 0x%X\n", gl_error );
+		}
+#endif
+}
+
 
 int RunGLTest (void)
 {
@@ -779,11 +798,6 @@ int RunGLTest (void)
 		if(dirty||faces_dirty(face1))
 		{
 			dirty=0;
-			#ifdef swallows3d
-			user_main();
-			network_main();
-			graphics_main();
-			#endif
 			facesclean(face1);
 			#ifdef GL
 				glClear(GL_COLOR_BUFFER_BIT);
@@ -792,6 +806,15 @@ int RunGLTest (void)
 			#endif
 
 			#ifdef GL
+
+			#ifdef swallows3d
+			user_main();
+			network_main();
+			graphics_reshape(w,h);
+			graphics_main();
+			wm();
+			#endif
+	
 
 				#ifdef nerve
 
@@ -827,21 +850,8 @@ int RunGLTest (void)
 			facesclean(face1);
 
 		}
-#ifdef GL
-		GLenum gl_error;
-		gl_error = glGetError( );
-		if( gl_error != GL_NO_ERROR )
-		{
-			if(gl_error==GL_STACK_UNDERFLOW)
-				printf("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
-			if(gl_error==GL_STACK_OVERFLOW)
-				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
-			else if(gl_error==GL_INVALID_OPERATION)
-				printf("INVALID OPERATION, PATIENT EXPLODED\n");
-			else
-				printf("testgl: OpenGL error: 0x%X\n", gl_error );
-		}
-#endif
+
+		gle();
 		char* sdl_error;
 		sdl_error = SDL_GetError( );
 		if( sdl_error[0] != '\0' )

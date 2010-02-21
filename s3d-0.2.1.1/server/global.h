@@ -195,6 +195,9 @@ enum {
 	zero,
 	FRAME_SDL
 };
+/*asd.c*/
+void gle(void);
+
 /*  main.c */
 int rc_init(void);
 int init(void);
@@ -281,12 +284,14 @@ static __inline__ void s3dprintf(int relevance __attribute__((unused)),
                                  const char *msg __attribute__((unused)), ...) {}
 #endif
 /*  graphics.c */
+
 extern int winw, winh;
 int graphics_quit(void);
 void graphics_main(void);
 int graphics_pick_obj(int x, int y);
 int graphics_init(void);
 int render_by_mcp(void);
+void graphics_reshape(int w, int h);
 #ifdef G_SDL
 extern int aa_level;
 extern int SDLFlags;
