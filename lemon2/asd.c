@@ -62,6 +62,7 @@
 char *fnfl="l2";
 int do_l2=0;
 int givehelp=1;
+int blending=1;
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -763,7 +764,6 @@ int RunGLTest (void)
 //		int down=0;
 		glDisable(GL_BLEND);
 		//glShadeModel(GL_FLAT);
-//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glClearColor( 0.0, 0.0, 0.0, 0.0 );
 		glLineWidth(lv);
 //		glDisable (GL_LINE_SMOOTH);
@@ -802,13 +802,16 @@ int RunGLTest (void)
 			dirty=0;
 			facesclean(face1);
 			#ifdef GL
-				glClear(GL_COLOR_BUFFER_BIT);
+			if(blending)
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                        else
+				glBlendFunc(GL_ONE, GL_ZERO);
+			glClear(GL_COLOR_BUFFER_BIT);
 			#else
-				SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
+			SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 			#endif
 			#ifdef GL
 			#ifdef swallows3d
-//			user_main();
 			network_main();
 			graphics_reshape(w,h);
 			graphics_main();
@@ -817,10 +820,13 @@ int RunGLTest (void)
 			#ifdef nerve
 			if(nerv)
 			{	
+				glPushAttrib(GL_BLEND);
+				glEnable(GL_BLEND);
 				glLineWidth(1);
 				shownerv(nerv);
 				glLineWidth(lv);
 				dirty=1;
+				glPopAttrib();
 			}
 			#endif
 			glPushMatrix();
@@ -842,7 +848,7 @@ int RunGLTest (void)
 				if(!(escaped||k[SDLK_RCTRL]))
 					draw_text("\npress right ctrl for more fun...");
 				else
-					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\n f1 to switch off that NERVEROT!");
+					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\nb to toggle blending:D");
 					
 			}
 
@@ -1080,7 +1086,9 @@ int RunGLTest (void)
 							    glLineWidth(lv);
 
 							    break;
-
+							case SDLK_b:
+							    blending=!blending;
+							    break;
 #endif
 
 							case SDLK_END:
