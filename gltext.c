@@ -124,7 +124,7 @@ xy draw(xy lok,unsigned int i, double s)
 {
     xy nlok;
     nlok=lok;
-    nlok.x+=30;
+    nlok.x+=13;
 
     if (do_l2&&l2)
         if (i<l2numitems)

@@ -53,7 +53,7 @@ void draw_text(char *a)
 	    glEnd();
 	    glBegin(GL_LINE_STRIP);
 	}
-	lok.x+=4;
+//	lok.x+=4;
 	if (!*a)
 	    break;
 	a++;

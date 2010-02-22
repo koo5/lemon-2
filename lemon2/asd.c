@@ -61,7 +61,7 @@
 
 char *fnfl="l2";
 int do_l2=0;
-int givehelp;
+int givehelp=1;
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -136,7 +136,7 @@ float floabs(float x)
 
 float r1x=0;
 float r1y=0;
-float lv=2;
+float lv=1;
 
 void keyp(roteface* f, char ey)
 {
@@ -805,9 +805,7 @@ int RunGLTest (void)
 			#else
 				SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 			#endif
-
 			#ifdef GL
-
 			#ifdef swallows3d
 //			user_main();
 			network_main();
@@ -815,24 +813,17 @@ int RunGLTest (void)
 			graphics_main();
 			wm();
 			#endif
-	
-
-				#ifdef nerve
-
-					if(nerv)
-					{
-					    glLineWidth(1);
-					    shownerv(nerv);
-					    glLineWidth(lv);
-
-					    dirty=1;
-					}
-				#endif
-
-				glPushMatrix();
-				glTranslatef(cam.x,cam.y,0);
-
-
+			#ifdef nerve
+			if(nerv)
+			{
+				glLineWidth(1);
+				shownerv(nerv);
+				glLineWidth(lv);
+				dirty=1;
+			}
+			#endif
+			glPushMatrix();
+			glTranslatef(cam.x,cam.y,0);
 			#endif
 
 			Uint8 * k;
@@ -842,14 +833,25 @@ int RunGLTest (void)
 				focusline(activeface);
 
 			showfaces(face1, activeface);
+
+			if(givehelp)
+			{
+				glRotatef(90,0,0,1);
+				glTranslatef(0,-w,0);
+				if(!escaped)
+					draw_text("\npress right ctrl for more fun...");
+				else
+					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f");
+					
+			}
+
 			#ifdef GL
 				glPopMatrix();
-	    			SDL_GL_SwapBuffers( );
+				SDL_GL_SwapBuffers( );
 			#else
 				SDL_UpdateRect(s,0,0,0,0);
 			#endif
 			facesclean(face1);
-
 		}
 
 		gle();
@@ -1334,7 +1336,7 @@ static PyMethodDef xyzzy_methods[] =
 
 int main(int argc, char *argv[])
 {
-
+        char *help;
 	printf("hi\n");
 	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
 	
@@ -1368,11 +1370,12 @@ int main(int argc, char *argv[])
 	if (f)
     	    PyRun_SimpleString(f);
 #endif
-	FILE f;
+	FILE* f;
 	if(f=(fopen("nohelp", "r")))
+	{
+	    givehelp=0;
 	    fclose(f);
-	else
-	    givehelp=1;
+	}
 	RunGLTest();
 	printf("finished.bye.\n");
 	return 0;
