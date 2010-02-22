@@ -38,7 +38,7 @@ TARGETS = lsdl lgl
 all: lgl
 a: $(TARGETS)
 
-X=$(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata
+X=$(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata.c
 
 lgl$(EXE): $(X)
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve

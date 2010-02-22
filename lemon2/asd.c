@@ -603,6 +603,28 @@ void freefaces(roteface *g)
 
 }
 
+void loadsettings(void)
+{
+    tpl_node *tn;
+    int32_t b;
+    tn=tpl_map("i", &b);
+    tpl_load(tn, TPL_FILE, "settings");
+    if(tpl_unpack(tn,0)>0)
+	blending=b;
+    tpl_free(tn);
+}
+void savesettings(void)
+{
+    tpl_node *tn;
+    int32_t b;
+    tn=tpl_map("i", &b);
+    b=blending;
+    tpl_pack(tn,0);
+    tpl_dump(tn, TPL_FILE, "settings");
+    tpl_free(tn);
+}
+
+
 roteface * loadfaces(void)
 {
     roteface * result=0, * next=0;
@@ -1348,7 +1370,7 @@ int main(int argc, char *argv[])
         char *help;
 	printf("hi\n");
 	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
-	
+	loadsettings();
 	char *path;
 	path=getexepath();
 	if(path)
@@ -1386,6 +1408,7 @@ int main(int argc, char *argv[])
 	    fclose(f);
 	}
 	RunGLTest();
+	savesettings();
 	printf("finished.bye.\n");
 	return 0;
 }
