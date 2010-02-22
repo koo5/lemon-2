@@ -59,6 +59,10 @@
 #include "../s3d-0.2.1.1/server/global.h"
 #endif
 
+#include <dirent.h>
+
+char **buttons;
+int numbuttons;
 char *fnfl="l2";
 int do_l2=0;
 int givehelp=1;
@@ -1368,6 +1372,7 @@ static PyMethodDef xyzzy_methods[] =
 int main(int argc, char *argv[])
 {
         char *help;
+        char *btns;
 	printf("hi\n");
 	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
 	loadsettings();
@@ -1377,7 +1382,7 @@ int main(int argc, char *argv[])
 	{
 		printf("executables path:%s\n", path);
 		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));
-		char* n=strrchr(path, 0);//strlen
+		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l2"));
 		*n=0;
 		clfl=strdup(strcat(path, "colors"));
@@ -1385,7 +1390,10 @@ int main(int argc, char *argv[])
 		ntfl=strdup(strcat(path, "newtermmsg"));
 		*n=0;
 		help=strdup(strcat(path, "nohelp"));
+		*n=0;
+		btns=strdup(strcat(path, "buttons"));
 		free(path);
+
 	}
 	int i;
 	for(i=1;i<argc;i++)
@@ -1407,6 +1415,36 @@ int main(int argc, char *argv[])
 	    givehelp=0;
 	    fclose(f);
 	}
+	DIR *dir = opendir(btns);
+	if(dir)
+	{
+		char* n=strrchr(btns, 0);
+		btns=realloc(btns, strlen(btns)+21);
+		printf("buttons:");
+		struct dirent *ent;
+		while((ent = readdir(dir)) != NULL)
+		{
+			printf("%s ",ent->d_name);
+			if(strlen(ent->d_name) < 21)
+			{
+				char *b=GetFileIntoCharPointer1(strcat(btns,ent->d_name));
+				if(b)
+				{
+					numbuttons++;
+					buttons=realloc(buttons, numbuttons);
+					buttons[numbuttons-1]=b;
+				}
+				*n=0;
+			}
+		}
+		printf("\n");
+	}
+	else
+	{
+		fprintf(stderr, "Error opening directory\n");
+	}
+	while(numbuttons--)
+	    printf("%s", buttons[numbuttons]);
 	RunGLTest();
 	savesettings();
 	printf("finished.bye.\n");
