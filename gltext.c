@@ -90,13 +90,17 @@ float a,float z)
                 glColor4d(r,g,b,a);
             }
 
-            if (!*x)/*last dot*/
+            if ((!*x)||(' '==(*x)))/* last dot*/
             {
                 dooooot(lok.x+fxdot,lok.y+fydot);
     		glColor4d(0,0,0,0);
                 dooooot(lok.x+fxdot,lok.y+fydot);
-                if(duped)free(duped);
-                return;
+        	if(!*x)
+        	{
+            	    if(duped)free(duped);
+            	    return;
+        	}	
+
             }
             else // just ordinary dot
             {

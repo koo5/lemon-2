@@ -762,11 +762,12 @@ int RunGLTest (void)
 		wm();
 //		int down=0;
 		glDisable(GL_BLEND);
-		glShadeModel(GL_FLAT);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		//glShadeModel(GL_FLAT);
+//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glClearColor( 0.0, 0.0, 0.0, 0.0 );
 		glLineWidth(lv);
-		glHint(GL_LINE_SMOOTH_HINT,GL_FASTEST);
+//		glDisable (GL_LINE_SMOOTH);
+//		glHint(GL_LINE_SMOOTH_HINT,GL_FASTEST);
 	    #endif
 	}
 	void initfaces(void)
@@ -815,7 +816,7 @@ int RunGLTest (void)
 			#endif
 			#ifdef nerve
 			if(nerv)
-			{
+			{	
 				glLineWidth(1);
 				shownerv(nerv);
 				glLineWidth(lv);
