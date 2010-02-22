@@ -345,7 +345,7 @@ void graphics_main(void)
 	gle();
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light0_spec);
 	gle();
-	glLightfv(GL_LIGHT0, GL_SHININESS, light0_shininess);
+//	glLightfv(GL_LIGHT0, GL_SHININESS, light0_shininess);
 	gle();
 
 	glLoadIdentity();

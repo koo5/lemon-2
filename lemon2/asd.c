@@ -61,6 +61,7 @@
 
 char *fnfl="l2";
 int do_l2=0;
+int givehelp;
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -765,7 +766,7 @@ int RunGLTest (void)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		glClearColor( 0.0, 0.0, 0.0, 0.0 );
 		glLineWidth(lv);
-		glHint(                    GL_LINE_SMOOTH_HINT,GL_NICEST);
+		glHint(GL_LINE_SMOOTH_HINT,GL_FASTEST);
 	    #endif
 	}
 	void initfaces(void)
@@ -808,7 +809,7 @@ int RunGLTest (void)
 			#ifdef GL
 
 			#ifdef swallows3d
-			user_main();
+//			user_main();
 			network_main();
 			graphics_reshape(w,h);
 			graphics_main();
@@ -1335,20 +1336,22 @@ int main(int argc, char *argv[])
 {
 
 	printf("hi\n");
-	printf("outdated info:Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal, \n");
-
+	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
+	
 	char *path;
 	path=getexepath();
 	if(path)
 	{
-		printf("%s\n", path);
+		printf("executables path:%s\n", path);
 		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));
-		char* n=strrchr(path, 0);
+		char* n=strrchr(path, 0);//strlen
 		fnfl=strdup(strcat(path, "l2"));
 		*n=0;
 		clfl=strdup(strcat(path, "colors"));
 		*n=0;
 		ntfl=strdup(strcat(path, "newtermmsg"));
+		*n=0;
+		help=strdup(strcat(path, "nohelp"));
 		free(path);
 	}
 	int i;
@@ -1365,6 +1368,11 @@ int main(int argc, char *argv[])
 	if (f)
     	    PyRun_SimpleString(f);
 #endif
+	FILE f;
+	if(f=(fopen("nohelp", "r")))
+	    fclose(f);
+	else
+	    givehelp=1;
 	RunGLTest();
 	printf("finished.bye.\n");
 	return 0;
