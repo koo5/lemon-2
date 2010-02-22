@@ -838,10 +838,10 @@ int RunGLTest (void)
 			{
 				glRotatef(90,0,0,1);
 				glTranslatef(0,-w,0);
-				if(!escaped)
+				if(!(escaped||k[SDLK_RCTRL]))
 					draw_text("\npress right ctrl for more fun...");
 				else
-					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f");
+					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\n f1 to switch off that NERVEROT!");
 					
 			}
 
