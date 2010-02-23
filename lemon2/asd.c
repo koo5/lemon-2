@@ -62,11 +62,14 @@
 #include <dirent.h>
 
 char **buttons;
+char **buttonnames;
 int numbuttons;
+int showbuttons=1;
 char *fnfl="l2";
 int do_l2=0;
 int givehelp=1;
 int blending=1;
+
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -738,6 +741,22 @@ void gle(void)
 #endif
 }
 
+#ifdef GL
+void showbutton(int x, int y, char * n)
+{
+	glColor3f(1,1,0);
+	glPushMatrix();
+	glTranslatef(x,y,0);
+	glBegin(GL_QUADS);
+	int w=strlen(n)*13+13;
+	glVertex2f(0,0);	glVertex2f(w,0);	glVertex2f(w,26);	glVertex2f(0,26);
+	glEnd();
+	setcolor(0,0,0,1);
+	draw_text(n);
+	glPopMatrix();
+
+}
+ #endif
 
 int RunGLTest (void)
 {
@@ -863,10 +882,11 @@ int RunGLTest (void)
 			int integer;
 			k=SDL_GetKeyState(&integer);
 //			if(k[SDLK_RCTRL])
-				focusline(activeface);
+			focusline(activeface);
 
 			showfaces(face1, activeface);
-
+			facesclean(face1);
+			#ifdef GL
 			if(givehelp)
 			{
 				glRotatef(90,0,0,1);
@@ -877,16 +897,24 @@ int RunGLTest (void)
 					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\nb to toggle blending:D");
 					
 			}
-
-			#ifdef GL
-				glPopMatrix();
-				SDL_GL_SwapBuffers( );
+			if(showbuttons)
+			{
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				printf("YAYA\n");
+				int n=numbuttons;
+				int y;
+				y=0;
+				while(n)
+					showbutton(w-100, y+=100, buttonnames[--n]);
+				glBlendFunc(GL_ONE, GL_ZERO);
+			}
+			glPopMatrix();
+			SDL_GL_SwapBuffers( );
 			#else
-				SDL_UpdateRect(s,0,0,0,0);
+			SDL_UpdateRect(s,0,0,0,0);
 			#endif
-			facesclean(face1);
-		}
 
+		}
 		gle();
 		char* sdl_error;
 		sdl_error = SDL_GetError( );
@@ -1381,7 +1409,7 @@ int main(int argc, char *argv[])
 	if(path)
 	{
 		printf("executables path:%s\n", path);
-		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));
+		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l2"));
 		*n=0;
@@ -1391,7 +1419,7 @@ int main(int argc, char *argv[])
 		*n=0;
 		help=strdup(strcat(path, "nohelp"));
 		*n=0;
-		btns=strdup(strcat(path, "buttons"));
+		btns=strdup(strcat(path, "buttons/"));
 		free(path);
 
 	}
@@ -1418,21 +1446,25 @@ int main(int argc, char *argv[])
 	DIR *dir = opendir(btns);
 	if(dir)
 	{
-		char* n=strrchr(btns, 0);
 		btns=realloc(btns, strlen(btns)+21);
+		char* n=strrchr(btns, 0);
 		printf("buttons:");
 		struct dirent *ent;
 		while((ent = readdir(dir)) != NULL)
 		{
 			printf("%s ",ent->d_name);
-			if(strlen(ent->d_name) < 21)
+			if(strlen(ent->d_name) < 20)
 			{
-				char *b=GetFileIntoCharPointer1(strcat(btns,ent->d_name));
+				strcat(btns,ent->d_name);
+				char *b=GetFileIntoCharPointer1(btns);
 				if(b)
 				{
+					printf("%s\n", b);
 					numbuttons++;
-					buttons=realloc(buttons, numbuttons);
+					buttons=realloc(buttons,sizeof(char*)* numbuttons);
 					buttons[numbuttons-1]=b;
+					buttonnames=realloc(buttonnames, sizeof(char*)*numbuttons);
+					buttonnames[numbuttons-1]=strdup(ent->d_name);
 				}
 				*n=0;
 			}
@@ -1443,9 +1475,18 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Error opening directory\n");
 	}
-	while(numbuttons--)
-	    printf("%s", buttons[numbuttons]);
+	int x=numbuttons;
+	while(x)
+	    printf("%s", buttons[--x]);
+	
 	RunGLTest();
+	
+	x=numbuttons;
+	while(x)
+	{
+	    free(buttons[--x]);
+	    free(buttonnames[x]);
+	}
 	savesettings();
 	printf("finished.bye.\n");
 	return 0;
