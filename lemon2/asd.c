@@ -779,6 +779,7 @@ void show_buttons(int picking)
 	int y=0;
 	glInitNames();
 	glPushName(-1);
+//	printf("yep\n");
 	while(n)
 	{
 		glLoadName(n-1);
@@ -959,7 +960,7 @@ int RunGLTest (void)
 			facesclean(face1);
 			#ifdef GL
 			if(givehelp)
-			{
+			{	glPushMatrix();
 				glRotatef(90,0,0,1);
 				glTranslatef(0,-w,0);
 				if(!(escaped||k[SDLK_RCTRL]))
@@ -967,6 +968,7 @@ int RunGLTest (void)
 				else
 					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\nb to toggle blending:D");
 					
+				glPopMatrix();
 			}
 			if(showbuttons)
 				show_buttons(0);
@@ -1520,7 +1522,7 @@ int main(int argc, char *argv[])
     	    PyRun_SimpleString(f);
 #endif
 	FILE* f;
-	if(f=(fopen("nohelp", "r")))
+	if(f=(fopen(help, "r")))
 	{
 	    givehelp=0;
 	    fclose(f);
