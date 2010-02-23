@@ -755,21 +755,24 @@ void gle(void)
 }
 
 #ifdef GL
-void show_button(int x, int y, char * n)
+void show_button(int x, int y, char * n, int picking)
 {
 	glPushMatrix();
 	glTranslatef(x,y,0);
-	glBegin(GL_QUADS);
+	if(picking)
+		glBegin(GL_QUADS);
+	else
+		glBegin(GL_LINE_LOOP);
 	glColor3f(1,1,0);
 	int w=strlen(n)*13+13;
 	glVertex2f(0,0);	glVertex2f(w,0);	glVertex2f(w,26);	glVertex2f(0,26);
 	glEnd();
-	setcolor(0,0,0,1);
+	setcolor(1,1,0,1);
 	draw_text(n);
 	glPopMatrix();
 
 }
-void show_buttons(void)
+void show_buttons(int picking)
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	int n=numbuttons;
@@ -779,7 +782,7 @@ void show_buttons(void)
 	while(n)
 	{
 		glLoadName(n-1);
-		show_button(SDL_GetVideoSurface()->w-100,y+=100, buttonnames[--n]);
+		show_button(SDL_GetVideoSurface()->w-100,y+=100, buttonnames[--n],picking);
 	}
 	glLoadName(-1);
 	glBlendFunc(GL_ONE, GL_ZERO);
@@ -803,7 +806,7 @@ int testbuttonpress(int x, int y,int test)
     glTranslatef(cam.x,cam.y,0);
     glMatrixMode (GL_PROJECTION);
     
-    show_buttons();
+    show_buttons(1);
     glPopMatrix();
     int i,j, k;
     int numhits = glRenderMode(GL_RENDER);
@@ -966,9 +969,7 @@ int RunGLTest (void)
 					
 			}
 			if(showbuttons)
-			{
-				show_buttons();
-			}
+				show_buttons(0);
 			glPopMatrix();
 //			int x,y;
 //			SDL_GetMouseState(&x,&y);
