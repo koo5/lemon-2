@@ -1379,14 +1379,11 @@ int RunGLTest (void)
 					w=event.resize.w;h=event.resize.h;
                                         printf("videoresize %ix%i bpp %i\n", w,h,bpp);
 					dirty=1;
-					if( (s=SDL_SetVideoMode( w,h, bpp, s->flags )) )
-//                                              printf("hmm\n");
+					s=SDL_SetVideoMode( w,h, bpp, s->flags);
 					wm();
-				    if(!justresized)
-
-					mustresize=1;
+					if(!justresized)
+					    mustresize=1;
 					justresized=0;
-
 				    }
 				    if(activeface->t)
 					rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
