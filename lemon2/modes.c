@@ -101,9 +101,9 @@ xy parsemodes(int w,int h/*current w and h to know where to look while shrinking
 	     return fail;
 }
 
-void savemode(int w,int h)
+void savemode(int w,int h,char *mdfl)
 {
-    FILE * fp = fopen("mode","w");
+    FILE * fp = fopen(mdfl,"w");
     if (fp == NULL) 
 	return;
     fprintf(fp,"%i %i",w,h);

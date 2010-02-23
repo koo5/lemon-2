@@ -70,6 +70,9 @@ char *fnfl="l2";
 int do_l2=0;
 int givehelp=1;
 int blending=1;
+char *stng;
+char *mdfl;
+char *fcfl;
 
 
 #ifdef GL
@@ -625,9 +628,9 @@ void loadsettings(void)
     tpl_node *tn;
     int32_t b;
     tn=tpl_map("i", &b);
-    tpl_load(tn, TPL_FILE, "settings");
-    if(tpl_unpack(tn,0)>0)
-	blending=b;
+    if(!tpl_load(tn, TPL_FILE, stng))
+	if(tpl_unpack(tn,0)>0)
+	    blending=b;
     tpl_free(tn);
 }
 void savesettings(void)
@@ -637,7 +640,7 @@ void savesettings(void)
     tn=tpl_map("i", &b);
     b=blending;
     tpl_pack(tn,0);
-    tpl_dump(tn, TPL_FILE, "settings");
+    tpl_dump(tn, TPL_FILE, stng);
     tpl_free(tn);
 }
 
@@ -651,7 +654,7 @@ roteface * loadfaces(void)
     double a,b,c;
     int32_t t,cols,rows;
     tn = tpl_map("A(fffiii)",&a,&b,&c,&t,&cols,&rows);
-    tpl_load(tn,TPL_FILE, "faces");
+    tpl_load(tn,TPL_FILE, fcfl);
     while(tpl_unpack(tn,1)>0)
     {
 	g=(roteface*)malloc(sizeof(roteface));
@@ -699,7 +702,7 @@ void savefaces(roteface * f1)
 	tpl_pack(tn,1);
 	f1=f1->next;
     }
-    tpl_dump(tn, TPL_FILE, "faces");
+    tpl_dump(tn, TPL_FILE, fcfl);
     tpl_free(tn);
 }
 
@@ -846,7 +849,7 @@ int RunGLTest (void)
 	{
 		loadcolors();
 		printf("mmm..\n");
-		xy ss = parsemodes(w,h,"mode",1,0,0);
+		xy ss = parsemodes(w,h,mdfl,1,0,0);
 		if (ss.x!=-1){w=ss.x;h=ss.y;};
 	    #ifdef GL
 		s=initsdl(w,h,&bpp,SDL_OPENGL
@@ -1118,7 +1121,7 @@ int RunGLTest (void)
 							break;
 
 							case SDLK_F7:
-							    savemode(w,h);
+							    savemode(w,h,mdfl);
 							break;
 							case SDLK_F8:
 							    loadl2(fnfl);
@@ -1441,7 +1444,7 @@ int RunGLTest (void)
 		    }
 		    else
 		    {
-			savemode(w,h);
+			savemode(w,h,mdfl);
 			savefaces(face1);
 		    }
 		}
@@ -1469,12 +1472,12 @@ int main(int argc, char *argv[])
         char *btns;
 	printf("hi\n");
 	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
-	loadsettings();
+
 	char *path;
 	path=getexepath();
 	if(path)
 	{
-		printf("executables path:%s\n", path);
+		printf("path:%s\n", path);
 		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l2"));
@@ -1483,12 +1486,18 @@ int main(int argc, char *argv[])
 		*n=0;
 		ntfl=strdup(strcat(path, "newtermmsg"));
 		*n=0;
+		stng=strdup(strcat(path, "settings"));
+		*n=0;
+		mdfl=strdup(strcat(path, "mode"));
+		*n=0;
+		fcfl=strdup(strcat(path, "faces"));
+		*n=0;
 		help=strdup(strcat(path, "nohelp"));
 		*n=0;
 		btns=strdup(strcat(path, "buttons/"));
 		free(path);
-
 	}
+	loadsettings();
 	int i;
 	for(i=1;i<argc;i++)
 	    if(!strcmp(argv[i],"-f"))
