@@ -757,10 +757,10 @@ void gle(void)
 #ifdef GL
 void show_button(int x, int y, char * n)
 {
-	glColor3f(1,1,0);
 	glPushMatrix();
 	glTranslatef(x,y,0);
 	glBegin(GL_QUADS);
+	glColor3f(1,1,0);
 	int w=strlen(n)*13+13;
 	glVertex2f(0,0);	glVertex2f(w,0);	glVertex2f(w,26);	glVertex2f(0,26);
 	glEnd();
@@ -773,36 +773,41 @@ void show_buttons(void)
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	int n=numbuttons;
-	int y;
-	y=0;
+	int y=0;
+	glInitNames();
 	glPushName(-1);
 	while(n)
 	{
 		glLoadName(n-1);
 		show_button(SDL_GetVideoSurface()->w-100,y+=100, buttonnames[--n]);
 	}
+	glLoadName(-1);
 	glBlendFunc(GL_ONE, GL_ZERO);
 }
 
 
-int testbuttonpress(int x, int y)
+int testbuttonpress(int x, int y,int test)
 {
     GLuint fuf[500];
     GLint viewport[4];
     glGetIntegerv (GL_VIEWPORT, viewport);
     glSelectBuffer(500, fuf);
     glMatrixMode (GL_PROJECTION);
-    //glRenderMode (GL_SELECT);
+    if(!test)glRenderMode (GL_SELECT);
     glPushMatrix ();
     glLoadIdentity ();
-    gluPickMatrix (x,y,20,20, viewport);
+
+    gluPickMatrix (x,y,10,10, viewport);
     glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
+    glMatrixMode (GL_MODELVIEW);
     glTranslatef(cam.x,cam.y,0);
-    show_buttons();
     glMatrixMode (GL_PROJECTION);
+    
+    show_buttons();
     glPopMatrix();
     int i,j, k;
     int numhits = glRenderMode(GL_RENDER);
+//    printf("%i\n", numhits);
     for(i=0,k=0;i<numhits;i++)
     {
 	GLuint numnames=fuf[k++];
@@ -810,6 +815,7 @@ int testbuttonpress(int x, int y)
 	for(j=0;j<numnames;j++)
 	{
 	    GLuint n=fuf[k];
+//	    printf("%i\n", n);
 	    return n;
 	    k++;
 	}
@@ -963,10 +969,10 @@ int RunGLTest (void)
 			{
 				show_buttons();
 			}
-			int x,y;
 			glPopMatrix();
-			SDL_GetMouseState(&x,&y);
-			testbuttonpress(x,y);
+//			int x,y;
+//			SDL_GetMouseState(&x,&y);
+//			testbuttonpress(x,h-y,1);
 			SDL_GL_SwapBuffers( );
 			#else
 			SDL_UpdateRect(s,0,0,0,0);
@@ -1327,7 +1333,7 @@ int RunGLTest (void)
 				case SDL_MOUSEBUTTONDOWN:
 				{
 					int b;
-					if(b=testbuttonpress(event.button.x,event.button.y)!=-1)
+					if((b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
 					{
 						printf("pressed %i\n",b);
 						type(activeface, buttons[b]);
