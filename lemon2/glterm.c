@@ -207,8 +207,20 @@ void draw_terminal(roteface *f)
 	    {
 		if((f->oldcrow!=rt->crow)||(f->oldccol!=rt->ccol))
 		    f->rotor=0;//if cursor moved, reset letter rotor
-		zspillit(lok,nums[0],2.2*f->scale);//draw cursor
+		//zspillit(lok,nums[0],2.4*f->scale);//draw cursor
 		glEnd();
+		glPushMatrix();
+		glTranslatef(lok.x+13,lok.y+13,0);
+		glRotatef(f->rotor,0,0,1);
+                glBegin(GL_LINE_LOOP);
+                int w=13;
+                glColor4f(1,0,0,1);
+		glVertex2f(-w*f->scale,-w*f->scale);
+		glVertex2f(+w*f->scale,-w*f->scale);
+		glVertex2f(+w*f->scale,+w*f->scale);
+		glVertex2f(-w*f->scale,+w*f->scale);
+		glEnd();
+		glPopMatrix();
 		glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glPushMatrix();

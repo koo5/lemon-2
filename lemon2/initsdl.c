@@ -20,8 +20,8 @@ SDL_Surface *initsdl(int w,int h,int *bppp,Uint32 flags)
 		bpp = 8;
 	} else {
 		bpp = 16;  // More doesn't seem to work 
-	}
-*/	bpp=SDL_GetVideoInfo()->vfmt->BitsPerPixel;
+	}*/
+	bpp=SDL_GetVideoInfo()->vfmt->BitsPerPixel;
 	switch (bpp) {
 	    case 8:
 		rgb_size[0] = 3;

@@ -60,6 +60,7 @@
 #endif
 
 #include <dirent.h>
+#include <GL/glu.h>
 
 char **buttons;
 char **buttonnames;
@@ -545,6 +546,15 @@ void clipin(roteface *f,int noes)
     }
 }
 
+void type(roteface *f, char * r)
+{
+    while(*r)
+    {
+	keyp(f,*r);
+	r++;
+    }
+}
+
 void clipoutlastline(roteface *f)
 {
     if(f->t->crow<1)return;
@@ -742,7 +752,7 @@ void gle(void)
 }
 
 #ifdef GL
-void showbutton(int x, int y, char * n)
+void show_button(int x, int y, char * n)
 {
 	glColor3f(1,1,0);
 	glPushMatrix();
@@ -756,7 +766,56 @@ void showbutton(int x, int y, char * n)
 	glPopMatrix();
 
 }
- #endif
+void show_buttons(void)
+{
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	int n=numbuttons;
+	int y;
+	y=0;
+	glPushName(-1);
+	while(n)
+	{
+		glLoadName(n-1);
+		show_button(SDL_GetVideoSurface()->w-100,y+=100, buttonnames[--n]);
+	}
+	glBlendFunc(GL_ONE, GL_ZERO);
+}
+
+
+int testbuttonpress(int x, int y)
+{
+    GLuint fuf[500];
+    GLint viewport[4];
+    glGetIntegerv (GL_VIEWPORT, viewport);
+    glSelectBuffer(500, fuf);
+    glMatrixMode (GL_PROJECTION);
+    //glRenderMode (GL_SELECT);
+    glPushMatrix ();
+    glLoadIdentity ();
+    gluPickMatrix (x,y,20,20, viewport);
+    glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
+    glTranslatef(cam.x,cam.y,0);
+    show_buttons();
+    glMatrixMode (GL_PROJECTION);
+    glPopMatrix();
+    int i,j, k;
+    int numhits = glRenderMode(GL_RENDER);
+    for(i=0,k=0;i<numhits;i++)
+    {
+	GLuint numnames=fuf[k++];
+	k++;k++;
+	for(j=0;j<numnames;j++)
+	{
+	    GLuint n=fuf[k];
+	    return n;
+	    k++;
+	}
+    }
+    glMatrixMode(GL_MODELVIEW);
+    return -1;
+}
+
+#endif
 
 int RunGLTest (void)
 {
@@ -768,7 +827,7 @@ int RunGLTest (void)
 #endif
 	cam.x=0;
 	cam.y=0;
-	int bpp;
+	int bpp=8;
 	int w = 1280;
 	int h = 800;
 	int done = 0;
@@ -899,16 +958,12 @@ int RunGLTest (void)
 			}
 			if(showbuttons)
 			{
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				printf("YAYA\n");
-				int n=numbuttons;
-				int y;
-				y=0;
-				while(n)
-					showbutton(w-100, y+=100, buttonnames[--n]);
-				glBlendFunc(GL_ONE, GL_ZERO);
+				show_buttons();
 			}
+			int x,y;
 			glPopMatrix();
+			SDL_GetMouseState(&x,&y);
+			testbuttonpress(x,y);
 			SDL_GL_SwapBuffers( );
 			#else
 			SDL_UpdateRect(s,0,0,0,0);
@@ -1266,6 +1321,16 @@ int RunGLTest (void)
 				case SDL_QUIT:
 					done = 1;
 					break;
+				case SDL_MOUSEBUTTONDOWN:
+				{
+					int b;
+					if(b=testbuttonpress(event.button.x,event.button.y)!=-1)
+					{
+						printf("pressed %i\n",b);
+						type(activeface, buttons[b]);
+					}
+				break;
+				}
 #ifdef oops
 				case SDL_MOUSEBUTTONDOWN:
 					if(1)
@@ -1298,8 +1363,9 @@ int RunGLTest (void)
 					break;
 				case SDL_VIDEORESIZE:
 				    {
+					if(!s)exit(1);
 					w=event.resize.w;h=event.resize.h;
-                                        printf("videoresize %i %i\n", w,h);
+                                        printf("videoresize %ix%i bpp %i\n", w,h,bpp);
 					dirty=1;
 					if( (s=SDL_SetVideoMode( w,h, bpp, s->flags )) )
 //                                              printf("hmm\n");
