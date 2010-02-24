@@ -380,6 +380,7 @@ void rote_vt_mousez(RoteTerm*vt,char s, int x, int y)
 {
     if (vt->docellmouse)
     {
+	printf("docellmouse\n");
 	if(x<0)return;
 	if(y<0)return;
 	if(x>vt->cols)return;
