@@ -914,6 +914,7 @@ int RunGLTest (void)
 	while( !done )
 	{
 		lockterms(face1);
+		Uint8 * k=SDL_GetKeyState(NULL);
 		if(dirty||faces_dirty(face1))
 		{
 			dirty=0;
@@ -950,9 +951,8 @@ int RunGLTest (void)
 			glTranslatef(cam.x,cam.y,0);
 			#endif
 
-			Uint8 * k;
-			int integer;
-			k=SDL_GetKeyState(&integer);
+
+
 //			if(k[SDLK_RCTRL])
 			focusline(activeface);
 
@@ -1010,13 +1010,12 @@ int RunGLTest (void)
 		    do {
 			int mod=event.key.keysym.mod;
 			int key=event.key.keysym.sym;
-			Uint8 *keystate = SDL_GetKeyState(NULL);
 
 			switch( event.type )
 			{
 
 				case SDL_MOUSEMOTION:
-					//if(escaped)
+					if(escaped||k[SDLK_RCTRL])
 					{
 						escaped=0;
 						if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
@@ -1032,6 +1031,12 @@ int RunGLTest (void)
 						    	cam.y-=event.motion.yrel;
 						}
 					}
+					else
+					{
+						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
+						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
+						rote_vt_mousemove  (activeface->t,tx,ty);
+                    			}
 					if(!SDL_GetMouseState(0,0))
 						activeface=mousefocus(activeface,face1);
 
@@ -1073,25 +1078,25 @@ int RunGLTest (void)
 						dirty=1;
 						escaped=0;
 						if(key==SDLK_RCTRL) escaped=1;
-						if(keystate[SDLK_UP])
+						if(k[SDLK_UP])
 						{
 						    dirty=1;
 						    cam.y+=50;
 						    activeface=mousefocus(activeface,face1);
 						}
-						if(keystate[SDLK_DOWN])
+						if(k[SDLK_DOWN])
 						{
 						    dirty=1;
 						    cam.y-=50;
 						    activeface=mousefocus(activeface,face1);
 						}
-						if(keystate[SDLK_LEFT])
+						if(k[SDLK_LEFT])
 						{
 						    dirty=1;
 						    cam.x+=50;
 						    activeface=mousefocus(activeface,face1);
 						}
-						if(keystate[SDLK_RIGHT])
+						if(k[SDLK_RIGHT])
 						{
 						    dirty=1;
 						    cam.x-=50;
@@ -1213,16 +1218,16 @@ int RunGLTest (void)
 #endif
 
 							case SDLK_END:
-							    resizooo(activeface, 0,1,keystate);
+							    resizooo(activeface, 0,1,k);
 							break;
 							case SDLK_HOME:
-							    resizooo(activeface, 0,-1,keystate);
+							    resizooo(activeface, 0,-1,k);
 							break;
 							case SDLK_DELETE:
-							    resizooo(activeface, -1,0,keystate);
+							    resizooo(activeface, -1,0,k);
 							break;
 							case SDLK_PAGEDOWN:
-							    resizooo(activeface, 1,0,keystate);
+							    resizooo(activeface, 1,0,k);
 							break;
 #ifdef nerve
 							case SDLK_F1:
@@ -1341,35 +1346,25 @@ int RunGLTest (void)
 						printf("pressed %i\n",b);
 						type(activeface, buttons[b]);
 					}
-				break;
-				}
-#ifdef oops
-				case SDL_MOUSEBUTTONDOWN:
-					if(1)
 					{
-						int x=cam.x
-						+(-activeface->x
-						+event.button.x
-						)*activeface->scale
+						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
+						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
 
-						/13;
-						int y=cam.y
-						+(-activeface->y
-						+event.button.y
-						)*activeface->scale
-
-						/26;
-						rote_vt_mousedown(activeface->t,x,y);
-						printf("%i %i\n", x,y);
+						rote_vt_mousedown(activeface->t,tx,ty);
+						printf("%i %i\n", tx,ty);
 					}
 					break;
-//				case SDL_MOUSEBUTTONUP:
-//					rote_vt_mouseup  (activeface->t,event.button.x/13, event.button.y/26);
-//					break;
+				}
+				case SDL_MOUSEBUTTONUP:
+				{
+					int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
+					int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
+					rote_vt_mouseup  (activeface->t,tx,ty);
+					break;
+				}
 //				case SDL_MOUSEMOTION:
 //					rote_vt_mousemove(activeface->t,event.button.x/13, event.button.y/26);
 //					break;
-#endif
 				case SDL_VIDEOEXPOSE:
 					dirty=1;
 					break;

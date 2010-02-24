@@ -129,7 +129,7 @@ void rote_vt_resize(RoteTerm *rt,int rows, int cols)
 RoteTerm *rote_vt_create(int rows, int cols) {
    RoteTerm *rt;
    int i, j;
-   setupterm("linux", 1, (int *)0);
+   setupterm("xterm", 1, (int *)0);
 
    if (rows <= 0 || cols <= 0) return NULL;
 
