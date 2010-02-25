@@ -235,11 +235,11 @@ void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int s
 			glRotatef(steps, 0,0,1);
 			glPushMatrix();
 			glTranslatef(0,100,0);
-			glBegin(GL_LINE_LOOP);
-			glVertex2f(-5,0);
-			glVertex2f(5,0);
-			glVertex2f(5,10);
-			glVertex2f(-5,10);
+			glBegin(GL_QUADS);
+			glVertex2f(-1,0);
+			glVertex2f(1,0);
+			glVertex2f(2,10);
+			glVertex2f(-2,10);
 			glEnd();
 			glPopMatrix();
 		    }
