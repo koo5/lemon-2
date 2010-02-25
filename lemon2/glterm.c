@@ -227,7 +227,8 @@ void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int s
 		glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glPushMatrix();
-		    glRotatef(f->rotor+=17,0,1,0);
+		    glRotatef(f->rotor+=((SDL_GetTicks()-f->lastrotor)/10),0,1,0);
+		    f->lastrotor=SDL_GetTicks();
 		    glBegin(GL_LINE_STRIP);
 			xy molok;molok.x=-13;molok.y=-13;
 			draw(molok,rt->cells[i][j].ch,f->scale);

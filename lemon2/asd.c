@@ -74,7 +74,7 @@ char *stng;
 char *mdfl;
 char *fcfl;
 Uint32 lastclicktime;
-
+int dblclick=400;
 
 #ifdef GL
 inline void dooooot(float x,float y)
@@ -126,6 +126,7 @@ typedef struct
     int theme;
     int oldcrow, oldccol;
     double rotor;
+    Uint32 lastrotor;
 } roteface;
 
 
@@ -1078,7 +1079,7 @@ int RunGLTest (void)
 					else
 					if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
 					{
-					    clipin(activeface,0,0);
+					    clipin(activeface,0,1);
 					}
 					else
 					if(key==SDLK_RCTRL||mod&KMOD_RCTRL||escaped)
@@ -1365,7 +1366,7 @@ int RunGLTest (void)
 						{
 						    if(clicksphase==0)
 						    {
-							if(lastclicktime+50>SDL_GetTicks())
+							if(lastclicktime+dblclick>SDL_GetTicks())
 							{
 							    clicksphase++;
 							    selendx=activeface->t->cols;
@@ -1384,7 +1385,7 @@ int RunGLTest (void)
 						    }
 						    else
 						    {
-							if(lastclicktime+50>SDL_GetTicks())
+							if(lastclicktime+dblclick>SDL_GetTicks())
 							{
 							    selface=activeface;
 							    clicksphase++;
@@ -1405,7 +1406,7 @@ int RunGLTest (void)
 						}
 						else if(event.button.button==SDL_BUTTON_MIDDLE&&(!activeface->t->docellmouse||k[SDLK_RSHIFT]||k[SDLK_LSHIFT]))
 						{
-							clipin(activeface, 0,1);
+							clipin(activeface, 0,0);
 						}
 						else
 						    rote_vt_mousedown(activeface->t,tx,ty);
