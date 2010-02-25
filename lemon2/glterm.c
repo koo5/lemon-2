@@ -223,6 +223,28 @@ void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int s
 		    glVertex2f(-w*f->scale,+w*f->scale);
 		    glEnd();
 		    glPopMatrix();
+		    glPushMatrix();
+		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		    glTranslatef(lok.x+13,lok.y+13,0);
+		    glRotatef(f->rotor/10, 0,0,1);
+		    glColor4f(1,1,0,0.2);
+		    int i;
+		    int steps=10;
+		    for (i=0; i<360; i+=steps)
+		    {
+			glRotatef(steps, 0,0,1);
+			glPushMatrix();
+			glTranslatef(0,100,0);
+			glBegin(GL_LINE_LOOP);
+			glVertex2f(-5,0);
+			glVertex2f(5,0);
+			glVertex2f(5,10);
+			glVertex2f(-5,10);
+			glEnd();
+			glPopMatrix();
+		    }
+		    glBlendFunc(GL_ONE, GL_ZERO);
+		    glPopMatrix();
 		}
 		glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);
