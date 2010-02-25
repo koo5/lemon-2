@@ -116,7 +116,7 @@ typedef struct
 }draw_terminal_data;
 
 int tscroll=0;
-void draw_terminal(roteface *f)
+void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int selendy, roteface* selface)
 {
     char *trmsqrm=0;
     RoteTerm * rt=f->t;
@@ -150,7 +150,7 @@ void draw_terminal(roteface *f)
 	for (j=0; j<rt->cols; j++)
 	{
 #ifdef GL
-    glBegin(GL_LINE_STRIP);
+	    glBegin(GL_LINE_STRIP);
 #endif
 
 	    lok.x=j*13*f->scale;
@@ -203,24 +203,27 @@ void draw_terminal(roteface *f)
 	    //actually , not selected but under cursor
 
 #ifdef GL
-	    if(isundercursor)
+	    if(isundercursor||(selface==f&&selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
 	    {
 		if((f->oldcrow!=rt->crow)||(f->oldccol!=rt->ccol))
 		    f->rotor=0;//if cursor moved, reset letter rotor
 		//zspillit(lok,nums[0],2.4*f->scale);//draw cursor
 		glEnd();
-		glPushMatrix();
-		glTranslatef(lok.x+13,lok.y+13,0);
-		glRotatef(f->rotor,0,0,1);
-                glBegin(GL_LINE_LOOP);
-                int w=13;
-                glColor4f(1,0,0,1);
-		glVertex2f(-w*f->scale,-w*f->scale);
-		glVertex2f(+w*f->scale,-w*f->scale);
-		glVertex2f(+w*f->scale,+w*f->scale);
-		glVertex2f(-w*f->scale,+w*f->scale);
-		glEnd();
-		glPopMatrix();
+		if(isundercursor)
+		{
+		    glPushMatrix();
+		    glTranslatef(lok.x+13,lok.y+13,0);
+		    glRotatef(f->rotor,0,0,1);
+            	    glBegin(GL_LINE_LOOP);
+            	    int w=13;
+            	    glColor4f(1,0,0,1);
+		    glVertex2f(-w*f->scale,-w*f->scale);
+		    glVertex2f(+w*f->scale,-w*f->scale);
+		    glVertex2f(+w*f->scale,+w*f->scale);
+		    glVertex2f(-w*f->scale,+w*f->scale);
+		    glEnd();
+		    glPopMatrix();
+		}
 		glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glPushMatrix();

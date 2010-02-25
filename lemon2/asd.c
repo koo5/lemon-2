@@ -73,6 +73,7 @@ int blending=1;
 char *stng;
 char *mdfl;
 char *fcfl;
+Uint32 lastclicktime;
 
 
 #ifdef GL
@@ -137,6 +138,9 @@ char *ntfl;
 char *newtermmsg;//
 xy cam;//
 int global_tabbing=0;
+int selstartx, selstarty, selendx, selendy;
+int clicksphase;
+roteface * selface;
 
 
 
@@ -407,7 +411,7 @@ void facesclean(roteface * f)
 void showface(roteface *g)
 {
     if(g->t)
-	draw_terminal(g);
+	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
     else
 	draw_text(newtermmsg);
 }
@@ -490,6 +494,7 @@ roteface* removeface(roteface *face1, roteface *f)
     }
     roteface * ret= rotefacelistremove(face1,f);
     free(f);
+    if(f==selface)selface==0;
     return ret;
 }
 
@@ -534,9 +539,9 @@ void  showfaces(roteface * g, roteface * activeface)
 	}
 }
 
-void clipin(roteface *f,int noes)
+void clipin(roteface *f,int noes, int sel)
 {
-    char * r=rotoclipin();
+    char * r=rotoclipin(sel);
     char *s=r;
     if(s)
     {
@@ -1070,7 +1075,7 @@ int RunGLTest (void)
 					else
 					if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
 					{
-					    clipin(activeface,0);
+					    clipin(activeface,0,0);
 					}
 					else
 					if(key==SDLK_RCTRL||mod&KMOD_RCTRL||escaped)
@@ -1349,8 +1354,54 @@ int RunGLTest (void)
 					{
 						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
 						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
-
-						rote_vt_mousedown(activeface->t,tx,ty);
+						if(event.button.button==SDL_BUTTON_LEFT&&(!activeface->t->docellmouse||k[SDLK_RSHIFT]||k[SDLK_LSHIFT]))
+						{
+						    if(clicksphase==0)
+						    {
+							if(lastclicktime+50>SDL_GetTicks())
+							{
+							    clicksphase++;
+							    selendx=activeface->t->cols;
+							    selstartx=activeface->t->ccol;
+							    selendy=ty;
+							    selstarty=ty;
+							    selface=activeface;
+							}	
+							else
+							{
+							    selface=0;
+							    selstartx=tx;
+							    selstarty=ty;
+							    lastclicktime=SDL_GetTicks();
+							}
+						    }
+						    else
+						    {
+							if(lastclicktime+50>SDL_GetTicks())
+							{
+							    selface=activeface;
+							    clicksphase++;
+							    selendx=activeface->t->cols;
+							    selstartx=0;
+							    selendy=ty;
+							    selstarty=ty;
+							}	
+							else
+							{
+							    selface=0;
+							    clicksphase=0;
+							    selstartx=tx;
+							    selstarty=ty;
+							    lastclicktime=SDL_GetTicks();
+							}
+						    }
+						}
+						else if(event.button.button==SDL_BUTTON_MIDDLE&&(!activeface->t->docellmouse||k[SDLK_RSHIFT]||k[SDLK_LSHIFT]))
+						{
+							clipin(activeface, 0,1);
+						}
+						else
+						    rote_vt_mousedown(activeface->t,tx,ty);
 						printf("%i %i\n", tx,ty);
 					}
 					break;
@@ -1362,9 +1413,6 @@ int RunGLTest (void)
 					rote_vt_mouseup  (activeface->t,tx,ty);
 					break;
 				}
-//				case SDL_MOUSEMOTION:
-//					rote_vt_mousemove(activeface->t,event.button.x/13, event.button.y/26);
-//					break;
 				case SDL_VIDEOEXPOSE:
 					dirty=1;
 					break;
@@ -1521,15 +1569,15 @@ int main(int argc, char *argv[])
 	}
 	DIR *dir = opendir(btns);
 	if(dir)
-	{
-		btns=realloc(btns, strlen(btns)+21);
+	{	int maxsize = 50;
+		btns=realloc(btns, strlen(btns)+maxsize+1);
 		char* n=strrchr(btns, 0);
 		printf("buttons:");
 		struct dirent *ent;
 		while((ent = readdir(dir)) != NULL)
 		{
-			printf("%s ",ent->d_name);
-			if(strlen(ent->d_name) < 20)
+			printf("%s:\n ",ent->d_name);
+			if(strlen(ent->d_name) < maxsize)
 			{
 				strcat(btns,ent->d_name);
 				char *b=GetFileIntoCharPointer1(btns);
@@ -1553,7 +1601,7 @@ int main(int argc, char *argv[])
 	}
 	int x=numbuttons;
 	while(x)
-	    printf("%s", buttons[--x]);
+	    printf("%s\n", buttons[--x]);
 	
 	RunGLTest();
 	

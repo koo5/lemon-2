@@ -411,12 +411,15 @@ void rote_vt_mousemove(RoteTerm *vt, int x, int y)
 }
 
 
-char * rotoclipin(void)
+char * rotoclipin(int sel)
 {
     char *buf;
     RoteTerm *t;
     t = rote_vt_create(10,10);
-    rote_vt_forkpty(t, "xclip -o");
+    if(sel)
+        rote_vt_forkpty(t, "xclip -o -selection clipboard");
+    else
+        rote_vt_forkpty(t, "xclip -o");
     int br=0;
     buf=malloc(512);
     rote_vt_update_thready(buf, 6, &br,t);

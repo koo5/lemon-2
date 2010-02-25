@@ -1,5 +1,4 @@
 
-#define rdfl  GetFileIntoCharPointer1
 #include <errno.h>
 
 char * GetFileIntoCharPointer1(char *pFile)

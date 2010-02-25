@@ -311,9 +311,15 @@ void rote_es_interpret_csi(RoteTerm *rt) {
    if (!strncmp(rt->pd->esbuf, "[?", 2)) /* private-mode CSI, ignore */
    {
      if (!strncmp(rt->pd->esbuf, "[?1002h", 7))
+    {
 	rt->docellmouse=1;
+	printf("doing cellmouse\n");
+    }
      else if (!strncmp(rt->pd->esbuf, "[?1002l", 7))
+    {
 	rt->docellmouse=0;
+        printf("not doing cellmouse\n");
+    }
      else if (!strncmp(rt->pd->esbuf, "[?1h", 4))
      {
 //	P s = 1 → Application Cursor Keys (DECCKM)
