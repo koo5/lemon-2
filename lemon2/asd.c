@@ -1038,9 +1038,12 @@ int RunGLTest (void)
 					}
 					else
 					{
+					    if(activeface->t)
+					    {
 						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
 						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
 						rote_vt_mousemove  (activeface->t,tx,ty);
+					    }
                     			}
 					if(!SDL_GetMouseState(0,0))
 						activeface=mousefocus(activeface,face1);
@@ -1112,6 +1115,9 @@ int RunGLTest (void)
 
 						switch (key)
 						{
+							case SDLK_SLASH:
+							    showbuttons=!showbuttons;
+							    break;
 							case SDLK_INSERT:
 							    clipoutlastline(activeface);
 							    break;
@@ -1350,6 +1356,7 @@ int RunGLTest (void)
 					{
 						printf("pressed %i\n",b);
 						type(activeface, buttons[b]);
+						showbuttons=0;
 					}
 					{
 						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
