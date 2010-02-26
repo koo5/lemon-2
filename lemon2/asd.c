@@ -438,8 +438,6 @@ void showface(face *g)
 	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
     else if(g->scripted)
     {
-        printf("ffdgfdgdf\n");
-
 	#ifdef python
 	if(g->showfunc)
 	{
@@ -448,7 +446,6 @@ void showface(face *g)
 	        PyEval_CallObject(g->showfunc, arglist);
 	        Py_DECREF(arglist);
 	}
-	
 	#endif
     }	
     else
