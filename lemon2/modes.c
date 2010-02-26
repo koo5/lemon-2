@@ -65,7 +65,7 @@ xy parsemodes(int w,int h/*current w and h to know where to look while shrinking
 	     int growit = 0;
              lbuf = NULL;
              while ((buf = fgetln(fp, &len))) {
-                     if (buf[len - 1] == '\n')
+                     if ((buf[len - 1] == '\n'))
                              buf[len - 1] = '\0';
                      else {
                              /* EOF without EOL, copy and add the NUL */

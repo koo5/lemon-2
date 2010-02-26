@@ -307,6 +307,7 @@ Uint32 NewTimerCallback(Uint32 interval, void *param)
 {
 	SDL_Event e;
 	e.type=SDL_USEREVENT;
+	e.user.code=0;
 	SDL_PushEvent(&e);
 	return interval;
 }
@@ -1411,7 +1412,7 @@ int RunGLTest (void)
 				    {
 					#ifdef GL
 					int b;
-					if((showbuttons&&(b=testbuttonpress(event.button.x,h-event.button.y,0)))!=-1)
+					if(showbuttons&&(b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
 					{
 						printf("pressed %i\n",b);
 						type(activeface, buttons[b]);
@@ -1582,14 +1583,16 @@ PyObject *pglBegin(PyObject *self, PyObject* args)
     if(PyArg_ParseTuple(args, "i",&y))
     {
 	glBegin(y);
-	return Py_BuildValue("i", 0);
+	Py_INCREF(Py_None)     ;
+	return Py_None;
     }
     return 0;
 }
 PyObject *pglEnd(PyObject *self, PyObject* args)
 {
 	glEnd();
-	return Py_BuildValue("i", 0);
+	Py_INCREF(Py_None)    ;
+	return Py_None;
 }
 PyObject *pglColor4f(PyObject *self, PyObject* args)
 {
@@ -1597,7 +1600,8 @@ PyObject *pglColor4f(PyObject *self, PyObject* args)
     if(PyArg_ParseTuple(args, "ffff",&a, &b, &c, &d))
     {
 	glColor4f(a,b,c,d);
-	return Py_BuildValue("i", 0);
+	Py_INCREF(Py_None)   ;
+	return Py_None;
     }
     return 0;
 }
@@ -1607,7 +1611,8 @@ PyObject *pglVertex2f(PyObject *self, PyObject* args)
     if(PyArg_ParseTuple(args, "ff",&a, &b))
     {
 	glVertex2f(a,b);
-	return Py_BuildValue("i", 0);
+	Py_INCREF(Py_None)  ;
+	return Py_None;
     }
     return 0;
 }
@@ -1615,7 +1620,8 @@ PyObject *pgetface(PyObject *self, PyObject* args)
 {
 	face*f=add_face();
 	f->scripted=1;
-	return Py_BuildValue("i", f);
+	Py_INCREF(Py_None) ;
+	return Py_None;
 }
 PyObject *phookdraw(PyObject *self, PyObject* args)
 {
@@ -1624,8 +1630,8 @@ PyObject *phookdraw(PyObject *self, PyObject* args)
     if(PyArg_ParseTuple(args, "iO",&f, &func))
     {
 	f->showfunc=func;
-	Py_INCREF(func);
-	return Py_BuildValue("i", 1);
+	Py_INCREF(Py_None);
+	return Py_None;
     }
     return 0;
 }
