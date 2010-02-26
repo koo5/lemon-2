@@ -443,6 +443,7 @@ void showface(roteface *g)
 	        arglist = Py_BuildValue("()");
 	        PyEval_CallObject(g->showfunc, arglist);
 	        Py_DECREF(arglist);
+	        printf("ffdgfdgdf\n");
 	}
 	
 	#endif
@@ -1598,7 +1599,7 @@ PyObject *phookdraw(PyObject *self, PyObject* args)
 {
     PyObject *func;
     roteface * f;
-    if(PyArg_ParseTuple(args, "io",&f, &func))
+    if(PyArg_ParseTuple(args, "iO",&f, &func))
     {
 	f->showfunc=func;
 	Py_INCREF(func);
