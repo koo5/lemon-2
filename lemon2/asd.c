@@ -145,11 +145,12 @@ typedef struct
     #ifdef python
     PyObject *showfunc;
     #endif
-} roteface;
+} face;
+face *face1;
 
 
 #include "linkedlist.c"
-linkedlist(roteface)
+linkedlist(face)
 
 #include "glterm.c"
 
@@ -159,7 +160,7 @@ xy cam;//
 int global_tabbing=0;
 int selstartx, selstarty, selendx, selendy;
 int clicksphase;
-roteface * selface;
+face * selface;
 
 
 
@@ -173,7 +174,7 @@ float r1x=0;
 float r1y=0;
 float lv=1;
 
-void keyp(roteface* f, char ey)
+void keyp(face* f, char ey)
 {
     if (f->t)
 	rote_vt_keypress(f->t,ey);
@@ -274,7 +275,7 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
 }
 
 
-void resizooo(roteface *f, int x, int y, Uint8* duck)
+void resizooo(face *f, int x, int y, Uint8* duck)
 {
     if(!f->t)return;
     int up=duck[SDLK_HOME]||(y==-1);
@@ -313,9 +314,9 @@ Uint32 NewTimerCallback(Uint32 interval, void *param)
 
 
 
-roteface * add_face(void)
+face * new_face(void)
 {
-    roteface * f=(roteface*)malloc(sizeof(roteface));
+    face * f=(face*)malloc(sizeof(face));
     f->next=0;
     f->x=0;
     f->y=0;
@@ -330,7 +331,7 @@ roteface * add_face(void)
     return f;
 }
 
-void add_terminal(roteface * f)
+void add_terminal(face * f)
 {
     printf("adding terminal|");
     RoteTerm* t;
@@ -346,7 +347,7 @@ void add_terminal(roteface * f)
     printf("|added.\n");
 #endif
 }
-void add_term(roteface * f,int c,int r)
+void add_term(face * f,int c,int r)
 {
     printf("adding terminal|");
     RoteTerm* t;
@@ -362,7 +363,7 @@ void add_term(roteface * f,int c,int r)
 #endif
 }
 
-void cycle(roteface *face1, roteface **g)
+void cycle(face *face1, face **g)
 {
     *g=(*g)->next;
     if(*g==0)
@@ -373,7 +374,7 @@ int term_dirty(RoteTerm *t)
 {
     return t->curpos_dirty || lines_r_dirty(t);
 }
-int faces_dirty(roteface * f)
+int faces_dirty(face * f)
 {
     while(f&&f->t)
     {
@@ -384,13 +385,13 @@ int faces_dirty(roteface * f)
     return 0;
 }
 
-void lockterm(roteface * f)
+void lockterm(face * f)
 {
 #ifdef threaded
 	_mutexP(f->upd_t_data.lock);
 #endif
 }
-void lockterms(roteface * f)
+void lockterms(face * f)
 {
 #ifdef threaded
 
@@ -404,7 +405,7 @@ void lockterms(roteface * f)
 //    printf("done\n");
 #endif
 }
-void unlockterms(roteface * f)
+void unlockterms(face * f)
 {
 #ifdef threaded
 
@@ -416,13 +417,13 @@ void unlockterms(roteface * f)
 #endif
 }
 
-void faceclean(roteface *f)
+void faceclean(face *f)
 {
 	f->t->curpos_dirty=false;
 	lines_r_clean(f->t);
 }
 
-void facesclean(roteface * f)
+void facesclean(face * f)
 {
     while(f&&f->t)
     {
@@ -431,12 +432,14 @@ void facesclean(roteface * f)
     }
 }
 
-void showface(roteface *g)
+void showface(face *g)
 {
     if(g->t)
 	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
     else if(g->scripted)
     {
+        printf("ffdgfdgdf\n");
+
 	#ifdef python
 	if(g->showfunc)
 	{
@@ -444,7 +447,6 @@ void showface(roteface *g)
 	        arglist = Py_BuildValue("()");
 	        PyEval_CallObject(g->showfunc, arglist);
 	        Py_DECREF(arglist);
-	        printf("ffdgfdgdf\n");
 	}
 	
 	#endif
@@ -454,7 +456,7 @@ void showface(roteface *g)
 }
 
 
-int countfaces(roteface* f)
+int countfaces(face* f)
 {
     int i=0;
     while(f)
@@ -465,7 +467,7 @@ int countfaces(roteface* f)
     return i;
 }
 
-void focusline(roteface * activeface)
+void focusline(face * activeface)
 {
     static double angel=0;
     float csize=30;
@@ -502,9 +504,9 @@ void focusline(roteface * activeface)
 
 }
 
-roteface *getprevface(roteface* f1,roteface* f)
+face *getprevface(face* f1,face* f)
 {
-    roteface *prev, *cyc;
+    face *prev, *cyc;
     cyc=f1;
     prev=0;
     while(cyc)
@@ -519,7 +521,7 @@ roteface *getprevface(roteface* f1,roteface* f)
 
 
 
-roteface* removeface(roteface *face1, roteface *f)
+face* removeface(face *face1, face *f)
 {
     if(f->t)
     {
@@ -529,15 +531,15 @@ roteface* removeface(roteface *face1, roteface *f)
 	SDL_KillThread(f->upd_t_data.thr);
 #endif
     }
-    roteface * ret= rotefacelistremove(face1,f);
+    face * ret= facelistremove(face1,f);
     free(f);
     if(f==selface)selface=0;
     return ret;
 }
 
-roteface * RemoveTerm(roteface* f1, RoteTerm * Term)
+face * RemoveTerm(face* f1, RoteTerm * Term)
 {
-    roteface *next=f1;
+    face *next=f1;
     while(next)
     {
 	if((next)->t==Term)
@@ -548,7 +550,7 @@ roteface * RemoveTerm(roteface* f1, RoteTerm * Term)
     }
     return 0;
 }
-void  showfaces(roteface * g, roteface * activeface)
+void  showfaces(face * g, face * activeface)
 {
 	while(g)
 	{
@@ -566,7 +568,7 @@ void  showfaces(roteface * g, roteface * activeface)
 		th=activeface->theme;
 		activeface->theme=1;
 	    }
-	    if(g->t||g==activeface)showface(g);
+	    if(g->showfunc||g->t||g==activeface)showface(g);
 	    if(global_tabbing)
 		activeface->theme=th;
 	    g=g->next;
@@ -576,7 +578,7 @@ void  showfaces(roteface * g, roteface * activeface)
 	}
 }
 
-void clipin(roteface *f,int noes, int sel)
+void clipin(face *f,int noes, int sel)
 {
     char * r=rotoclipin(sel);
     char *s=r;
@@ -591,7 +593,7 @@ void clipin(roteface *f,int noes, int sel)
     }
 }
 
-void type(roteface *f, char * r)
+void type(face *f, char * r)
 {
     while(*r)
     {
@@ -600,7 +602,7 @@ void type(roteface *f, char * r)
     }
 }
 
-void clipoutlastline(roteface *f)
+void clipoutlastline(face *f)
 {
     if(f->t->crow<1)return;
     int i;
@@ -647,7 +649,7 @@ void updateterminal(RoteTerm *t)
 	SDL_PushEvent(&e);
       }
 }
-void updateterminals(roteface *g)
+void updateterminals(face *g)
 {
 	while(g)
 	{
@@ -658,7 +660,7 @@ void updateterminals(roteface *g)
 }
 #endif
 
-void freefaces(roteface *g)
+void freefaces(face *g)
 {
 	while(g)
 	    g=removeface(g,g);
@@ -687,10 +689,10 @@ void savesettings(void)
 }
 
 
-roteface * loadfaces(void)
+face * loadfaces(void)
 {
-    roteface * result=0, * next=0;
-    roteface *g;
+    face * result=0, * next=0;
+    face *g;
 
     tpl_node *tn;
     double a,b,c;
@@ -699,7 +701,7 @@ roteface * loadfaces(void)
     tpl_load(tn,TPL_FILE, fcfl);
     while(tpl_unpack(tn,1)>0)
     {
-	g=(roteface*)malloc(sizeof(roteface));
+	g=(face*)malloc(sizeof(face));
 	g->scale=a;
 	g->x=b;
 	g->y=c;
@@ -727,7 +729,7 @@ roteface * loadfaces(void)
     return result;
 }
 
-void savefaces(roteface * f1)
+void savefaces(face * f1)
 {
     tpl_node *tn;
     double a,b,c;
@@ -751,12 +753,12 @@ void savefaces(roteface * f1)
     tpl_free(tn);
 }
 
-roteface *mousefocus(roteface *af, roteface *f1)
+face *mousefocus(face *af, face *f1)
 {
     int mx;
     int my;
     SDL_GetMouseState(&mx,&my);
-    roteface * result=af;
+    face * result=af;
     while(f1&&f1->t)
     {
 	int ax=(mx-cam.x);
@@ -769,7 +771,7 @@ roteface *mousefocus(roteface *af, roteface *f1)
     return result;
 }
 
-void zoomem(roteface *z,double y)
+void zoomem(face *z,double y)
 {
     while(z)
     {
@@ -874,6 +876,17 @@ int testbuttonpress(int x, int y,int test)
 }
 
 #endif
+
+face *lastface(face *f)
+{
+	while(f&&f->next)
+	    f=f->next;
+	return f;
+}
+face *add_face(void)
+{
+    return lastface(face1)->next=new_face();
+}
 void initpython(void);
 int RunGLTest (void)
 {
@@ -897,8 +910,7 @@ int RunGLTest (void)
 	int mustresize = 1;
 	int justresized = 0;
 	SDL_Surface* s;
-	roteface *face1;
-	roteface *activeface;
+	face *activeface;
 
 	void myinit(void)
 	{
@@ -934,9 +946,9 @@ int RunGLTest (void)
 	}
 	void initfaces(void)
 	{
-		face1=add_face();
+		face1=new_face();
 		activeface =face1 ;
-		face1->next=add_face();
+		face1->next=new_face();
 		printf("still?\n");
 	}
 #ifdef nerve
@@ -1315,11 +1327,11 @@ int RunGLTest (void)
 					else
 					{
 					    activeface->scroll=0;
-					    if(activeface->t==0)
+					    if(activeface->t==0&&!activeface->scripted)
 					    {
 						printf("debug messages r fun\n");
 						add_terminal(activeface);
-						activeface->next=add_face();
+						activeface->next=new_face();
 						dirty=1;
 					    }
 					    if ( (key >= SDLK_F1) && (key <= SDLK_F15) )
@@ -1530,11 +1542,11 @@ int RunGLTest (void)
 		    if(startup)
 		    {
 			startup=0;
-			if(!face1->t)
-			{
-			    add_terminal(face1);
-                lockterm(face1);
-			}
+//			if(!face1->t&&!face1->scripted)
+//			{
+//			    add_terminal(face1);
+  //              lockterm(face1);
+//			}
 		    }
 		    if(!done)
 		    {
@@ -1594,14 +1606,14 @@ PyObject *pglVertex2f(PyObject *self, PyObject* args)
 }
 PyObject *pgetface(PyObject *self, PyObject* args)
 {
-	roteface*f=add_face();
+	face*f=add_face();
 	f->scripted=1;
 	return Py_BuildValue("i", f);
 }
 PyObject *phookdraw(PyObject *self, PyObject* args)
 {
     PyObject *func;
-    roteface * f;
+    face * f;
     if(PyArg_ParseTuple(args, "iO",&f, &func))
     {
 	f->showfunc=func;

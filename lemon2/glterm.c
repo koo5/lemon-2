@@ -116,7 +116,7 @@ typedef struct
 }draw_terminal_data;
 
 int tscroll=0;
-void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int selendy, roteface* selface)
+void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selendy, face* selface)
 {
     char *trmsqrm=0;
     RoteTerm * rt=f->t;
