@@ -49,7 +49,7 @@ lgls3d$(EXE): $(X) ../s3d-0.2.1.1/server/*
 lglpy$(EXE): $(X)
 	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve $(PYLIBS) -lGLU
 
-lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c ./glterm.c  ../roteterm/* ../linetextdata
+lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c ./glterm.c  ../roteterm/* ../linetextdata.c
 	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
 	    -g  /usr/local/lib/libSDL_draw.a
 

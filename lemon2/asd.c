@@ -54,6 +54,7 @@
 #include "../tpl/tpl.h"
 #ifdef GL
 #include "SDL_opengl.h"
+#include <GL/glu.h>
 #ifdef nerve
 #include "../toys/nerverot/stolenfromglu"
 #include "../toys/nerverot/nerverot.c"
@@ -72,7 +73,7 @@
 #endif
 
 #include <dirent.h>
-#include <GL/glu.h>
+
 char **buttons;
 char **buttonnames;
 int numbuttons;
@@ -1393,6 +1394,7 @@ int RunGLTest (void)
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 				{
+					#ifdef GL
 					int b;
 					if((b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
 					{
@@ -1400,6 +1402,7 @@ int RunGLTest (void)
 						type(activeface, buttons[b]);
 						showbuttons=0;
 					}
+					#endif
 					{
 						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
 						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
