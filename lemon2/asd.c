@@ -565,7 +565,11 @@ void  showfaces(face * g, face * activeface)
 		th=activeface->theme;
 		activeface->theme=1;
 	    }
-	    if(g->showfunc||g->t||g==activeface)showface(g);
+	    if(
+	    #ifdef python
+	    g->showfunc||
+	    #endif
+	    g->t||g==activeface)showface(g);
 	    if(global_tabbing)
 		activeface->theme=th;
 	    g=g->next;
@@ -1403,6 +1407,8 @@ int RunGLTest (void)
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 				{
+				    if(activeface->t)
+				    {
 					#ifdef GL
 					int b;
 					if((b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
@@ -1465,14 +1471,18 @@ int RunGLTest (void)
 						    rote_vt_mousedown(activeface->t,tx,ty);
 						printf("%i %i\n", tx,ty);
 					}
-					break;
+				    }
+				    break;
 				}
 				case SDL_MOUSEBUTTONUP:
 				{
+				    if(activeface->t)
+				    {
 					int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
 					int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
 					rote_vt_mouseup  (activeface->t,tx,ty);
-					break;
+				    }
+				    break;
 				}
 				case SDL_VIDEOEXPOSE:
 					dirty=1;
@@ -1622,7 +1632,7 @@ PyObject *phookdraw(PyObject *self, PyObject* args)
 PyMethodDef lemon_methods[] =
 {
 {"glBegin",pglBegin,METH_VARARGS, "Return the meaning of everything."},
-{"glEnd",pglEnd,METH_VARARGS, "Return the meaning of everything."},
+{"glEnd",pglEnd,METH_NOARGS, "Return the meaning of everything."},
 {"glColor4f",pglColor4f,METH_VARARGS, "Return the meaning of everything."},
 {"glVertex2f",pglVertex2f,METH_VARARGS, "Return the meaning of everything."},
 {"getface",pgetface,METH_VARARGS, "Return the meaning of everything."},

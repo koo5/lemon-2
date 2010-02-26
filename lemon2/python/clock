@@ -1,6 +1,6 @@
 
 def draw ():
-    glBegin(7)
+    glBegin(0x7) 
     glColor4f(1,0,1,1)
     glVertex2f(0,0)
     glColor4f(1,1,0,1)
@@ -9,9 +9,12 @@ def draw ():
     glVertex2f(100,100)
     glColor4f(0.5,1,0.5,1)
     glVertex2f(100,0)
-    glEnd
+    glEnd()
+
 
 face=getface()
 print(face)
 print(draw)
 hookdraw(face,draw)
+print(glEnd)
+print(glBegin)
