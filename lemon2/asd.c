@@ -1602,7 +1602,7 @@ PyObject *phookdraw(PyObject *self, PyObject* args)
     {
 	f->showfunc=func;
 	Py_INCREF(func);
-	return Py_BuildValue("i", f);
+	return Py_BuildValue("i", 1);
     }
     return 0;
 }
@@ -1639,6 +1639,7 @@ void pythfunc(char *path, char *justname)
 	if(b)
 	{
 		printf("%s\n", justname);
+		PyRun_SimpleString(b);
 	}
 }
 #endif
@@ -1674,7 +1675,7 @@ void initpython( void)
 	Py_Initialize();
         PyImport_AddModule("lemon");
 	Py_InitModule("lemon", lemon_methods);
-	PyRun_SimpleString("import lemon");
+	PyRun_SimpleString("from lemon import *");
 	printf("pythons:\n");
 	listdir(pyth, &pythfunc);
 #endif
