@@ -1614,7 +1614,6 @@ void listdir(char *path, void func(char *, char *))
 				*n=0;
 			}
 		}
-		printf("\n");
 	}
 	else
 	{
