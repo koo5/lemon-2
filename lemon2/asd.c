@@ -140,6 +140,10 @@ typedef struct
     int oldcrow, oldccol;
     double rotor;
     Uint32 lastrotor;
+    int scripted;
+    #ifdef python
+    PyObject *showfunc;
+    #endif
 } roteface;
 
 
@@ -316,6 +320,10 @@ roteface * add_face(void)
     f->y=0;
     f->t=0;
     f->scale=0.75;
+    f->scripted=0;
+    #ifdef python
+    f->showfunc=(PyObject*)0;
+    #endif
     f->scroll=0;
     f->theme=4;
     return f;
@@ -426,6 +434,19 @@ void showface(roteface *g)
 {
     if(g->t)
 	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
+    else if(g->scripted)
+    {
+	#ifdef python
+	if(g->showfunc)
+	{
+    		PyObject *arglist;
+	        arglist = Py_BuildValue("()");
+	        PyEval_CallObject(g->showfunc, arglist);
+	        Py_DECREF(arglist);
+	}
+	
+	#endif
+    }	
     else
 	draw_text(newtermmsg);
 }
@@ -690,7 +711,10 @@ roteface * loadfaces(void)
 	g->next=0;
 	g->scroll=0;
 	g->theme=4;
-
+	g->scripted=0;
+	#ifdef python
+        g->showfunc=0;
+        #endif
 	if(!result)
 	    result=g;
 	if(next)
@@ -848,7 +872,7 @@ int testbuttonpress(int x, int y,int test)
 }
 
 #endif
-
+void initpython(void);
 int RunGLTest (void)
 {
 	int startup=1;
@@ -928,6 +952,8 @@ int RunGLTest (void)
 	activeface=face1=loadfaces();
 	if(!face1)
 	    initfaces();
+	initpython();
+
 	int dirty=1;
 	printf("mainloop descent commencing\n");
 	while( !done )
@@ -1562,12 +1588,32 @@ PyObject *pglVertex2f(PyObject *self, PyObject* args)
     }
     return 0;
 }
+PyObject *pgetface(PyObject *self, PyObject* args)
+{
+	roteface*f=add_face();
+	f->scripted=1;
+	return Py_BuildValue("i", f);
+}
+PyObject *phookdraw(PyObject *self, PyObject* args)
+{
+    PyObject *func;
+    roteface * f;
+    if(PyArg_ParseTuple(args, "io",&f, &func))
+    {
+	f->showfunc=func;
+	Py_INCREF(func);
+	return Py_BuildValue("i", f);
+    }
+    return 0;
+}
 PyMethodDef lemon_methods[] =
 {
 {"glBegin",pglBegin,METH_VARARGS, "Return the meaning of everything."},
 {"glEnd",pglEnd,METH_VARARGS, "Return the meaning of everything."},
 {"glColor4f",pglColor4f,METH_VARARGS, "Return the meaning of everything."},
 {"glVertex2f",pglVertex2f,METH_VARARGS, "Return the meaning of everything."},
+{"getface",pgetface,METH_VARARGS, "Return the meaning of everything."},
+{"hookdraw",phookdraw,METH_VARARGS, "Return the meaning of everything."},
 {NULL,NULL}/* sentinel */
 };
 #endif
@@ -1703,7 +1749,6 @@ int main(int argc, char *argv[])
 	    fclose(f);
 	}
 	initbuttons();
-	initpython();
 	RunGLTest();
 	freepython();
 	freebuttons();
