@@ -1411,7 +1411,7 @@ int RunGLTest (void)
 				    {
 					#ifdef GL
 					int b;
-					if((b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
+					if((showbuttons&&(b=testbuttonpress(event.button.x,h-event.button.y,0)))!=-1)
 					{
 						printf("pressed %i\n",b);
 						type(activeface, buttons[b]);

@@ -1,20 +1,33 @@
+from datetime import datetime
+from math import *
 
-def draw ():
+def hand(x,y,x2,y2,x3,y3):
     glBegin(0x7) 
     glColor4f(1,0,1,1)
     glVertex2f(0,0)
     glColor4f(1,1,0,1)
-    glVertex2f(0,100)
+    glVertex2f(x,y)
     glColor4f(0,1,1,1)
-    glVertex2f(100,100)
+    glVertex2f(x3,y3)
     glColor4f(0.5,1,0.5,1)
-    glVertex2f(100,0)
+    glVertex2f(x2,y2)
     glEnd()
 
+def drawhand(iten, divi, size):
+    x=cos(-0.5*pi+2*pi*(iten-1)/divi)*size/2
+    y=sin(-0.5*pi+2*pi*(iten-1)/divi)*size/2
+    x2=cos(-0.5*pi+2*pi*(iten+1)/divi)*size/2
+    y2=sin(-0.5*pi+2*pi*(iten+1)/divi)*size/2
+    x3=cos(-0.5*pi+2*pi*iten/divi)*size
+    y3=sin(-0.5*pi+2*pi*iten/divi)*size
+    hand(x,y,x2,y2,x3,y3)
 
+
+def draw ():
+    drawhand(datetime.now().hour, 12, 40)
+    drawhand(datetime.now().minute, 60, 60)
+    drawhand(datetime.now().second, 60, 80)
+    
+    
 face=getface()
-print(face)
-print(draw)
 hookdraw(face,draw)
-print(glEnd)
-print(glBegin)
