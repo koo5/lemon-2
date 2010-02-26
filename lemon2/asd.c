@@ -24,9 +24,19 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+
+
+#ifdef python
+#include "Python.h"
+#endif
+
 #include <stdlib.h>
+
 #include <stdio.h>
+
+
 #include <string.h>
+
 #include <math.h>
 #include "SDL.h"
 #include "SDL_events.h"
@@ -52,8 +62,10 @@
 #include "SDL_draw.h"
 #endif
 
-#include "initsdl.c"
+#ifdef libpng
 #include "screenshot.c"
+#endif
+#include "initsdl.c"
 
 #ifdef swallows3d
 #include "../s3d-0.2.1.1/server/global.h"
@@ -61,7 +73,6 @@
 
 #include <dirent.h>
 #include <GL/glu.h>
-
 char **buttons;
 char **buttonnames;
 int numbuttons;
@@ -73,6 +84,8 @@ int blending=1;
 char *stng;
 char *mdfl;
 char *fcfl;
+char *pyth;
+char *btns;
 Uint32 lastclicktime;
 int dblclick=400;
 
@@ -495,7 +508,7 @@ roteface* removeface(roteface *face1, roteface *f)
     }
     roteface * ret= rotefacelistremove(face1,f);
     free(f);
-    if(f==selface)selface==0;
+    if(f==selface)selface=0;
     return ret;
 }
 
@@ -1196,7 +1209,9 @@ int RunGLTest (void)
 
 							break;
 							case SDLK_p:
+							    #ifdef libpng
 							    saveScreenshot();
+							    #endif
 							break;
 							case SDLK_l:
 							    do_l2=!do_l2;
@@ -1216,11 +1231,13 @@ int RunGLTest (void)
 
 							case SDLK_d:
 							    lv++;
+							    if(lv>5)lv=5;
 							    glLineWidth(lv);
 
 							    break;
 							case SDLK_f:
 							    lv--;
+							    if(lv<1)lv=1;
 							    glLineWidth(lv);
 
 							    break;
@@ -1263,9 +1280,6 @@ int RunGLTest (void)
 								if(nerv)
 									nerverot_cycleup(nerv);
 							break;
-#endif
-#ifdef PYTHON
-
 #endif
 
 						}
@@ -1513,20 +1527,106 @@ int RunGLTest (void)
 	return(0);
 }
 
-#ifdef PYTHON
-static PyMethodDef xyzzy_methods[] =
+#ifdef python
+PyMethodDef lemon_methods[] =
 {
-{"play",pplay,METH_VARARGS, "Return the meaning of everything."},
-{"printline",pprint_line,METH_VARARGS, "Return the meaning of everything."},
-{"adjs",padjustscrolling,METH_VARARGS, "Return the meaning of everything."},
+{"play",printf,METH_VARARGS, "Return the meaning of everything."},
+{"printline",pprintf,METH_VARARGS, "Return the meaning of everything."},
+{"adjs",printf,METH_VARARGS, "Return the meaning of everything."},
 {NULL,NULL}/* sentinel */
 };
 #endif
 
+void btnsfunc(char *path, char *justname)
+{
+	char *b=GetFileIntoCharPointer1(path);
+	if(b)
+	{
+		printf("%s\n", justname);
+		numbuttons++;
+		buttons=realloc(buttons,sizeof(char*)* numbuttons);
+		buttons[numbuttons-1]=b;
+		buttonnames=realloc(buttonnames, sizeof(char*)*numbuttons);
+		buttonnames[numbuttons-1]=strdup(justname);
+	}
+}
+
+#ifdef python
+void pythfunc(char *path, char *justname)
+{
+	char *b=GetFileIntoCharPointer1(path);
+	if(b)
+	{
+		printf("%s\n", justname);
+	}
+}
+#endif
+
+void listdir(char *path, void func(char *, char *))
+{
+	DIR *dir = opendir(path);
+	if(dir)
+	{	int maxsize = 50;
+		path=realloc(path, strlen(path)+maxsize+1);
+		char* n=strrchr(path, 0);
+		struct dirent *ent;
+		while((ent = readdir(dir)) != NULL)
+		{
+			if(strlen(ent->d_name) < maxsize)
+			{
+				strcat(path,ent->d_name);
+				func(path,ent->d_name);
+				*n=0;
+			}
+		}
+		printf("\n");
+	}
+	else
+	{
+		fprintf(stderr, "Error opening directory\n");
+	}
+}
+
+
+void initpython( void)
+{
+#ifdef python
+	Py_Initialize();
+        PyImport_AddModule("lemon");
+	Py_InitModule("lemon", lemon_methods);
+	PyRun_SimpleString("import lemon");
+	printf("pythons:\n");
+	listdir(pyth, &pythfunc);
+#endif
+}
+
+void initbuttons(void)
+{
+	printf("buttons:\n");
+	listdir(btns, &btnsfunc);
+}
+
+void freebuttons(void)
+{
+	int x=numbuttons;
+	while(x)
+	{
+	    free(buttons[--x]);
+	    free(buttonnames[x]);
+	}
+}
+
+void freepython(void)
+{
+    #ifdef python
+    Py_Finalize();
+    #endif
+}
+
 int main(int argc, char *argv[])
 {
         char *help;
-        char *btns;
+
 	printf("hi\n");
 	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
 
@@ -1552,6 +1652,8 @@ int main(int argc, char *argv[])
 		help=strdup(strcat(path, "nohelp"));
 		*n=0;
 		btns=strdup(strcat(path, "buttons/"));
+		*n=0;
+		pyth=strdup(strcat(path, "python/"));
 		free(path);
 	}
 	loadsettings();
@@ -1560,65 +1662,17 @@ int main(int argc, char *argv[])
 	    if(!strcmp(argv[i],"-f"))
 		if(argc>i)
 		    fnfl=argv[i+1];
-#ifdef PYTHON
-	Py_Initialize();
-        PyImport_AddModule("xyzzy");
-	Py_InitModule("xyzz", xyzzy_methods);
-	PyRun_SimpleString("import xyzzy");
-        char *f=rdfl("yes");
-	if (f)
-    	    PyRun_SimpleString(f);
-#endif
 	FILE* f;
-	if(f=(fopen(help, "r")))
+	if((f=fopen(help, "r")))
 	{
 	    givehelp=0;
 	    fclose(f);
 	}
-	DIR *dir = opendir(btns);
-	if(dir)
-	{	int maxsize = 50;
-		btns=realloc(btns, strlen(btns)+maxsize+1);
-		char* n=strrchr(btns, 0);
-		printf("buttons:");
-		struct dirent *ent;
-		while((ent = readdir(dir)) != NULL)
-		{
-			printf("%s:\n ",ent->d_name);
-			if(strlen(ent->d_name) < maxsize)
-			{
-				strcat(btns,ent->d_name);
-				char *b=GetFileIntoCharPointer1(btns);
-				if(b)
-				{
-					printf("%s\n", b);
-					numbuttons++;
-					buttons=realloc(buttons,sizeof(char*)* numbuttons);
-					buttons[numbuttons-1]=b;
-					buttonnames=realloc(buttonnames, sizeof(char*)*numbuttons);
-					buttonnames[numbuttons-1]=strdup(ent->d_name);
-				}
-				*n=0;
-			}
-		}
-		printf("\n");
-	}
-	else
-	{
-		fprintf(stderr, "Error opening directory\n");
-	}
-	int x=numbuttons;
-	while(x)
-	    printf("%s\n", buttons[--x]);
-	
+	initbuttons();
+	initpython();
 	RunGLTest();
-	
-	x=numbuttons;
-	while(x)
-	{
-	    free(buttons[--x]);
-	    free(buttonnames[x]);
-	}
+	freepython();
+	freebuttons();
 	savesettings();
 	printf("finished.bye.\n");
 	return 0;

@@ -18,7 +18,7 @@ pl=$(shell uname)
 
 ifeq ($(pl),Linux)
 CC      = gcc  -g -ggdb 
-PYLIBS = -DPYTHON `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
+PYLIBS = -Dpython `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
 CFLIBS += -DLINUX -pthread `pkg-config --libs sdl` `pkg-config --cflags sdl` 
 GLLIBS += -lGL
 # -lSDL_ttf 

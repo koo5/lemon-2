@@ -146,6 +146,7 @@ void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int s
     for (i=0; i<rt->rows; i++)
     {
 	lok.y=(scroll+i)*26*f->scale;
+	if(f->scale>1)lok.y+=(f->scale-1)/2*26;
 //	int gotlog=1;
 	for (j=0; j<rt->cols; j++)
 	{
@@ -154,6 +155,7 @@ void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int s
 #endif
 
 	    lok.x=j*13*f->scale;
+	    if(f->scale>1)lok.x+=(f->scale-1)/2*13;
 	    if(!tscroll)//draw_edges_between_different_bgs
 	    {
 		//halflight=1;
