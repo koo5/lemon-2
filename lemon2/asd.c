@@ -1526,13 +1526,48 @@ int RunGLTest (void)
 	SDL_Quit( );
 	return(0);
 }
-
 #ifdef python
+PyObject *pglBegin(PyObject *self, PyObject* args)
+{
+    int y;
+    if(PyArg_ParseTuple(args, "i",&y))
+    {
+	glBegin(y);
+	return Py_BuildValue("i", 0);
+    }
+    return 0;
+}
+PyObject *pglEnd(PyObject *self, PyObject* args)
+{
+	glEnd();
+	return Py_BuildValue("i", 0);
+}
+PyObject *pglColor4f(PyObject *self, PyObject* args)
+{
+    float a,b,c,d;
+    if(PyArg_ParseTuple(args, "ffff",&a, &b, &c, &d))
+    {
+	glColor4f(a,b,c,d);
+	return Py_BuildValue("i", 0);
+    }
+    return 0;
+}
+PyObject *pglVertex2f(PyObject *self, PyObject* args)
+{
+    float a,b;
+    if(PyArg_ParseTuple(args, "ff",&a, &b))
+    {
+	glVertex2f(a,b);
+	return Py_BuildValue("i", 0);
+    }
+    return 0;
+}
 PyMethodDef lemon_methods[] =
 {
-{"play",printf,METH_VARARGS, "Return the meaning of everything."},
-{"printline",pprintf,METH_VARARGS, "Return the meaning of everything."},
-{"adjs",printf,METH_VARARGS, "Return the meaning of everything."},
+{"glBegin",pglBegin,METH_VARARGS, "Return the meaning of everything."},
+{"glEnd",pglEnd,METH_VARARGS, "Return the meaning of everything."},
+{"glColor4f",pglColor4f,METH_VARARGS, "Return the meaning of everything."},
+{"glVertex2f",pglVertex2f,METH_VARARGS, "Return the meaning of everything."},
 {NULL,NULL}/* sentinel */
 };
 #endif
@@ -1625,7 +1660,7 @@ void freepython(void)
 
 int main(int argc, char *argv[])
 {
-        char *help;
+        char *help=0;
 
 	printf("hi\n");
 	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");

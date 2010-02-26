@@ -47,7 +47,7 @@ lgls3d$(EXE): $(X) ../s3d-0.2.1.1/server/*
 	$(CC)   -o $@ -D swallows3d asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve ../s3d-0.2.1.1/server/*c -I../s3d-0.2.1.1/
 
 lglpy$(EXE): $(X)
-	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve $(PYLIBS)
+	$(CC)   -o $@ asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve $(PYLIBS) -lGLU
 
 lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c ./glterm.c  ../roteterm/* ../linetextdata
 	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \

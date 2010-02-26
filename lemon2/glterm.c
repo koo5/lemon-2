@@ -122,7 +122,7 @@ void draw_terminal(roteface *f, int selstartx, int selstarty, int selendx, int s
     RoteTerm * rt=f->t;
     xy lok;
     lok.x=0;
-
+    lok.y=0;
     int scroll=min(f->scroll,rt->logl);
     int j=0;
     int i;
