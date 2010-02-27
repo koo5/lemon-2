@@ -200,8 +200,8 @@ void lines_r_clean(RoteTerm *rt)
 
 
 
-#define _mutexV( d ) {if(SDL_mutexV( d )) {printf("SDL_mutexV!\n");}}
-#define _mutexP( d ) {if(SDL_mutexP( d )) {printf("SDL_mutexP!\n");}}
+#define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!\n");}}
+#define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!\n");}}
 
 int update_terminal(void *data)
 {
@@ -210,18 +210,18 @@ int update_terminal(void *data)
       moomoo * d = (moomoo *)data;
       char buf[512];
       int br=-1;
-//     printf("UNLOCKED SELECT\n");
+//     logit("UNLOCKED SELECT\n");
       rote_vt_update_thready(buf, 512, &br, d->t);
-//     printf("*end SELECT, locking %i*\n", d->lock);
+//     logit("*end SELECT, locking %i*\n", d->lock);
 	_mutexP(d->lock);
-//        printf("LOCKED\n");
+//        logit("LOCKED\n");
 
       if (br>0)
       {
 	/* inject the data into the terminal */
-//        printf("*locked injecting\n");
+//        logit("*locked injecting\n");
 	rote_vt_inject(d->t, buf, br);
-//        printf("*locked injected\n");
+//        logit("*locked injected\n");
 	SDL_Event e;
 	e.type=SDL_USEREVENT;
 	e.user.code=0;
@@ -230,7 +230,7 @@ int update_terminal(void *data)
 
       if(!d->t->childpid)
       {
-//	printf("Segmentation Fault\n");
+//	logit("Segmentation Fault\n");
 	SDL_Event e;
 	e.type=SDL_USEREVENT;
 	e.user.code=1;
@@ -334,23 +334,23 @@ face * new_face(void)
 
 void add_terminal(face * f)
 {
-    printf("adding terminal|");
+    logit("adding terminal|");
     RoteTerm* t;
-    printf("%i\n",SDL_GetVideoSurface()->h);
+    logit("%i\n",SDL_GetVideoSurface()->h);
     t= rote_vt_create(SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
     rote_vt_forkpty((RoteTerm*) t, "bash");
     f->t=t;
 #ifdef threaded
     f->upd_t_data.lock=SDL_CreateMutex();
     f->upd_t_data.t=t;
-//    printf("upd_t_data.lock=%i", f->upd_t_data.lock);
+//    logit("upd_t_data.lock=%i", f->upd_t_data.lock);
     f->upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
-    printf("|added.\n");
+    logit("|added.\n");
 #endif
 }
 void add_term(face * f,int c,int r)
 {
-    printf("adding terminal|");
+    logit("adding terminal|");
     RoteTerm* t;
     t= rote_vt_create(c,r);
     rote_vt_forkpty((RoteTerm*) t, "bash");
@@ -358,9 +358,9 @@ void add_term(face * f,int c,int r)
 #ifdef threaded
     f->upd_t_data.lock=SDL_CreateMutex();
     f->upd_t_data.t=t;
-//    printf("upd_t_data.lock=%i", f->upd_t_data.lock);
+//    logit("upd_t_data.lock=%i", f->upd_t_data.lock);
     f->upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
-    printf("|added.\n");
+    logit("|added.\n");
 #endif
 }
 
@@ -396,14 +396,14 @@ void lockterms(face * f)
 {
 #ifdef threaded
 
-//    printf("locking terms\n");
+//    logit("locking terms\n");
     while(f&&f->t)
     {
 	_mutexP(f->upd_t_data.lock);
 	f=f->next;
-//      printf(".\n");
+//      logit(".\n");
     }
-//    printf("done\n");
+//    logit("done\n");
 #endif
 }
 void unlockterms(face * f)
@@ -614,7 +614,7 @@ void clipoutlastline(face *f)
 	s[i]=f->t->cells[f->t->crow-1][i].ch;
     rote_vt_forsake_child(clipout);
     rotoclipout(s,clipout, 1);
-    printf("%s\n",s);
+    logit("%s\n",s);
     free(s);
 }
 
@@ -793,13 +793,13 @@ void gle(void)
 		if( gl_error != GL_NO_ERROR )
 		{
 			if(gl_error==GL_STACK_UNDERFLOW)
-				printf("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
+				logit("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
 			if(gl_error==GL_STACK_OVERFLOW)
-				printf("QUACK QUACK QUACK, OVERFLOVING STACK\n");
+				logit("QUACK QUACK QUACK, OVERFLOVING STACK\n");
 			else if(gl_error==GL_INVALID_OPERATION)
-				printf("INVALID OPERATION, PATIENT EXPLODED\n");
+				logit("INVALID OPERATION, PATIENT EXPLODED\n");
 			else
-				printf("testgl: OpenGL error: 0x%X\n", gl_error );
+				logit("testgl: OpenGL error: 0x%X\n", gl_error );
 		}
 #endif
 }
@@ -829,7 +829,7 @@ void show_buttons(int picking)
 	int y=0;
 	glInitNames();
 	glPushName(-1);
-//	printf("yep\n");
+//	logit("yep\n");
 	while(n)
 	{
 		glLoadName(n-1);
@@ -861,7 +861,7 @@ int testbuttonpress(int x, int y,int test)
     glPopMatrix();
     int i,j, k;
     int numhits = glRenderMode(GL_RENDER);
-//    printf("%i\n", numhits);
+//    logit("%i\n", numhits);
     for(i=0,k=0;i<numhits;i++)
     {
 	GLuint numnames=fuf[k++];
@@ -869,7 +869,7 @@ int testbuttonpress(int x, int y,int test)
 	for(j=0;j<numnames;j++)
 	{
 	    GLuint n=fuf[k];
-//	    printf("%i\n", n);
+//	    logit("%i\n", n);
 	    return n;
 	    k++;
 	}
@@ -918,7 +918,7 @@ int RunGLTest (void)
 	void myinit(void)
 	{
 		loadcolors();
-		printf("mmm..\n");
+		logit("mmm..\n");
 		xy ss = parsemodes(w,h,mdfl,1,0,0);
 		if (ss.x!=-1){w=ss.x;h=ss.y;};
 	    #ifdef GL
@@ -926,12 +926,12 @@ int RunGLTest (void)
 	    #else
 		gltextsdlsurface=s=initsdl(w,h,&bpp,
 	    #endif
-		+0);printf("inito\n");
+		+0);logit("inito\n");
 		SDL_EnableUNICODE(1);
 		SDL_InitSubSystem( SDL_INIT_TIMER);
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
 		if(ntfl)newtermmsg=GetFileIntoCharPointer1(ntfl);
-		printf("pretty far\n");
+		logit("pretty far\n");
 		loadl2(fnfl);
 	}
 	void initgl(void)
@@ -952,7 +952,7 @@ int RunGLTest (void)
 		face1=new_face();
 		activeface =face1 ;
 		face1->next=new_face();
-		printf("still?\n");
+		logit("still?\n");
 	}
 #ifdef nerve
 	struct state *nerv=0;
@@ -972,7 +972,7 @@ int RunGLTest (void)
 	initpython();
 
 	int dirty=1;
-	printf("mainloop descent commencing\n");
+	logit("mainloop descent commencing\n");
 	while( !done )
 	{
 		lockterms(face1);
@@ -1049,7 +1049,7 @@ int RunGLTest (void)
 		sdl_error = SDL_GetError( );
 		if( sdl_error[0] != '\0' )
 		{
-			printf("testgl: SDL error '%s'\n", sdl_error);
+			logit("testgl: SDL error '%s'\n", sdl_error);
 			SDL_ClearError();
 		}
 
@@ -1062,11 +1062,11 @@ int RunGLTest (void)
 		    x= SDL_AddTimer(55, NewTimerCallback, 0);
 
 		unlockterms(face1);
-//              printf("---------unlocked wating\n");
+//              logit("---------unlocked wating\n");
 		if(SDL_WaitEvent( &event ))
 		{
 		    lockterms(face1);
-//                  printf("---------locked goooin %i\n", event.type);
+//                  logit("---------locked goooin %i\n", event.type);
 		    if(x)SDL_RemoveTimer(x);
 		    x=0;
 		    do {
@@ -1130,7 +1130,7 @@ int RunGLTest (void)
 							if(activeface->t)
 							    activeface->scroll=activeface->t->logl;
 						if(activeface->scroll<0)activeface->scroll=0;
-//                                              printf("scroll:%i,logl:%i, log&%i, t:%i ,b:%i\n", tscroll,activeface->t->logl, activeface->t->log,activeface->t->scrolltop,activeface->t->scrollbottom);
+//                                              logit("scroll:%i,logl:%i, log&%i, t:%i ,b:%i\n", tscroll,activeface->t->logl, activeface->t->log,activeface->t->scrolltop,activeface->t->scrollbottom);
 					}
 					else
 					if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
@@ -1260,6 +1260,11 @@ int RunGLTest (void)
 							    do_l2=!do_l2;
 							    dirty=1;
 							break;
+							case SDLK_PERIOD:
+							    cam.x=-activeface->x;
+							    cam.y=-activeface->y;
+							    dirty=1;
+							break;
 							case SDLK_a:
 							    activeface->theme--;
 							    if (activeface->theme<0)activeface->theme=0;
@@ -1315,11 +1320,11 @@ int RunGLTest (void)
 									dirty=1;
 								}
 							break;
-							case SDLK_COMMA:
+							case SDLK_m:
 								if(nerv)
 									nerverot_cycledown(nerv);
 							break;
-							case SDLK_PERIOD:
+							case SDLK_COMMA:
 								if(nerv)
 									nerverot_cycleup(nerv);
 							break;
@@ -1332,7 +1337,7 @@ int RunGLTest (void)
 					    activeface->scroll=0;
 					    if(activeface->t==0&&!activeface->scripted)
 					    {
-						printf("debug messages r fun\n");
+						logit("debug messages r fun\n");
 						add_terminal(activeface);
 						activeface->next=new_face();
 						dirty=1;
@@ -1415,7 +1420,7 @@ int RunGLTest (void)
 					int b;
 					if(showbuttons&&(b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
 					{
-						printf("pressed %i\n",b);
+						logit("pressed %i\n",b);
 						type(activeface, buttons[b]);
 						showbuttons=0;
 					}
@@ -1471,7 +1476,7 @@ int RunGLTest (void)
 						}
 						else
 						    rote_vt_mousedown(activeface->t,tx,ty);
-						printf("%i %i\n", tx,ty);
+						logit("%i %i\n", tx,ty);
 					}
 				    }
 				    break;
@@ -1493,7 +1498,7 @@ int RunGLTest (void)
 				    {
 					if(!s)exit(1);
 					w=event.resize.w;h=event.resize.h;
-                                        printf("videoresize %ix%i bpp %i\n", w,h,bpp);
+                                        logit("videoresize %ix%i bpp %i\n", w,h,bpp);
 					dirty=1;
 					s=SDL_SetVideoMode( w,h, bpp, s->flags);
 					wm();
@@ -1538,7 +1543,7 @@ int RunGLTest (void)
 			{
 
 			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
-			    printf("gooin !fuulin");
+			    logit("gooin !fuulin");
 			}
 			else
 			{
@@ -1654,7 +1659,7 @@ void btnsfunc(char *path, char *justname)
 	char *b=GetFileIntoCharPointer1(path);
 	if(b)
 	{
-		printf("%s\n", justname);
+		logit("%s\n", justname);
 		numbuttons++;
 		buttons=realloc(buttons,sizeof(char*)* numbuttons);
 		buttons[numbuttons-1]=b;
@@ -1669,7 +1674,7 @@ void pythfunc(char *path, char *justname)
 	char *b=GetFileIntoCharPointer1(path);
 	if(b)
 	{
-		printf("%s\n", justname);
+		logit("%s\n", justname);
 		PyRun_SimpleString(b);
 	}
 }
@@ -1695,7 +1700,7 @@ void listdir(char *path, void func(char *, char *))
 	}
 	else
 	{
-		fprintf(stderr, "Error opening directory\n");
+		logit("Error opening directory\n");
 	}
 }
 
@@ -1707,14 +1712,14 @@ void initpython( void)
         PyImport_AddModule("lemon");
 	Py_InitModule("lemon", lemon_methods);
 	PyRun_SimpleString("from lemon import *");
-	printf("pythons:\n");
+	logit("pythons:\n");
 	listdir(pyth, &pythfunc);
 #endif
 }
 
 void initbuttons(void)
 {
-	printf("buttons:\n");
+	logit("buttons:\n");
 	listdir(btns, &btnsfunc);
 }
 
@@ -1739,14 +1744,14 @@ int main(int argc, char *argv[])
 {
         char *help=0;
 
-	printf("hi\n");
-	printf("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
+	logit("hi\n");
+	logit("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
 
 	char *path;
 	path=getexepath();
 	if(path)
 	{
-		printf("path:%s\n", path);
+		logit("path:%s\n", path);
 		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l2"));
@@ -1790,7 +1795,7 @@ int main(int argc, char *argv[])
 	savesettings();
 	rote_vt_destroy(clipout);
 	rote_vt_destroy(clipout2);
-	printf("finished.bye.\n");
+	logit("finished.bye.\n");
 	return 0;
 }
 
