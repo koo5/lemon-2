@@ -26,9 +26,6 @@
 
 
 
-#ifdef python
-#include "Python.h"
-#endif
 
 #include <stdlib.h>
 
@@ -67,6 +64,10 @@
 #include "screenshot.c"
 #endif
 #include "initsdl.c"
+
+#ifdef python
+#include "Python.h"
+#endif
 
 #ifdef swallows3d
 #include "../s3d-0.2.1.1/server/global.h"
@@ -161,7 +162,7 @@ int global_tabbing=0;
 int selstartx, selstarty, selendx, selendy;
 int clicksphase;
 face * selface;
-
+RoteTerm *clipout, *clipout2;
 
 
 float floabs(float x)
@@ -239,7 +240,6 @@ int update_terminal(void *data)
 	return 777;
       }
       _mutexV(d->lock);
-
      }
       return 666;
 }
@@ -612,8 +612,9 @@ void clipoutlastline(face *f)
     s[f->t->cols]=0;
     for (i=0;i<f->t->cols;i++)
 	s[i]=f->t->cells[f->t->crow-1][i].ch;
-    rotoclipout(s);
-//    printf("%s\n",s);
+    rote_vt_forsake_child(clipout);
+    rotoclipout(s,clipout, 1);
+    printf("%s\n",s);
     free(s);
 }
 
@@ -1620,8 +1621,9 @@ PyObject *pgetface(PyObject *self, PyObject* args)
 {
 	face*f=add_face();
 	f->scripted=1;
-	Py_INCREF(Py_None) ;
-	return Py_None;
+	PyObject *ret=Py_BuildValue("i", f);
+	Py_INCREF(ret) ;
+	return ret;
 }
 PyObject *phookdraw(PyObject *self, PyObject* args)
 {
@@ -1778,11 +1780,16 @@ int main(int argc, char *argv[])
 	    givehelp=0;
 	    fclose(f);
 	}
+
+	clipout=rote_vt_create(10,10);
+	clipout2=rote_vt_create(10,10);
 	initbuttons();
 	RunGLTest();
 	freepython();
 	freebuttons();
 	savesettings();
+	rote_vt_destroy(clipout);
+	rote_vt_destroy(clipout2);
 	printf("finished.bye.\n");
 	return 0;
 }

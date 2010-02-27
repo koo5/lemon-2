@@ -27,7 +27,6 @@ def draw ():
     drawhand(datetime.now().hour, 12, 40)
     drawhand(datetime.now().minute, 60, 60)
     drawhand(datetime.now().second, 60, 80)
-    
-    
-face=getface()
-hookdraw(face,draw)
+
+
+hookdraw(getface(),draw)

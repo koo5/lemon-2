@@ -317,5 +317,6 @@ void rote_vt_mouseup(RoteTerm *vt, int x, int y);
 void rote_vt_mousemove(RoteTerm *vt, int x, int y);
 
 char *rotoclipin(int sel);
-void rotoclipout(char * x);
+void rotoclipout(char * x, RoteTerm *t, int selection);
+
 

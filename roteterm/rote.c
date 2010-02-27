@@ -431,23 +431,17 @@ char * rotoclipin(int sel)
     else { free(buf);return     0;}
 }
 
-void rotoclipout(char * x)
+void rotoclipout(char * x, RoteTerm *t, int selection)
 {
-    RoteTerm *t;
-    t = rote_vt_create(10,10);
-    rote_vt_forkpty(t, "xclip -i");
-    rote_vt_update(t);
+    if(selection ==3)
+	rote_vt_forkpty(t, "xclip -i -selection clipboard");
+    else if(selection ==2)
+	rote_vt_forkpty(t, "xclip -i -selection secondary");
+    else if(selection ==1)
+	rote_vt_forkpty(t, "xclip -i");
     rote_vt_write(t,x,strlen(x));
-    rote_vt_write(t,"\4",1);
-    rote_vt_write(t,"\4",1);
+    rote_vt_write(t,"\4\4",strlen("\4\4"));
     rote_vt_update(t);
-    rote_vt_update(t);
-    rote_vt_update(t);
-    rote_vt_update(t);
-    rote_vt_update(t);
-
-    rote_vt_forsake_child(t);
-    rote_vt_destroy(t);
 }
 
 
