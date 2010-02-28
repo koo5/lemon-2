@@ -115,6 +115,36 @@ typedef struct
     int oldcrow, oldccol;
 }draw_terminal_data;
 
+
+void do_color(int attr,face *f)
+{
+	    int color=((attr));
+	    int c=ROTE_ATTR_XFG(color);//0-15
+
+//	    printf("%i\n",c);
+	    
+	    switch (f->theme)
+	    {
+	    case 0:
+	        setcolor(1,color/255.0,color/255.0,1);break;
+	    case 1:
+	        setcolor(color/255.0,1,color/255.0,1);break;
+	    case 2:
+	        setcolor(color/255.0,color/255.0,1,1);break;
+	    case 3:
+	    {
+		double wtf=0.5+color/30;
+	        setcolor(wtf,wtf,wtf,1);
+//	        printf("%f\n", wtf);
+	    }break;
+	    case 4:
+	        setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
+//	    	printf("%d ", c);
+		break;
+	    }
+}
+
+
 int tscroll=0;
 void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selendy, face* selface)
 {
@@ -126,20 +156,28 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
     int scroll=min(f->scroll,rt->logl);
     int j=0;
     int i;
+
+
     if(rt->log)
     {
 	for (i=rt->logl-scroll;i<rt->logl;i++)
 	{
 	    if(!rt->log[i])break;
 	    lok.y=(i-rt->logl+scroll)*26*f->scale;
-//	    while(rt->log[i][j].ch!=2)
 	    for(j=0;j<rt->log[i][0].ch;j++)
 	    {
 		lok.x=j*13*f->scale;
+#ifdef GL
+		glBegin(GL_LINE_STRIP);
+#endif
+		do_color(rt->log[i][j+1].attr, f);
 	        draw(lok,rt->log[i][j+1].ch,f->scale);
-//	        j++;
+#ifdef GL
+		glEnd();
+#endif
 	    }
 	}
+
     }
 
     int isundercursor;
@@ -174,32 +212,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 		//halflight=0;
 	    }
 //	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
-	    int color=((rt->cells[i][j].attr));
-	    int c=ROTE_ATTR_XFG(color);//0-15
-
-//	    printf("%i\n",c);
-	    
-	    switch (f->theme)
-	    {
-	    case 0:
-	        setcolor(1,color/255.0,color/255.0,1);break;
-	    case 1:
-	        setcolor(color/255.0,1,color/255.0,1);break;
-	    case 2:
-	        setcolor(color/255.0,color/255.0,1,1);break;
-	    case 3:
-	    {
-		double wtf=0.5+color/30;
-	        setcolor(wtf,wtf,wtf,1);
-//	        printf("%f\n", wtf);
-	    }break;
-	    case 4:
-	        setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
-//	    	printf("%d ", c);
-		break;
-	    }
-		
-
+	    do_color(rt->cells[i][j].attr,f);
 	    	    
 	    isundercursor=(!rt->cursorhidden)&&(!tscroll)&&((rt->ccol==j)&&(rt->crow==i));
 	    //actually , not selected but under cursor
