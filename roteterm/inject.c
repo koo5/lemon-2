@@ -31,24 +31,30 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 void appendlog(RoteTerm *rt)
 {
    void* new;
-   if(rt->logl>2000) return;
-   new = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
-   if(new)
+   int loglen=20000;
+   if(rt->logl<loglen)
    {
-        rt->log=(RoteCell **)new;
-	rt->log[rt->logl+1]=0;
-	rt->log[rt->logl]=malloc((1+rt->cols)*sizeof(RoteCell));
-	rt->logl++;
-   
-	if(rt->log[rt->logl-1])
+	new = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
+	if(new)
 	{
-	    memcpy(&rt->log[rt->logl-1][1],rt->cells[rt->scrolltop] , sizeof(RoteCell) * rt->cols);
-	    rt->log[rt->logl-1][0].ch=rt->cols;
-	//    rt->log[rt->logl-1][0].ch='w';
-	//    rt->log[rt->logl-1][1].ch='t';
-	//    rt->log[rt->logl-1][2].ch='f';
+	    rt->log=(RoteCell **)new;
+	    rt->log[rt->logl]=malloc((1+rt->cols)*sizeof(RoteCell));
+	    rt->logl++;
+	    if(rt->log[rt->logl-1])
+	    {
+		memcpy(&rt->log[rt->logl-1][1],rt->cells[rt->scrolltop] , sizeof(RoteCell) * rt->cols);
+		rt->log[rt->logl-1][0].ch=rt->cols;
+	    }
 	}
-   }
+    }
+    else
+    {
+	memcpy(&rt->log[rt->logstart][1],rt->cells[rt->scrolltop] , sizeof(RoteCell) * rt->cols);
+	rt->log[rt->logstart][0].ch=rt->cols;
+	rt->logstart++;
+	if(rt->logstart>loglen-1)
+	    rt->logstart=0;
+    }
 }
 
 static void cursor_line_down(RoteTerm *rt) {

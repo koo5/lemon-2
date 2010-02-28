@@ -105,7 +105,7 @@ typedef struct RoteTerm_ {
                                  * can't resize the terminal by changing
                                  * this (a segfault is about all you will 
                                  * accomplish). */
-
+    int logstart;
     int logl;
    RoteCell **log;         
 
