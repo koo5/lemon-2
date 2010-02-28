@@ -261,54 +261,6 @@ void rote_vt_forsake_child(RoteTerm *rt) {
    rt->childpid = 0;
 }
 
-void chkbg(RoteTerm *t,char * msg)
-{
- /*
-    static RoteTerm**terms;
-    static int termssize=0;
-    int win=0;
-    int k=0;
-    for(k=0;k<termssize; k++)
-    {	
-	if(t==terms[k])
-	    win=1;
-    }
-    if(!win)
-    {
-	terms=realloc(terms,(termssize+1)*sizeof(RoteTerm*));
-	terms[termssize]=t;
-	termssize++;
-    }
-	
-    
-    for(k=0;k<termssize; k++)
-    {
-	RoteTerm *tt=terms[k];
-	static int oldbad=0;
-        int i,j,  bad;
-    	int bg;
-	bg=(tt->cells[0][0].attr)&0x07;
-        for (i=0;i<tt->rows;i++)
-		for (j=0;j<tt->cols;j++)
-		    if((tt->cells[i][j].attr&0x07)!=bg)
-			bad=1;
-        if(oldbad!=bad)
-        if(tt==t)
-		if(bad)
-		    printf("my bad %s\n",msg);
-		else
-		    printf("my ook %s\n",msg);
-	else
-		if(bad)
-		    printf("another bad %s\n",msg);
-		else
-		    printf("another ook %s\n",msg);
-    
-	oldbad=bad;
-	tt++;
-    }
-*/
-}
 
 
 void rote_vt_update(RoteTerm *rt) {

@@ -362,33 +362,33 @@ void rote_es_interpret_csi(RoteTerm *rt) {
    /* delegate handling depending on command character (verb) */
    switch (verb) {
       case 'm': /* it's a 'set attribute' sequence */
-         interpret_csi_SGR(rt, csiparam, param_count); break;
+         interpret_csi_SGR(rt, rt->pd->csiparam, param_count); break;
       case 'J': /* it's an 'erase display' sequence */
-         interpret_csi_ED(rt, csiparam, param_count); break;
+         interpret_csi_ED(rt, rt->pd->csiparam, param_count); break;
       case 'H': case 'f': /* it's a 'move cursor' sequence */
-         interpret_csi_CUP(rt, csiparam, param_count); break;
+         interpret_csi_CUP(rt, rt->pd->csiparam, param_count); break;
       case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G':
       case 'e': case 'a': case 'd': case '`':
          /* it is a 'relative move' */
-         interpret_csi_C(rt, verb, csiparam, param_count); break;
+         interpret_csi_C(rt, verb, rt->pd->csiparam, param_count); break;
       case 'K': /* erase line */
-         interpret_csi_EL(rt, csiparam, param_count); break;
+         interpret_csi_EL(rt, rt->pd->csiparam, param_count); break;
       case '@': /* insert characters */
-         interpret_csi_ICH(rt, csiparam, param_count); break;
+         interpret_csi_ICH(rt, rt->pd->csiparam, param_count); break;
       case 'P': /* delete characters */
-         interpret_csi_DCH(rt, csiparam, param_count); break;
+         interpret_csi_DCH(rt, rt->pd->csiparam, param_count); break;
       case 'L': /* insert lines */
-         interpret_csi_IL(rt, csiparam, param_count); break;
+         interpret_csi_IL(rt, rt->pd->csiparam, param_count); break;
       case 'M': /* delete lines */
-         interpret_csi_DL(rt, csiparam, param_count); break;
+         interpret_csi_DL(rt, rt->pd->csiparam, param_count); break;
       case 'X': /* erase chars */
-         interpret_csi_ECH(rt, csiparam, param_count); break;
+         interpret_csi_ECH(rt, rt->pd->csiparam, param_count); break;
       case 'r': /* set scrolling region */
-         interpret_csi_DECSTBM(rt, csiparam, param_count); break;
+         interpret_csi_DECSTBM(rt, rt->pd->csiparam, param_count); break;
       case 's': /* save cursor location */
-         interpret_csi_SAVECUR(rt, csiparam, param_count); break;
+         interpret_csi_SAVECUR(rt, rt->pd->csiparam, param_count); break;
       case 'u': /* restore cursor location */
-         interpret_csi_RESTORECUR(rt, csiparam, param_count); break;
+         interpret_csi_RESTORECUR(rt, rt->pd->csiparam, param_count); break;
 //      #ifdef DEBUG
       default: 
          fprintf(stderr, "Unrecogized CSI: <%s>\n", rt->pd->esbuf); break;
