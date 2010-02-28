@@ -164,6 +164,8 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 	{
 	    if(!rt->log[i])break;
 	    lok.y=(i-rt->logl+scroll)*26*f->scale;
+	    if(rt->logstart) lok.y-=100;
+	    if(rt->logstart) lok.x-=100;
 	    for(j=0;j<rt->log[i][0].ch;j++)
 	    {
 		lok.x=j*13*f->scale;
