@@ -303,7 +303,6 @@ static void interpret_csi_RESTORECUR(RoteTerm *rt, int param[], int pcount) {
 }
 
 void rote_es_interpret_csi(RoteTerm *rt) {
-   static int csiparam[MAX_CSI_ES_PARAMS];
    int param_count = 0;
    const char *p = rt->pd->esbuf + 1;
    char verb = rt->pd->esbuf[rt->pd->esbuf_len - 1];
@@ -349,12 +348,12 @@ void rote_es_interpret_csi(RoteTerm *rt) {
    while ((*p >= '0' && *p <= '9') || *p == ';') {
       if (*p == ';') {
          if (param_count >= MAX_CSI_ES_PARAMS) return; /* too long! */
-         csiparam[param_count++] = 0;
+         rt->pd->csiparam[param_count++] = 0;
       }
       else {
-         if (param_count == 0) csiparam[param_count++] = 0;
-         csiparam[param_count - 1] *= 10;
-         csiparam[param_count - 1] += *p - '0';
+         if (param_count == 0) rt->pd->csiparam[param_count++] = 0;
+         rt->pd->csiparam[param_count - 1] *= 10;
+         rt->pd->csiparam[param_count - 1] += *p - '0';
       }
 
       p++;
