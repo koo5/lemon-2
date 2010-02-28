@@ -140,6 +140,7 @@ typedef struct RoteTerm_ {
 } RoteTerm;
 
 void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) ;
+void chkbg(RoteTerm *t,char * msg);
 
 
 /* Creates a new virtual terminal with the given dimensions. You

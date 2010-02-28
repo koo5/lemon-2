@@ -294,25 +294,38 @@ void unicrude(RoteTerm *rt, int x)
 
    
 void rote_vt_inject(RoteTerm *rt, const char *data, int len) {
+   chkbg(rt,"b4 inject");
+
    int i;
    for (i = 0; i < len; i++, data++) {
       if (*data == 0) continue;  /* completely ignore NUL */
       if (*data >= 1 && *data <= 31) {
+         chkbg(rt,"b4 ctrl char");
          handle_control_char(rt, *data);
+         chkbg(rt,"after ctrl char");
          continue;
       }
       if (rt->pd->escaped && rt->pd->esbuf_len < ESEQ_BUF_SIZE) {
+          chkbg(rt,"b4 esc seq");
          /* append character to ongoing escape sequence */
          rt->pd->esbuf[rt->pd->esbuf_len] = *data;
          rt->pd->esbuf[++rt->pd->esbuf_len] = 0;
          try_interpret_escape_seq(rt);
+         chkbg(rt,"after esc seq");
       }
       else if (rt->pd->graphmode)
          put_graphmode_char(rt, *data);
       else if (*data < 1)
+      {
          unicrude(rt,*data);
+         chkbg(rt,"after unicrude");
+      }
       else
+      {
          put_normal_char(rt, *data);
+         chkbg(rt,"after put normal char");
+	}
    }
+   chkbg(rt,"after inj");
 }
 
