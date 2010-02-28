@@ -23,10 +23,17 @@ def drawhand(iten, divi, size):
     hand(x,y,x2,y2,x3,y3)
 
 
+#x=0
 def draw ():
+    
+#    global x
     drawhand(datetime.now().hour, 12, 40)
     drawhand(datetime.now().minute, 60, 60)
     drawhand(datetime.now().second, 60, 80)
-
+#    x+=1
+#    if x==10:
+#	fork(getface(), "cmatrix\n")
+#	print("FORK")
+#	x=1
 
 hookdraw(getface(),draw)

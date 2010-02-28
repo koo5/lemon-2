@@ -107,7 +107,7 @@ logit(const char * iFormat, ...)
     va_start(argp, iFormat);
     vprintf(iFormat, argp);
     va_end(argp);
-    printf("\n");
+//    printf("\n");
 }
 
 #ifdef SDLD
@@ -441,12 +441,7 @@ void showface(face *g)
     {
 	#ifdef python
 	if(g->showfunc)
-	{
-    		PyObject *arglist;
-	        arglist = Py_BuildValue("()");
-	        PyEval_CallObject(g->showfunc, arglist);
-	        Py_DECREF(arglist);
-	}
+	        PyEval_CallFunction(g->showfunc, "()");
 	#endif
     }	
     else
@@ -1077,7 +1072,7 @@ int RunGLTest (void)
 			{
 
 				case SDL_MOUSEMOTION:
-					if(escaped||k[SDLK_RCTRL])
+//					if(escaped||k[SDLK_RCTRL])
 					{
 						escaped=0;
 						if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
@@ -1093,7 +1088,7 @@ int RunGLTest (void)
 						    	cam.y-=event.motion.yrel;
 						}
 					}
-					else
+//					else
 					{
 					    if(activeface->t)
 					    {
@@ -1625,6 +1620,7 @@ PyObject *pglVertex2f(PyObject *self, PyObject* args)
 PyObject *pgetface(PyObject *self, PyObject* args)
 {
 	face*f=add_face();
+	f->t=0;
 	f->scripted=1;
 	PyObject *ret=Py_BuildValue("i", f);
 	Py_INCREF(ret) ;
@@ -1642,6 +1638,20 @@ PyObject *phookdraw(PyObject *self, PyObject* args)
     }
     return 0;
 }
+PyObject *pfork(PyObject *self, PyObject* args)
+{
+    face * f;
+    char *s;
+    if(PyArg_ParseTuple(args, "is",&f, &s))
+    {
+	f->scripted=0;
+	add_terminal(f);
+	type(f,s);
+	Py_INCREF(Py_None);
+	return Py_None;
+    }
+    return 0;
+}
 PyMethodDef lemon_methods[] =
 {
 {"glBegin",pglBegin,METH_VARARGS, "Return the meaning of everything."},
@@ -1650,6 +1660,7 @@ PyMethodDef lemon_methods[] =
 {"glVertex2f",pglVertex2f,METH_VARARGS, "Return the meaning of everything."},
 {"getface",pgetface,METH_VARARGS, "Return the meaning of everything."},
 {"hookdraw",phookdraw,METH_VARARGS, "Return the meaning of everything."},
+{"fork",pfork,METH_VARARGS, "Return the meaning of everything."},
 {NULL,NULL}/* sentinel */
 };
 #endif

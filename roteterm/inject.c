@@ -179,7 +179,8 @@ static void handle_control_char(RoteTerm *rt, char c) {
          break;
       case '\x9B': /* CSI character. Equivalent to ESC [ */
          new_escape_sequence(rt);
-         rt->pd->esbuf[rt->pd->esbuf_len++] = '[';
+         if(rt->pd->esbuf_len<ESEQ_BUF_SIZE)
+            rt->pd->esbuf[rt->pd->esbuf_len++] = '[';
          break;
       case '\x18': case '\x1A': /* these interrupt escape sequences */
          cancel_escape_sequence(rt);
