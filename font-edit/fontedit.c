@@ -2,7 +2,13 @@
 #include "s3d_keysym.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "../more-mess/fgetln.c"
+#include "../XY.h"
+int do_l2=1;
+#include "../s3dlines.c"
 #include "../gltext.c"
+
+#include <string.h>
 #define hfgm 1
 int o[26][26];
 int pos=124;
@@ -53,7 +59,7 @@ char * trytorealloc(char * chacha, int y)
 
 void p(char * x)
 {
-    printf(x);
+    printf("%s",x);
     printf("\n");
 }
 void showpos(void)

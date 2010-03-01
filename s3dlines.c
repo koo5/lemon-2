@@ -110,8 +110,8 @@ void dooooot(float x,float y)
     for (j=0;j<4;j++)
 	wtf[j]=wtf[j]/50;
 
-    x=x*xoom;
-    y=y*yoom;
+//    x=x*xoom;
+ //   y=y*yoom;
     x+=wtf[0]-wtf[2];
     y+=wtf[1]-wtf[3];
     static float firstx, firsty;
@@ -151,4 +151,9 @@ void bpep()
     vb.pep=vb.pos;
     nulizze(&ib);
     nulizze(&vb);
+}
+
+void glColor4d(double a,double b,double c,double d)
+{
+
 }
