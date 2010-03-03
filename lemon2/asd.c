@@ -1723,8 +1723,10 @@ void initpython( void)
         PyImport_AddModule("lemon");
 	Py_InitModule("lemon", lemon_methods);
 	PyRun_SimpleString("from lemon import *");
+	PyRun_SimpleString("afterstart=list()");
 	logit("pythons:\n");
 	listdir(pyth, &pythfunc);
+	PyRun_SimpleString("for one in afterstart:\n	one()");
 #endif
 }
 
