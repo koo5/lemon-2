@@ -36,16 +36,17 @@ void loadcolors(void)
 int halflight;
 
 
-void draw_text(char *a)
+void draw_text_z(char *a, double z)
 {
     if(!a)return;
   xy lok;
   lok.x=0;
   lok.y=0;
+  setcolor(1,1,1,1);
   glBegin(GL_LINE_STRIP);
   do 
   {
-	lok=draw(lok,*a,1);
+	lok=draw(lok,*a,z);
 	if (*a==10)
 	{
 	    lok.x=0;
@@ -53,13 +54,17 @@ void draw_text(char *a)
 	    glEnd();
 	    glBegin(GL_LINE_STRIP);
 	}
-//	lok.x+=4;
 	if (!*a)
 	    break;
 	a++;
   }
   while(1);
   glEnd();
+}
+
+void draw_text(char *a)
+{
+    draw_text_z(a,1);
 }
 
 

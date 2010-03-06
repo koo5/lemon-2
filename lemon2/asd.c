@@ -146,7 +146,9 @@ typedef struct
     #ifdef python
     PyObject *showfunc;
     #endif
+    char *label;
 } face;
+
 face *face1;
 
 
@@ -318,16 +320,8 @@ Uint32 NewTimerCallback(Uint32 interval, void *param)
 face * new_face(void)
 {
     face * f=(face*)malloc(sizeof(face));
-    f->next=0;
-    f->x=0;
-    f->y=0;
-    f->t=0;
+    memset(f,0,sizeof(face));
     f->scale=0.75;
-    f->scripted=0;
-    #ifdef python
-    f->showfunc=(PyObject*)0;
-    #endif
-    f->scroll=0;
     f->theme=4;
     return f;
 }
@@ -435,9 +429,17 @@ void facesclean(face * f)
 
 void showface(face *g)
 {
+
     if(g->t)
+    {
+        if(g->label)
+        {
+	    draw_text_z(g->label, g->scale*(min(g->t->cols, g->t->rows)));
+	    
+	}
 	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
-    else if(g->scripted)
+    }
+    if(g->scripted)
     {
 	#ifdef python
 	if(g->showfunc)
@@ -699,7 +701,7 @@ face * loadfaces(void)
     tpl_load(tn,TPL_FILE, fcfl);
     while(tpl_unpack(tn,1)>0)
     {
-	g=(face*)malloc(sizeof(face));
+	g=new_face();
 	g->scale=a;
 	g->x=b;
 	g->y=c;
@@ -708,15 +710,7 @@ face * loadfaces(void)
 	    logit("adding term with %i %i, scale %f", rows,cols,a);
 	    add_term(g,rows,cols);
 	}
-	else
-	    g->t=0;
-	g->next=0;
-	g->scroll=0;
 	g->theme=4;
-	g->scripted=0;
-	#ifdef python
-        g->showfunc=0;
-        #endif
 	if(!result)
 	    result=g;
 	if(next)
@@ -1678,6 +1672,19 @@ PyObject *ptype(PyObject *self, PyObject* args)
     }
     return 0;
 }
+PyObject *psetlabel(PyObject *self, PyObject* args)
+{
+    face * f;
+    char *s;
+    if(PyArg_ParseTuple(args, "is",&f, &s))
+    {
+	if(f->label)free(f->label);
+	f->label=strdup(s);
+	Py_INCREF(Py_None);
+	return Py_None;
+    }
+    return 0;
+}
 
 PyMethodDef lemon_methods[] =
 {
@@ -1689,6 +1696,7 @@ PyMethodDef lemon_methods[] =
 {"hookdraw",phookdraw,METH_VARARGS, "Return the meaning of everything."},
 {"fork",pfork,METH_VARARGS, "Return the meaning of everything."},
 {"type",ptype,METH_VARARGS, "Return the meaning of everything."},
+{"setlabel",psetlabel,METH_VARARGS, "Return the meaning of everything."},
 {NULL,NULL}/* sentinel */
 };
 #endif

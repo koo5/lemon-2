@@ -402,3 +402,21 @@ void draw_line(int x,int y,const char *a)
 
 }
 
+void draw_line_z(const char *a, double z)
+{
+    xy lok;
+    lok.x=0;
+    lok.y=0;
+    do
+    {
+
+        lok=draw(lok,*a,z);
+        lok.x+=4;
+        if (!*a)
+            break;
+        a++;
+    }
+    while (1);
+
+}
+
