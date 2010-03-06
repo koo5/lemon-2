@@ -870,7 +870,7 @@ int testbuttonpress(int x, int y,int test)
 	    k++;
 	}
     }
-    glMatrixMode(GL_MODELVIEW);
+    wm();
     return -1;
 }
 
