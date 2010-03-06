@@ -736,6 +736,7 @@ void savefaces(face * f1)
     while(f1)
     {
 
+	if(f1->scripted)continue;
 	a=f1->scale;
 	b=f1->x;
 	c=f1->y;
@@ -1176,6 +1177,9 @@ int RunGLTest (void)
 							case SDLK_TAB:
 							    cycle(face1, &activeface);
 							    global_tabbing=1;
+							    cam.x=-activeface->x;
+							    cam.y=-activeface->y;
+							    dirty=1;
 							break;
 							case SDLK_F2:
 							    gofullscreen=1;
@@ -1204,7 +1208,7 @@ int RunGLTest (void)
 							    loadl2(fnfl);
 							break;
 							case SDLK_F9:
-							    activeface->scale-=0.05;
+							    activeface->scale-=0.1;
 							    if(activeface->t)
 								rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
 							    dirty=1;
@@ -1212,7 +1216,7 @@ int RunGLTest (void)
 
 							break;
 							case SDLK_F10:
-							    activeface->scale+=0.05;
+							    activeface->scale+=0.1;
 							    if(activeface->t)
 								rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
 							    dirty=1;
@@ -1400,7 +1404,10 @@ int RunGLTest (void)
 						    rote_vt_write(activeface->t,c,2);
 						}
 						else
+						{
+						    printf("%i\n",                            event.key.keysym.unicode);
 						    keyp(activeface, event.key.keysym.unicode);
+						}
 					    }
 					}
 				break;
@@ -1416,7 +1423,14 @@ int RunGLTest (void)
 					if(showbuttons&&(b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
 					{
 						logit("pressed %i\n",b);
-						type(activeface, buttons[b]);
+						if(!strncmp(buttons[b], "!python", 7))
+						{
+						#ifdef python
+							PyRun_SimpleString(&buttons[b][8]);
+						#endif
+                                                }
+						else
+							type(activeface, buttons[b]);
 						showbuttons=0;
 					}
 					#endif
@@ -1652,6 +1666,19 @@ PyObject *pfork(PyObject *self, PyObject* args)
     }
     return 0;
 }
+PyObject *ptype(PyObject *self, PyObject* args)
+{
+    face * f;
+    char *s;
+    if(PyArg_ParseTuple(args, "is",&f, &s))
+    {
+	type(f,s);
+	Py_INCREF(Py_None);
+	return Py_None;
+    }
+    return 0;
+}
+
 PyMethodDef lemon_methods[] =
 {
 {"glBegin",pglBegin,METH_VARARGS, "Return the meaning of everything."},
@@ -1661,6 +1688,7 @@ PyMethodDef lemon_methods[] =
 {"getface",pgetface,METH_VARARGS, "Return the meaning of everything."},
 {"hookdraw",phookdraw,METH_VARARGS, "Return the meaning of everything."},
 {"fork",pfork,METH_VARARGS, "Return the meaning of everything."},
+{"type",ptype,METH_VARARGS, "Return the meaning of everything."},
 {NULL,NULL}/* sentinel */
 };
 #endif
