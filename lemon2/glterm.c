@@ -50,7 +50,7 @@ void draw_text_z(char *a, double z)
 	if (*a==10)
 	{
 	    lok.x=0;
-	    lok.y=lok.y+30;
+	    lok.y=lok.y+30*z;
 	    glEnd();
 	    glBegin(GL_LINE_STRIP);
 	}

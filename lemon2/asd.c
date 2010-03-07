@@ -434,7 +434,7 @@ void showface(face *g)
     {
         if(g->label)
         {
-	    draw_text_z(g->label, g->scale*(min(g->t->cols, g->t->rows)));
+	    draw_text_z(g->label, g->scale*10);
 	    
 	}
 	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
@@ -446,7 +446,7 @@ void showface(face *g)
 	        PyEval_CallFunction(g->showfunc, "()");
 	#endif
     }	
-    else
+    if(!g->t&&!g->scripted)
 	draw_text(newtermmsg);
 }
 
@@ -730,16 +730,18 @@ void savefaces(face * f1)
     while(f1)
     {
 
-	if(f1->scripted)continue;
-	a=f1->scale;
-	b=f1->x;
-	c=f1->y;
-	t=f1->t?1:0;
-	logit("saving face with t:%i,scale %f", t,a);
-	cols=f1->t?f1->t->cols:0;
-	rows=f1->t?f1->t->rows:0;
+	if(!f1->scripted)
+	}
+	    a=f1->scale;
+	    b=f1->x;
+	    c=f1->y;
+	    t=f1->t?1:0;
+	    logit("saving face with t:%i,scale %f", t,a);
+	    cols=f1->t?f1->t->cols:0;
+	    rows=f1->t?f1->t->rows:0;
 
-	tpl_pack(tn,1);
+	    tpl_pack(tn,1);
+	}
 	f1=f1->next;
     }
     tpl_dump(tn, TPL_FILE, fcfl);
