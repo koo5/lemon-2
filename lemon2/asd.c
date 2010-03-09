@@ -731,7 +731,7 @@ void savefaces(face * f1)
     {
 
 	if(!f1->scripted)
-	}
+	{
 	    a=f1->scale;
 	    b=f1->x;
 	    c=f1->y;

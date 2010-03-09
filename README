@@ -1,4 +1,5 @@
-sudo aptitude install libncurses-dev libsdl-dev  git-core xclip pkg-config
+sudo aptitude update
+sudo aptitude install gcc libncurses-dev libsdl-dev  git-core xclip pkg-config
 git clone  git://github.com/koo5/lemon.git
 cd lemon/lemon2
 make lgl
