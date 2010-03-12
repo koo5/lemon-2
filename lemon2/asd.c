@@ -1595,6 +1595,7 @@ int RunGLTest (void)
 		}
 
 	}
+	freepython();
 	freefaces(face1);
 	freel2();
 	SDL_Quit( );
@@ -1886,7 +1887,6 @@ int main(int argc, char *argv[])
 	clipout2=rote_vt_create(10,10);
 	initbuttons();
 	RunGLTest();
-	freepython();
 	freebuttons();
 	savesettings();
 	rote_vt_destroy(clipout);
