@@ -36,7 +36,7 @@ void loadcolors(void)
 int halflight;
 
 
-void draw_text_z(char *a, double z)
+void draw_text_az(char *a, double y, double z)
 {
     if(!a)return;
   xy lok;
@@ -46,7 +46,7 @@ void draw_text_z(char *a, double z)
   glBegin(GL_LINE_STRIP);
   do 
   {
-	lok=draw(lok,*a,z);
+	lok=draw(lok,*a,y,z);
 	if (*a==10)
 	{
 	    lok.x=0;
@@ -64,7 +64,7 @@ void draw_text_z(char *a, double z)
 
 void draw_text(char *a)
 {
-    draw_text_z(a,1);
+    draw_text_az(a,1,1);
 }
 
 
@@ -73,7 +73,7 @@ void lokdraw_line(xy lok,const char *a)
 glBegin(GL_LINE_STRIP);
 do 
 {
-	lok=draw(lok,*a,1);
+	lok=draw(lok,*a,1,1);
 	lok.x+=4;
 	if (!*a)
 	    break;
@@ -178,7 +178,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 		glBegin(GL_LINE_STRIP);
 #endif
 		do_color(rt->log[i][j+1].attr, f);
-	        draw(lok,rt->log[i][j+1].ch,f->scale);
+	        draw(lok,rt->log[i][j+1].ch,f->scale,f->scale);
 #ifdef GL
 		glEnd();
 #endif
@@ -275,7 +275,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 		    f->lastrotor=SDL_GetTicks();
 		    glBegin(GL_LINE_STRIP);
 			xy molok;molok.x=-13;molok.y=-13;
-			draw(molok,rt->cells[i][j].ch,f->scale);
+			draw(molok,rt->cells[i][j].ch,f->scale,f->scale);
 		    glEnd();
 		    glPopMatrix();
 		glPopMatrix();
@@ -290,7 +290,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 	    }
 
 #endif
-	    draw(lok,rt->cells[i][j].ch,f->scale);
+	    draw(lok,rt->cells[i][j].ch,f->scale,f->scale);
 #ifdef GL
 	    glEnd();
 #endif

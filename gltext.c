@@ -124,7 +124,7 @@ static void spillit(xy lok,char *x)
 */
 
 
-xy draw(xy lok,unsigned int i, double s)
+xy draw(xy lok,unsigned int i, double s, double z)
 {
     xy nlok;
     nlok=lok;
@@ -135,7 +135,7 @@ xy draw(xy lok,unsigned int i, double s)
             if (l2[i])
                 if (strlen(l2[i]))
                 {
-                    zspillit(lok,l2[i],0.7*s);
+                    azspillit(lok,l2[i],0.7*s,0.7*z);
                     return nlok;
                 }
 
@@ -145,241 +145,241 @@ xy draw(xy lok,unsigned int i, double s)
     if (!((i<65)||((i>90)&&(i<97))||(i>122)))
     {
         if ((i>='A')&&(i<='Z'))
-            zspillit(lok,chrz[i-'A'],0.8*s);
+            azspillit(lok,chrz[i-'A'],0.8*s,0.8*z);
         else
         {
-            zspillit(lok,chrz[i-'a'],0.5*s);
+            azspillit(lok,chrz[i-'a'],0.5*s,0.5*z);
         }
         return nlok;
     }
     else if ((i>47)&&(i<58))
     {
         nlok.x=lok.x+26;
-        zspillit(lok, nums[i-48],0.8*s);
+        azspillit(lok, nums[i-48],0.8*s,0.8*z);
         return nlok;
     }
     else if (i==32)
         return nlok;
     else if (i==37)
-        zspillit(lok, "azza  @ddgg        -|  @ddgg        ",s);
+        azspillit(lok, "azza  @ddgg        -|  @ddgg        ",s,z);
     else if (i==283)
     {
-        draw(lok, 'e',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'e',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==353)
     {
-        draw(lok, 's',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 's',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
 
     else if (i==269)
     {
-        draw(lok, 'c',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'c',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==345)
     {
-        draw(lok, 'r',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'r',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==382)
     {
-        draw(lok, 'z',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'z',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==253)
     {
-        draw(lok, 'y',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'y',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==225)
     {
-        draw(lok, 'a',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'a',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==237)
     {
-        draw(lok, 'i',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'i',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==233)
     {
-        draw(lok, 'e',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'e',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==201)
     {
-        draw(lok, 'E',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'E',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==282)
     {
-        draw(lok, 'E',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'E',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==344)
     {
-        draw(lok, 'R',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'R',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==356)
     {
-        draw(lok, 'T',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'T',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==221)
     {
-        draw(lok, 'Y',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'Y',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==218)
     {
-        draw(lok, 'U',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'U',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==205)
     {
-        draw(lok, 'I',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'I',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==211)
     {
-        draw(lok, 'O',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'O',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==243)
     {
-        draw(lok, 'o',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'o',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==193)
     {
-        draw(lok, 'A',s);
-        zspillit(lok, "ofxa",s);
+        draw(lok, 'A',s,z);
+        azspillit(lok, "ofxa",s,z);
     }
     else if (i==352)
     {
-        draw(lok, 'S',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'S',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==270)
     {
-        draw(lok, 'D',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'D',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==381)
     {
-        draw(lok, 'Z',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'Z',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==268)
     {
-        draw(lok, 'C',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'C',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==327)
     {
-        draw(lok, 'N',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'N',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==328)
     {
-        draw(lok, 'n',s);
-        zspillit(lok, "haofxa",s);
+        draw(lok, 'n',s,z);
+        azspillit(lok, "haofxa",s,z);
     }
     else if (i==38)
-        zspillit(lok, "zzaggangarozzr",0.9*s);
+        azspillit(lok, "zzaggangarozzr",0.9*s,0.9*z);
     else if (i==34)
-        zspillit(lok, "iaig  qaqg",s);
+        azspillit(lok, "iaig  qaqg",s,z);
     else if (i==35)
-        zspillit(lok, "hahz  uauz  ahzh  auzu",s);
+        azspillit(lok, "hahz  uauz  ahzh  auzu",s,z);
     else if (i==33)
-        zspillit(lok, "oaoq  ouoz",s);
+        azspillit(lok, "oaoq  ouoz",s,z);
     else if (i==64)
-        zspillit(lok, "ozaooaxoovkoohov",s);
+        azspillit(lok, "ozaooaxoovkoohov",s,z);
     else if (i==123)
-        zspillit(lok, "gadddlaodrdwgz",s);
+        azspillit(lok, "gadddlaodrdwgz",s,z);
     else if (i==125)
-        zspillit(lok, "|gadddlaodrdwgz",s);
+        azspillit(lok, "|gadddlaodrdwgz",s,z);
     else if (i==8217)
-        zspillit(lok, "kfma",s);
+        azspillit(lok, "kfma",s,z);
     else if (i==91)
-        zspillit(lok, "oddddwow",s);
+        azspillit(lok, "oddddwow",s,z);
     else if (i==93)
-        zspillit(lok, "|oddddwow",s);
+        azspillit(lok, "|oddddwow",s,z);
     else if (i==94)
-        zspillit(lok, "ahoazh",s);
+        azspillit(lok, "ahoazh",s,z);
     else if (i==39)
-        zspillit(lok, "oaoj",s);
+        azspillit(lok, "oaoj",s,z);
     else if (i==96)
-        zspillit(lok, "mcqg",s);
+        azspillit(lok, "mcqg",s,z);
     else if (i==92)
-        zspillit(lok, sgns[19],s);
+        azspillit(lok, sgns[19],s,z);
     else if ((i==9492))
-        zspillit(lok, "oaoozo",s);
+        azspillit(lok, "oaoozo",s,z);
     else if ((i==9488))
-        zspillit(lok, "aooooz",s);
+        azspillit(lok, "aooooz",s,z);
     else if ((i==9496))
-        zspillit(lok, "aooooa",s);
+        azspillit(lok, "aooooa",s,z);
     else if ((i==9484))
-        zspillit(lok, "ozoozo",s);
+        azspillit(lok, "ozoozo",s,z);
     else if (i==9672)
-        zspillit(lok, sgns[24],s);
+        azspillit(lok, sgns[24],s,z);
     else if (i==36)
-        zspillit(lok, sgns[23],s);
+        azspillit(lok, sgns[23],s,z);
     else if (i==9662)
-        zspillit(lok, sgns[22],s);
+        azspillit(lok, sgns[22],s,z);
     else if (i==9652)
-        zspillit(lok, sgns[25],s);
+        azspillit(lok, sgns[25],s,z);
     else if (i==9500)
-        zspillit(lok, sgns[21],s);
+        azspillit(lok, sgns[21],s,z);
     else if (i==9472)
-        zspillit(lok, "aozo",s);
+        azspillit(lok, "aozo",s,z);
     else if (i==9474)
-        zspillit(lok, "oaoz",s);
+        azspillit(lok, "oaoz",s,z);
     else if (i==9618)
-        zspillit(lok, "aszsoaas  -aszsoaas",s);
+        azspillit(lok, "aszsoaas  -aszsoaas",s,z);
     else if (i==32)
-        zspillit(lok, sgns[18],s);
+        azspillit(lok, sgns[18],s,z);
     else if (i==63)
-        zspillit(lok, sgns[17],s);
+        azspillit(lok, sgns[17],s,z);
     else if (i==58)
-        zspillit(lok, sgns[16],s);
+        azspillit(lok, sgns[16],s,z);
     else if (i==126)
-        zspillit(lok, sgns[15],s);
+        azspillit(lok, sgns[15],s,z);
     else if (i==46)
-        zspillit(lok, sgns[14],s);
+        azspillit(lok, sgns[14],s,z);
     else if (i==95)
-        zspillit(lok, sgns[13],s);
+        azspillit(lok, sgns[13],s,z);
     else if (i==45)
-        zspillit(lok, sgns[12],s);
+        azspillit(lok, sgns[12],s,z);
     else if (i==43)
-        zspillit(lok, sgns[11],s);
+        azspillit(lok, sgns[11],s,z);
     else if (i==44)
-        zspillit(lok, sgns[10],s);
+        azspillit(lok, sgns[10],s,z);
     else if (i==47)
-        zspillit(lok, sgns[9],s);
+        azspillit(lok, sgns[9],s,z);
     else if (i==41)
-        zspillit(lok, sgns[8],s);
+        azspillit(lok, sgns[8],s,z);
     else if (i==40)
-        zspillit(lok, sgns[7],s);
+        azspillit(lok, sgns[7],s,z);
     else if (i==59)
-        zspillit(lok, sgns[6],s);
+        azspillit(lok, sgns[6],s,z);
     else if (i==42)
-        zspillit(lok, sgns[5],s);
+        azspillit(lok, sgns[5],s,z);
     else if (i==61)
-        zspillit(lok, sgns[4],s);
+        azspillit(lok, sgns[4],s,z);
     else if (i==62)
-        zspillit(lok, sgns[3],s);
+        azspillit(lok, sgns[3],s,z);
     else if (i==60)
-        zspillit(lok, sgns[2],s);
+        azspillit(lok, sgns[2],s,z);
     else if (i==10)
-        zspillit(lok, sgns[1],s);
+        azspillit(lok, sgns[1],s,z);
     else if (!i)
-        zspillit(lok, sgns[0],s);
+        azspillit(lok, sgns[0],s,z);
     else if (i==124)
-        zspillit(lok, sgns[20],s);
+        azspillit(lok, sgns[20],s,z);
     return nlok;
 }
 
@@ -392,7 +392,7 @@ void draw_line(int x,int y,const char *a)
     do
     {
 
-        lok=draw(lok,*a,1);
+        lok=draw(lok,*a,1,1);
         lok.x+=4;
         if (!*a)
             break;
@@ -410,7 +410,7 @@ void draw_line_z(const char *a, double z)
     do
     {
 
-        lok=draw(lok,*a,z);
+        lok=draw(lok,*a,z,z);
         lok.x+=4;
         if (!*a)
             break;

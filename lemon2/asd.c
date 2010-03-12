@@ -434,7 +434,7 @@ void showface(face *g)
     {
         if(g->label)
         {
-	    draw_text_z(g->label, g->scale*10);
+	    draw_text_az(g->label, g->scale*g->t->cols/strlen(g->label),g->scale*g->t->rows);
 	    
 	}
 	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
@@ -754,13 +754,21 @@ face *mousefocus(face *af, face *f1)
     int my;
     SDL_GetMouseState(&mx,&my);
     face * result=af;
-    while(f1&&f1->t)
+    while(f1)
     {
 	int ax=(mx-cam.x);
 	int ay=(my-cam.y);
-	if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*f1->t->rows>ay)&&(f1->x+f1->scale*13*f1->t->cols>ax))
-	    result=f1;
 
+	if(f1->t)
+	{
+	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*f1->t->rows>ay)&&(f1->x+f1->scale*13*f1->t->cols>ax))
+		result=f1;
+	}
+	else
+	{
+	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*10>ay)&&(f1->x+f1->scale*13*10>ax))
+		result=f1;
+	}
 	f1=f1->next;
     }
     return result;

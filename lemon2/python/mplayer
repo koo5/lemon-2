@@ -1,8 +1,4 @@
 
-
 mplayer=getface()
 fork(mplayer, "")
 setlabel(mplayer, "mplayer")
-
-def mplayer_new_playlist():
-    type(mplayer, "\3 find /media/kook/music > haha")
