@@ -36,4 +36,10 @@ def draw ():
 #	print("FORK")
 #	x=1
 
-hookdraw(getface(),draw)
+clock=getface()
+hookdraw(clock,draw)
+
+def destroy_clock():
+    freeface(clock)
+
+beforefinish.append(destroy_clock)

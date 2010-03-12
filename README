@@ -1,19 +1,19 @@
 sudo aptitude update
-sudo aptitude install gcc libncurses-dev libsdl-dev  git-core xclip pkg-config
+sudo aptitude install make gcc libncurses-dev libsdl-dev  git-core xclip pkg-config
 git clone  git://github.com/koo5/lemon.git
 cd lemon/lemon2
 make lgl
 ./lgl
 
 
-right ctrl + 
-    f2:fullscreen
-    f9,10:scale -,+
-    f12:quit
-    tab: cycle thru terminals and empty terminal
-    mouse: move terminal, camera or both
+#right ctrl + 
+#    f2:fullscreen
+#    f9,10:scale -,+
+#    f12:quit
+#    tab: cycle thru terminals and empty terminal
+#    mouse: move terminal, camera or both
 
 
-http://koo5.github.com/fulllemonscreenshot.png
+#http://koo5.github.com
 
 

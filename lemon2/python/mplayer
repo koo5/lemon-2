@@ -2,3 +2,11 @@
 mplayer=getface()
 fork(mplayer, "")
 setlabel(mplayer, "mplayer")
+
+def mplayer_new_playlist():
+    type(mplayer, "\3 find ~/music > ~/playlist\n")
+
+def destroy_mplayer():
+    freeface(mplayer)
+
+beforefinish.append(destroy_mplayer)

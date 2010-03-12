@@ -880,6 +880,8 @@ int testbuttonpress(int x, int y,int test)
 
 #endif
 
+
+
 face *lastface(face *f)
 {
 	while(f&&f->next)
@@ -891,6 +893,8 @@ face *add_face(void)
     return lastface(face1)->next=new_face();
 }
 void initpython(void);
+void reloadpythons(void);
+void reloadbuttons(void);
 int RunGLTest (void)
 {
 	int startup=1;
@@ -1197,7 +1201,8 @@ int RunGLTest (void)
 							    dirty=1;
 							break;
 							case SDLK_F5:
-							    ;
+							    reloadpythons();
+							    reloadbuttons();
 							    dirty=1;
 							break;
 							case SDLK_F6:
@@ -1695,6 +1700,17 @@ PyObject *psetlabel(PyObject *self, PyObject* args)
     }
     return 0;
 }
+PyObject *pfreeface(PyObject *self, PyObject* args)
+{
+    face * f;
+    if(PyArg_ParseTuple(args, "i",&f))
+    {
+	face1=removeface(face1, f);
+	Py_INCREF(Py_None);
+	return Py_None;
+    }
+    return 0;
+}
 
 PyMethodDef lemon_methods[] =
 {
@@ -1703,6 +1719,7 @@ PyMethodDef lemon_methods[] =
 {"glColor4f",pglColor4f,METH_VARARGS, "Return the meaning of everything."},
 {"glVertex2f",pglVertex2f,METH_VARARGS, "Return the meaning of everything."},
 {"getface",pgetface,METH_VARARGS, "Return the meaning of everything."},
+{"freeface",pfreeface,METH_VARARGS, "Return the meaning of everything."},
 {"hookdraw",phookdraw,METH_VARARGS, "Return the meaning of everything."},
 {"fork",pfork,METH_VARARGS, "Return the meaning of everything."},
 {"type",ptype,METH_VARARGS, "Return the meaning of everything."},
@@ -1741,7 +1758,9 @@ void listdir(char *path, void func(char *, char *))
 {
 	DIR *dir = opendir(path);
 	if(dir)
-	{	int maxsize = 50;
+	{	
+		path=strdup(path);
+		int maxsize = 50;
 		path=realloc(path, strlen(path)+maxsize+1);
 		char* n=strrchr(path, 0);
 		struct dirent *ent;
@@ -1754,6 +1773,7 @@ void listdir(char *path, void func(char *, char *))
 				*n=0;
 			}
 		}
+		free(path);
 	}
 	else
 	{
@@ -1770,7 +1790,8 @@ void initpython( void)
 	Py_InitModule("lemon", lemon_methods);
 	PyRun_SimpleString("from lemon import *");
 	PyRun_SimpleString("afterstart=list()");
-	logit("pythons:\n");
+	PyRun_SimpleString("beforefinish=list()");
+	logit("pythons from %s:\n", pyth);
 	listdir(pyth, &pythfunc);
 	PyRun_SimpleString("for one in afterstart:\n	one()");
 #endif
@@ -1790,13 +1811,29 @@ void freebuttons(void)
 	    free(buttons[--x]);
 	    free(buttonnames[x]);
 	}
+	buttonnames=0;
+	buttons=0;
+	numbuttons=0;
 }
 
 void freepython(void)
 {
     #ifdef python
+    PyRun_SimpleString("for one in beforefinish:\n	one()");
     Py_Finalize();
     #endif
+}
+
+void reloadpythons(void)
+{
+    freepython();
+    initpython();
+}
+
+void reloadbuttons(void)
+{
+    freebuttons();
+    initbuttons();
 }
 
 int main(int argc, char *argv[])
