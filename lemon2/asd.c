@@ -893,6 +893,7 @@ face *add_face(void)
     return lastface(face1)->next=new_face();
 }
 void initpython(void);
+void freepython(void);
 void reloadpythons(void);
 void reloadbuttons(void);
 int RunGLTest (void)
@@ -1781,8 +1782,8 @@ void listdir(char *path, void func(char *, char *))
 		logit("Error opening directory\n");
 	}
 }
-
-
+                      
+#include "makemessage.c"
 void initpython( void)
 {
 #ifdef python
@@ -1792,6 +1793,9 @@ void initpython( void)
 	PyRun_SimpleString("from lemon import *");
 	PyRun_SimpleString("afterstart=list()");
 	PyRun_SimpleString("beforefinish=list()");
+	char *t=make_message("path=\"%s\"",getexepath());
+	PyRun_SimpleString(t);
+	free(t);
 	logit("pythons from %s:\n", pyth);
 	listdir(pyth, &pythfunc);
 	PyRun_SimpleString("for one in afterstart:\n	one()");
