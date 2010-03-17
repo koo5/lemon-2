@@ -3,7 +3,7 @@ sudo aptitude install make gcc libncurses-dev libsdl-dev  git-core xclip pkg-con
 git clone  git://github.com/koo5/lemon.git
 cd lemon/lemon2
 make lgl
-./lgl
+./l
 
 
 #right ctrl + 
