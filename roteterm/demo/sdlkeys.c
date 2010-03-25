@@ -1,3 +1,7 @@
+#include "rote.h"
+#include "SDL/SDL_keysym.h"
+#include <stdio.h>
+
 void sdlkeys(RoteTerm *t, char key, int unicode, int mod)
 {
 					    if ( (key >= SDLK_F1) && (key <= SDLK_F15) )

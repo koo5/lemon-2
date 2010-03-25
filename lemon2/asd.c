@@ -76,7 +76,7 @@
 #include <dirent.h>
 
 
-#include "../roteterm/sdlkeys.c"
+#include "../roteterm/demo/sdlkeys.c"
 char **buttons;
 char **buttonnames;
 int numbuttons;
