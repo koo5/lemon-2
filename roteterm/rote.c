@@ -118,6 +118,7 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 //	if(ioctl(fd,TIOCGPGRP,&pgrp)!=-1)
 //	kill(-pgrp, SIGWINCH);//rt->childpid
 //    }
+//i dunno how to make this work
 }
 
 void rote_vt_resize(RoteTerm *rt,int rows, int cols)

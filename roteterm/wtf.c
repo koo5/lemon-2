@@ -1,4 +1,4 @@
-
+//hey, this is not thread-safe!
 #include <stdlib.h>
 #include <stdio.h>
 

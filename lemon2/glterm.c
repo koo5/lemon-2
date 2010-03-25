@@ -265,7 +265,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 			glEnd();
 			glPopMatrix();
 		    }
-		    glBlendFunc(GL_ONE, GL_ZERO);
+		    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
 		    glPopMatrix();
 		}
 		glPushMatrix();

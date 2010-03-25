@@ -75,6 +75,8 @@
 
 #include <dirent.h>
 
+
+#include "../roteterm/sdlkeys.c"
 char **buttons;
 char **buttonnames;
 int numbuttons;
@@ -1351,74 +1353,8 @@ int RunGLTest (void)
 						activeface->next=new_face();
 						dirty=1;
 					    }
-					    if ( (key >= SDLK_F1) && (key <= SDLK_F15) )
-					    {
-						char *k;
-						if(asprintf(&k ,"kf%i", key-SDLK_F1+1)!=-1)
-						{
-						    rote_vt_terminfo(activeface->t, k);
-						    free(k);
-						}
-					    }
-					    else
-					    if ( (key == SDLK_SPACE) )
-						keyp(activeface,32);
-					    else
-					    #define magic(x) rote_vt_terminfo(activeface->t, x )
-					    if ( (key == SDLK_BACKSPACE) )
-						magic( "kbs");
-					    else
-					    if ( (key == SDLK_ESCAPE) )
-						keyp(activeface,27);
-					    else
-					    if ( (key == SDLK_LEFT) )
-						magic("kcub1");
-					    else
-					    if ( (key == SDLK_RIGHT) )
-						magic( "kcuf1");
-					    else
-					    if ( (key == SDLK_UP) )
-						magic( "kcuu1");
-					    else
-					    if ( (key == SDLK_DOWN) )
-						magic( "kcud1");
-					    else
-					    if ( (key == SDLK_END) )
-						magic( "kend");
-					    else
-					    if ( (key == SDLK_HOME) )
-						magic("khome");
-					    else
-					    if ( (key == SDLK_DELETE) )
-						magic( "kdch1");
-					    else
-					    if ( (key == SDLK_PAGEDOWN) )
-						magic( "knp");
-					    else
-					    if ( (key == SDLK_INSERT) )
-						magic( "kich1");
-					    else
-					    if ( (key == SDLK_PAGEUP) )
-						magic ( "kpp" );
-					    else
-					    if ( (key == SDLK_RETURN) )
-						keyp(activeface,13);
-					    else
-					    if( event.key.keysym.unicode )//&& ( (event.key.keysym.unicode & 0xFF80) == 0 ) )
-					    {
-					    	if(mod&KMOD_ALT)
-						{
-						    char c[2];
-						    c[0]=27;
-						    c[1]=key;
-						    rote_vt_write(activeface->t,c,2);
-						}
-						else
-						{
-						    printf("%i\n",                            event.key.keysym.unicode);
-						    keyp(activeface, event.key.keysym.unicode);
-						}
-					    }
+					    if(activeface->t)
+						sdlkeys(activeface->t, key, event.key.keysym.unicode, mod);
 					}
 				break;
 				case SDL_QUIT:
