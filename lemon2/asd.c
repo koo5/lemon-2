@@ -109,7 +109,7 @@ logit(const char * iFormat, ...)
     va_start(argp, iFormat);
     vprintf(iFormat, argp);
     va_end(argp);
-//    printf("\n");
+    printf("\n");
 }
 
 #ifdef SDLD
@@ -1354,7 +1354,10 @@ int RunGLTest (void)
 						dirty=1;
 					    }
 					    if(activeface->t)
+					    {
 						sdlkeys(activeface->t, key, event.key.keysym.unicode, mod);
+//						logit("%i\n", key);
+					    }
 					}
 				break;
 				case SDL_QUIT:
