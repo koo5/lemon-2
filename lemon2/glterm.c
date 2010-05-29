@@ -233,6 +233,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 		glEnd();
 		if(isundercursor)
 		{
+		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		    glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glRotatef(f->rotor,0,0,1);
@@ -246,7 +247,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 		    glEnd();
 		    glPopMatrix();
 		    glPushMatrix();
-		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glRotatef(f->rotor/10, 0,0,1);
 		    glColor4f(1,1,0,0.2);

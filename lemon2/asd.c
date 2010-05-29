@@ -1084,7 +1084,7 @@ int RunGLTest (void)
 			{
 
 				case SDL_MOUSEMOTION:
-//					if(escaped||k[SDLK_RCTRL])
+					if(escaped||k[SDLK_RCTRL])
 					{
 						escaped=0;
 						if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
@@ -1100,7 +1100,7 @@ int RunGLTest (void)
 						    	cam.y-=event.motion.yrel;
 						}
 					}
-//					else
+					else
 					{
 					    if(activeface->t)
 					    {
