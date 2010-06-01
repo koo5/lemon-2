@@ -464,23 +464,11 @@ int countfaces(face* f)
     return i;
 }
 
-void focusline(face * activeface)
+void focusrect(face * activeface)
 {
-    static double angel=0;
-    float csize=30;
 #ifdef GL
 
-    glBegin(GL_LINES);
-    glColor3f(1,1,0);
-    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
-    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel+3.14159265358979323846264/2)+activeface->x,csize*cos(angel+3.14159265358979323846264/2)+activeface->y);
-    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel+3.14159265358979323846264)+activeface->x,csize*cos(angel+3.14159265358979323846264)+activeface->y);
-    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel+1.5*3.14159265358979323846264)+activeface->x,csize*cos(angel+1.5*3.14159265358979323846264)+activeface->y);
-/*    if(activeface->t)
+    if(activeface->t)
     {
     glVertex2f(activeface->x, activeface->y);
     glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
@@ -491,7 +479,27 @@ void focusline(face * activeface)
     glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
     glVertex2f(activeface->x, activeface->y);
     }
-*/    angel+=0.1;
+#endif
+}
+ 
+
+void focusline(face * activeface)
+{
+    static double angel=0;
+    float csize=30;
+#ifdef GL
+
+    glBegin(GL_POINTS);
+    glColor3f(1,0,0);
+//    glVertex2i(0,0);
+    glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
+//    glVertex2i(0,0);
+    glVertex2f(csize*sin(angel+3.14159265358979323846264/2)+activeface->x,csize*cos(angel+3.14159265358979323846264/2)+activeface->y);
+//    glVertex2i(0,0);
+    glVertex2f(csize*sin(angel+3.14159265358979323846264)+activeface->x,csize*cos(angel+3.14159265358979323846264)+activeface->y);
+//    glVertex2i(0,0);
+    glVertex2f(csize*sin(angel+1.5*3.14159265358979323846264)+activeface->x,csize*cos(angel+1.5*3.14159265358979323846264)+activeface->y);
+   angel+=0.1;
     if(angel>2*3.14159265358979323846264)angel=0;
     glEnd();
 #else
@@ -765,7 +773,7 @@ face *mousefocus(face *af, face *f1)
 	{
 	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*f1->t->rows>ay)&&(f1->x+f1->scale*13*f1->t->cols>ax))
 		result=f1;
-	}
+	}                                                   
 	else
 	{
 	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*10>ay)&&(f1->x+f1->scale*13*10>ax))
@@ -1192,6 +1200,25 @@ int RunGLTest (void)
 							    cam.y=-activeface->y;
 							    dirty=1;
 							break;
+							case SDLK_t:
+							{
+							    face * fa = face1;
+							    int yy=0;
+							    while(fa)
+							    {
+								fa->x=-100;
+								fa->y=yy;
+								if(fa->t)
+								    yy+=26*fa->t->rows;
+								else
+								    yy+=26*100;
+								fa=fa->next;
+							    }
+							    cam.x=-activeface->x;
+							    cam.y=-activeface->y;
+							    
+							    break;
+							}
 							case SDLK_F2:
 							    gofullscreen=1;
 							break;
@@ -1386,6 +1413,7 @@ int RunGLTest (void)
 					{
 						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
 						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
+						logit("docellmoyuse: %i", activeface->t->docellmouse);
 						if(event.button.button==SDL_BUTTON_LEFT&&(!activeface->t->docellmouse||k[SDLK_RSHIFT]||k[SDLK_LSHIFT]))
 						{
 						    if(clicksphase==0)
@@ -1433,7 +1461,10 @@ int RunGLTest (void)
 							clipin(activeface, 0,0);
 						}
 						else
+						{
 						    rote_vt_mousedown(activeface->t,tx,ty);
+						    logit("mousedown");
+						}
 						logit("%i %i\n", tx,ty);
 					}
 				    }
@@ -1446,6 +1477,7 @@ int RunGLTest (void)
 					int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
 					int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
 					rote_vt_mouseup  (activeface->t,tx,ty);
+					logit("mouseup");
 				    }
 				    break;
 				}
