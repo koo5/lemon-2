@@ -70,15 +70,16 @@ static char * sgns[] =
     "dxxx",	/*_*/
     "mwmzqzqwmw",/*.   14*/
     "aoiasoza",/*~*/
-    "iiidqdqiii  ivqvqqiqiv"/*:*/,
-    "aooazohohttttr"/*?*/,
-    ""/* 18*/,
+    "iiidqdqiii  ivqvqqiqiv",/*:*/
+//    "aooazohohttttr"/*?*/,
+    "dawawhohol  oossowlsoo",
+    "",/* 18*/
     "gawz",/*\*/
     "oaoz"/*|*/,
-    "oaozoozo"/*|-*/,
-    "hovnowho"/*v22*/,
-    "oaoz  hsovtvihofti"/*$*/,
-    "oaaoozzooa  ohos"/*<|>*/,
+    "oaozoozo",/*|-*/
+    "hovnowho",/*v22*/
+    "oaoz  hsovtvihofti",/*$*/
+    "oaaoozzooa  ohos",/*<|>*/
     "-hovnowho"/*v*/
 };
 
