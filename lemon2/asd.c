@@ -1308,6 +1308,11 @@ int RunGLTest (void)
 							    do_l2=!do_l2;
 							    dirty=1;
 							break;
+							case SDLK_r:
+							    freefaces(face1);
+							    initfaces();
+							    dirty=1;
+							break;
 							case SDLK_n:
 							    activeface=new_face();
 							    activeface->next=face1;
