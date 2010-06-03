@@ -1204,25 +1204,6 @@ int RunGLTest (void)
 							    cam.y=-activeface->y;
 							    dirty=1;
 							break;
-							case SDLK_t:
-							{
-							    face * fa = face1;
-							    int yy=0;
-							    while(fa)
-							    {
-								fa->x=0;
-								fa->y=yy;
-								if(fa->t)
-								    yy+=26*fa->t->rows;
-								else
-								    yy+=26*100;
-								fa=fa->next;
-							    }
-							    cam.x=-activeface->x;
-							    cam.y=-activeface->y;
-							    
-							    break;
-							}
 							case SDLK_F2:
 							    gofullscreen=1;
 							break;
@@ -1293,6 +1274,26 @@ int RunGLTest (void)
 							    done=1;
 
 							break;
+							case SDLK_t:
+							{
+							    face * fa = face1;
+							    int yy=0;
+							    while(fa)
+							    {
+								fa->x=0;
+								fa->y=yy;
+								if(fa->t)
+								    yy+=26*fa->t->rows;
+								else
+								    yy+=26*100;
+								fa=fa->next;
+							    }
+							    cam.x=-activeface->x;
+							    cam.y=-activeface->y;
+							    
+							    break;
+							}
+
 							case SDLK_p:
 							    #ifdef libpng
 							    saveScreenshot();
@@ -1300,6 +1301,13 @@ int RunGLTest (void)
 							break;
 							case SDLK_l:
 							    do_l2=!do_l2;
+							    dirty=1;
+							break;
+							case SDLK_n:
+							    activeface=new_face();
+							    activeface->next=face1;
+							    face1=activeface;
+							    add_terminal(face1);
 							    dirty=1;
 							break;
 							case SDLK_PERIOD:
