@@ -470,6 +470,8 @@ void focusrect(face * activeface)
 
     if(activeface->t)
     {
+    glBegin(GL_LINES);
+    glColor3f(1,0,0);
     glVertex2f(activeface->x, activeface->y);
     glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
     glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
@@ -478,6 +480,7 @@ void focusrect(face * activeface)
     glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
     glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
     glVertex2f(activeface->x, activeface->y);
+    glEnd();
     }
 #endif
 }
@@ -1030,7 +1033,8 @@ int RunGLTest (void)
 
 
 
-//			if(k[SDLK_RCTRL])
+			if(k[SDLK_RCTRL])
+			    focusrect(activeface);
 			focusline(activeface);
 
 			showfaces(face1, activeface);
