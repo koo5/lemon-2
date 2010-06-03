@@ -1292,7 +1292,7 @@ int RunGLTest (void)
 								fa->x=0;
 								fa->y=yy;
 								if(fa->t)
-								    yy+=26*fa->t->rows;
+								    yy+=26*fa->t->rows*fa->scale;
 								else
 								    yy+=26*100;
 								fa=fa->next;
