@@ -80,7 +80,7 @@
 char **buttons;
 char **buttonnames;
 int numbuttons;
-int showbuttons=1;
+int showbuttons=0;
 char *fnfl="l2";
 int do_l2=0;
 int givehelp=1;
@@ -439,6 +439,7 @@ void showface(face *g)
 	    draw_text_az(g->label, g->scale*g->t->cols/strlen(g->label),g->scale*g->t->rows);
 	    
 	}
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
     }
     if(g->scripted)
@@ -1040,6 +1041,8 @@ int RunGLTest (void)
 			showfaces(face1, activeface);
 			facesclean(face1);
 			#ifdef GL
+			int dol2=do_l2;
+			do_l2=1;
 			if(givehelp)
 			{	glPushMatrix();
 				glRotatef(90,0,0,1);
@@ -1047,12 +1050,14 @@ int RunGLTest (void)
 				if(!(escaped||k[SDLK_RCTRL]))
 					draw_text("\npress right ctrl for more fun...");
 				else
-					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\nb to toggle blending:D");
+					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons");
 					
 				glPopMatrix();
+				
 			}
 			if(showbuttons)
 				show_buttons(0);
+			do_l2=dol2;
 			glPopMatrix();
 //			int x,y;
 //			SDL_GetMouseState(&x,&y);

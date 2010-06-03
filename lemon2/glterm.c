@@ -43,6 +43,7 @@ void draw_text_az(char *a, double y, double z)
   lok.x=0;
   lok.y=0;
   setcolor(1,1,1,1);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glBegin(GL_LINE_STRIP);
   do 
   {
