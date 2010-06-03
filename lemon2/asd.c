@@ -895,6 +895,11 @@ int testbuttonpress(int x, int y,int test)
 #endif
 
 
+void camtoface(face * activeface)
+{
+    cam.x=-activeface->x;
+    cam.y=-activeface->y;
+}
 
 face *lastface(face *f)
 {
@@ -1050,7 +1055,7 @@ int RunGLTest (void)
 				if(!(escaped||k[SDLK_RCTRL]))
 					draw_text("\npress right ctrl for more fun...");
 				else
-					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons");
+					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons\nt to tile faces");
 					
 				glPopMatrix();
 				
@@ -1205,8 +1210,7 @@ int RunGLTest (void)
 							case SDLK_TAB:
 							    cycle(face1, &activeface);
 							    global_tabbing=1;
-							    cam.x=-activeface->x;
-							    cam.y=-activeface->y;
+							    camtoface(activeface);
 							    dirty=1;
 							break;
 							case SDLK_F2:
@@ -1318,6 +1322,7 @@ int RunGLTest (void)
 							    activeface->next=face1;
 							    face1=activeface;
 							    add_terminal(face1);
+							    camtoface(activeface);
 							    dirty=1;
 							break;
 							case SDLK_PERIOD:
