@@ -843,7 +843,7 @@ void show_buttons(int picking)
 	while(n)
 	{
 		glLoadName(n-1);
-		show_button(SDL_GetVideoSurface()->w-100,y+=100, buttonnames[--n],picking);
+		show_button(-cam.x+SDL_GetVideoSurface()->w-100,-cam.y+(y+=100), buttonnames[--n],picking);
 	}
 	glLoadName(-1);
 	glBlendFunc(GL_ONE, GL_ZERO);
@@ -1206,7 +1206,7 @@ int RunGLTest (void)
 							    int yy=0;
 							    while(fa)
 							    {
-								fa->x=-100;
+								fa->x=0;
 								fa->y=yy;
 								if(fa->t)
 								    yy+=26*fa->t->rows;

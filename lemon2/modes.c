@@ -25,7 +25,7 @@ struct XY parsemodeline(char *r)
 #ifndef strcasestr
 #define strcasestr strstr
 #endif
-    if((ypos=(void*)strcasestr(r,"x")))    
+    if((ypos=(char*)strcasestr(r,"x")))
     {
 	*ypos = 0;
         ypos++;
@@ -48,7 +48,7 @@ struct XY parsemodeline(char *r)
 }
 
 
-xy parsemodes(int w,int h/*current w and h to know where to look while shrinking or growing (or both)*/,char *file,int start/* program start*/,int shrink,int grow)
+xy parsemodes(int w,int h/*current w and h to know where to look while shrinking or growing (or both)*/,const char *file,int start/* program start*/,int shrink,int grow)
 {
 	     xy r,fail;
 	     xy oldr;
@@ -69,7 +69,7 @@ xy parsemodes(int w,int h/*current w and h to know where to look while shrinking
                              buf[len - 1] = '\0';
                      else {
                              /* EOF without EOL, copy and add the NUL */
-                             if ((lbuf = malloc(len + 1)))
+                             if ((lbuf = (char*)malloc(len + 1)))
                              {
                                 memcpy(lbuf, buf, len);
                                 lbuf[len] = '\0';

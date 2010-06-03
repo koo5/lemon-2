@@ -17,7 +17,7 @@ char * GetFileIntoCharPointer1(char *pFile)
         {
 	    if(!fseek(fp, 0, SEEK_SET))
     	    {
-	        if ((pData =  malloc(size + 10)))
+	        if ((pData =  (char*)malloc(size + 10)))
 		{
 		    if(fread(pData, sizeof(char), size, fp))
 			pData[size]=0;

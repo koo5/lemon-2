@@ -49,7 +49,7 @@ char *fgetln(FILE *fp,	size_t *len)
 
 	if (buf == NULL) {
 		bufsiz = BUFSIZ;
-		if ((buf = malloc(bufsiz)) == NULL)
+		if ((buf = (char*)malloc(bufsiz)) == NULL)
 			return NULL;
 	}
 
@@ -59,7 +59,7 @@ char *fgetln(FILE *fp,	size_t *len)
 
 	while ((ptr = strchr(&buf[*len], '\n')) == NULL) {
 		size_t nbufsiz = bufsiz + BUFSIZ;
-		char *nbuf = realloc(buf, nbufsiz);
+		char *nbuf = (char*)realloc(buf, nbufsiz);
 
 		if (nbuf == NULL) {
 			int oerrno = errno;
