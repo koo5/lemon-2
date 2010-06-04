@@ -253,7 +253,7 @@ static void setupBlotsSphere (struct state *st)
     int n;
 
     st->blotCount = st->requestedBlotCount;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
 
     for (n = 0; n < st->blotCount; n++)
     {
@@ -300,7 +300,7 @@ static void setupBlotsCube (struct state *st)
     distBetween = 2.0 / (blotsPerEdge - 1.0);
 
     st->blotCount = 8 + (blotsPerEdge - 2) * 12;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
     n = 0;
 
     /* define the corners */
@@ -364,7 +364,7 @@ static void setupBlotsCylinder (struct state *st)
     distBetween = 2.0 / (blotsPerEdge - 1);
 
     st->blotCount = blotsPerEdge * blotsPerRing;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
     n = 0;
 
     /* define the edges */
@@ -392,7 +392,7 @@ static void setupBlotsSquiggle (struct state *st)
     int n;
 
     st->blotCount = st->requestedBlotCount;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
 
     maxCoor = (int) (RAND_FLOAT_01 * 5) + 1;
     minCoor = -maxCoor;
@@ -452,7 +452,7 @@ static void setupBlotsCubeCorners (struct state *st)
     int n;
 
     st->blotCount = st->requestedBlotCount;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
 
     for (n = 0; n < st->blotCount; n++)
     {
@@ -488,7 +488,7 @@ static void setupBlotsTetrahedron (struct state *st)
     int blotsPerSurface = st->requestedBlotCount / 4;
 
     st->blotCount = blotsPerSurface * 4;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
 
     for (n = 0; n < st->blotCount; n += 4)
     {
@@ -548,7 +548,7 @@ static void setupBlotsSheet (struct state *st)
     spaceBetween = 2.0 / (blotsPerDimension - 1);
 
     st->blotCount = blotsPerDimension * blotsPerDimension;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
 
     for (x = 0; x < blotsPerDimension; x++)
     {
@@ -582,7 +582,7 @@ static void setupBlotsSwirlyCone (struct state *st)
     FLOAT rot = 0.0;
 
     st->blotCount = st->requestedBlotCount;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
 
     for (n = 0; n < st->blotCount; n++)
     {
@@ -668,7 +668,7 @@ static void setupBlotsDuo (struct state *st)
 
     /* combine the two arrays */
     st->blotCount = count1 + count2;
-    st->blots = calloc (sizeof (Blot), st->blotCount);
+    st->blots = (Blot*)calloc (sizeof (Blot), st->blotCount);
     memcpy (&st->blots[0],      blots1, sizeof (Blot) * count1);
     memcpy (&st->blots[count1], blots2, sizeof (Blot) * count2);
     free (blots1);
@@ -729,8 +729,8 @@ static void setupSegs (struct state *st)
 {
     /* there are blotShapeCount - 1 line segments per blot */
     st->segCount = st->blotCount * (blotShapeCount - 1);
-    st->segsToErase = calloc (sizeof (LineSegment), st->segCount);
-    st->segsToDraw = calloc (sizeof (LineSegment), st->segCount);
+    st->segsToErase = (LineSegment*)calloc (sizeof (LineSegment), st->segCount);
+    st->segsToDraw = (LineSegment*)calloc (sizeof (LineSegment), st->segCount);
 }
 
 

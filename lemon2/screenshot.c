@@ -1,6 +1,6 @@
 #include <png.h>
 
-void writePNG(SDL_Surface *surface, char *filename)
+void writePNG(SDL_Surface *surface, const char *filename)
 {
     // TODO Maybe someone can make this look nice?
     // No, but i can steal it!
