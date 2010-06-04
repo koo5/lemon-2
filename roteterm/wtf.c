@@ -47,7 +47,7 @@ int wtf(unsigned char x)
         {
             b[pos]=b[pos]|((b[pos-1]&3)<<6);
             b[pos-1]=((b[pos-1]&31) >> 2);
-            etf=b[pos]+b[pos-1]*256;
+            etff=b[pos]+b[pos-1]*256;
             pos=0;
             return 1;
 
@@ -56,7 +56,7 @@ int wtf(unsigned char x)
         {
             b[pos]=b[pos]|((b[pos-1]&3)<<6);
             b[pos-1]=((b[pos-1]&60) >> 2) | ((b[pos-2]&15) << 4);
-            etf=b[pos]+b[pos-1]*256;
+            etff=b[pos]+b[pos-1]*256;
             pos=0;
             return 1;
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	{
 	    printf("%i ",t);
 	    if(wtf(t))
-		printf("%i\n",etf);
+		printf("%i\n",etff);
 	    if (t=='A') break;
 	}
 	}

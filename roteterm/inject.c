@@ -293,7 +293,7 @@ void unicrude(RoteTerm *rt, int x)
 {
     if (wtf(x))
     {
-	put_unicode_char(rt, etf);
+	put_unicode_char(rt, etff);
     }
 }
 

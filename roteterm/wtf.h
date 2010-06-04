@@ -1,7 +1,7 @@
 
 #ifndef etfh
 #define etfh
-int etf;
+int etff;
 int wtf(unsigned char x);
 
 #endif

@@ -173,7 +173,7 @@ struct tpl_type_t {
 /* Internal prototypes */
 static tpl_node *tpl_node_new(tpl_node *parent);
 static tpl_node *tpl_find_i(tpl_node *n, int i);
-static void *tpl_cpv(void *datav, void *data, size_t sz);
+static void *tpl_cpv(void *datav, const void *data, size_t sz);
 static void *tpl_extend_backbone(tpl_node *n);
 static char *tpl_fmt(tpl_node *r);
 static void *tpl_dump_atyp(tpl_node *n, tpl_atyp* at, void *dv);
@@ -259,7 +259,7 @@ static int tpl_oops(const char *fmt, ...) {
 
 static tpl_node *tpl_node_new(tpl_node *parent) {
     tpl_node *n;
-    if ((n=tpl_hook.malloc(sizeof(tpl_node))) == NULL) {
+    if ((n=(tpl_node*)tpl_hook.malloc(sizeof(tpl_node))) == NULL) {
         fatal_oom();
     }
     n->addr=NULL;
@@ -473,7 +473,7 @@ static tpl_node *tpl_map_va(char *fmt, va_list ap) {
                 (((tpl_root_data*)root->data)->num_fxlens) += num_contig_fxlens;
                 num_fxlens = ((tpl_root_data*)root->data)->num_fxlens; /* new value */
                 fxlens = ((tpl_root_data*)root->data)->fxlens;
-                fxlens = tpl_hook.realloc(fxlens, sizeof(int) * num_fxlens);
+                fxlens = (int*)tpl_hook.realloc(fxlens, sizeof(int) * num_fxlens);
                 if (!fxlens) fatal_oom();
                 ((tpl_root_data*)root->data)->fxlens = fxlens;
                 for(i=0; i < num_contig_fxlens; i++) fxlens[j++] = contig_fxlens[i];
@@ -555,7 +555,7 @@ static tpl_node *tpl_map_va(char *fmt, va_list ap) {
     if (lparen_level != 0) goto fail;
 
     /* copy the format string, save for convenience */
-    ((tpl_root_data*)(root->data))->fmt = tpl_hook.malloc(strlen(fmt)+1);
+    ((tpl_root_data*)(root->data))->fmt = (char*)tpl_hook.malloc(strlen(fmt)+1);
     if (((tpl_root_data*)(root->data))->fmt == NULL) 
         fatal_oom();
     memcpy(((tpl_root_data*)(root->data))->fmt,fmt,strlen(fmt)+1);
@@ -633,7 +633,7 @@ static void tpl_free_keep_map(tpl_node *r) {
                     c->ser_osz = 0; /* zero out the serialization output size */
 
                     sz = ((tpl_atyp*)(c->data))->sz;  /* save sz to use below */
-                    tpl_free_atyp(c,c->data);
+                    tpl_free_atyp(c,(tpl_atyp*)c->data);
 
                     /* make new atyp */
                     c->data = (tpl_atyp*)tpl_hook.malloc(sizeof(tpl_atyp));
@@ -728,7 +728,7 @@ TPL_API void tpl_free(tpl_node *r) {
                     find_next_node=1;
                     break;
                 case TPL_TYPE_ARY:
-                    tpl_free_atyp(c,c->data);
+                    tpl_free_atyp(c,(tpl_atyp*)c->data);
                     if (c->children) c = c->children; /* normal case */
                     else find_next_node=1; /* edge case, handle bad format A() */
                     break;
@@ -785,7 +785,7 @@ static tpl_node *tpl_find_i(tpl_node *n, int i) {
     return NULL;
 }
 
-static void *tpl_cpv(void *datav, void *data, size_t sz) {
+static void *tpl_cpv(void *datav, const void *data, size_t sz) {
     if (sz>0) memcpy(datav,data,sz);
     return (void*)((uintptr_t)datav + sz);
 }
@@ -1009,7 +1009,7 @@ TPL_API int tpl_dump(tpl_node *r, int mode, ...) {
         fd = va_arg(ap, int);
         if ( (buf = tpl_hook.malloc(sz)) == NULL) fatal_oom();
         tpl_dump_to_mem(r,buf,sz);
-        bufv = buf;
+        bufv = (char*)buf;
         do {
             rc = write(fd,bufv,sz);
             if (rc > 0) {
@@ -1324,7 +1324,7 @@ TPL_API char* tpl_peek(int mode, ...) {
     }
     if (!found_nul) goto fail;  /* runaway format string */
     fmt_len = (char*)dv - fmt;  /* include space for \0 */
-    fmt_cpy = tpl_hook.malloc(fmt_len);
+    fmt_cpy = (char*)tpl_hook.malloc(fmt_len);
     if (fmt_cpy == NULL) {
         fatal_oom();
     }
@@ -1337,7 +1337,7 @@ TPL_API char* tpl_peek(int mode, ...) {
       }
     }
     if ((mode & TPL_FXLENS) && (num_fxlens > 0)) {
-      *fxlens = tpl_hook.malloc(num_fxlens * sizeof(uint32_t));
+      *fxlens = (uint32_t*)tpl_hook.malloc(num_fxlens * sizeof(uint32_t));
       if (*fxlens == NULL) tpl_hook.fatal("out of memory");
       *num_fxlens_out = num_fxlens;
       fxlensv = *fxlens;
@@ -1387,7 +1387,7 @@ TPL_API char* tpl_peek(int mode, ...) {
                tpl_hook.free(fmt_cpy); fmt_cpy = NULL; /* fail */
                goto fail;
              }
-             datapeek_s = tpl_hook.malloc(datapeek_ssz);
+             datapeek_s = (char*)tpl_hook.malloc(datapeek_ssz);
              if (datapeek_s == NULL) fatal_oom();
              memcpy(datapeek_s, dv, datapeek_ssz-1);
              datapeek_s[datapeek_ssz-1] = '\0';
@@ -1435,7 +1435,7 @@ TPL_API int tpl_jot(int mode, ...) {
       rc = tpl_dump(tn, TPL_FILE, filename);
       tpl_free(tn);
     } else if (mode & TPL_MEM) {
-      buf = va_arg(ap,void*);
+      buf = (void**)va_arg(ap, void*);
       sz = va_arg(ap,size_t*);
       fmt = va_arg(ap,char*);
       tn = tpl_map_va(fmt,ap);
@@ -1811,12 +1811,12 @@ TPL_API int tpl_pack(tpl_node *r, int i) {
                 /* copy the buffer to be packed */ 
                 slen = ((tpl_bin*)child->addr)->sz;
                 if (slen >0) {
-                    str = tpl_hook.malloc(slen);
+                    str = (char*)tpl_hook.malloc(slen);
                     if (!str) fatal_oom();
                     memcpy(str,((tpl_bin*)child->addr)->addr,slen);
                 } else str = NULL;
                 /* and make a tpl_bin to point to it */
-                bin = tpl_hook.malloc(sizeof(tpl_bin));
+                bin = (tpl_bin*)tpl_hook.malloc(sizeof(tpl_bin));
                 if (!bin) fatal_oom();
                 bin->addr = str;
                 bin->sz = slen;
@@ -1845,7 +1845,7 @@ TPL_API int tpl_pack(tpl_node *r, int i) {
                   char **cdata = &((char**)child->data)[fidx];
                   slen = caddr ?  (strlen(caddr) + 1) : 0;
                   if (slen) {
-                    str = tpl_hook.malloc(slen);
+                    str = (char*)tpl_hook.malloc(slen);
                     if (!str) fatal_oom();
                     memcpy(str,caddr,slen); /* include \0 */
                   } else {
@@ -2179,7 +2179,7 @@ TPL_API int tpl_gather(int mode, ...) {
     switch (mode) {
         case TPL_GATHER_BLOCKING:
             fd = va_arg(ap,int);
-            img = va_arg(ap,void*);
+            img = (void**)va_arg(ap,void*);
             szp = va_arg(ap,size_t*);
             rc = tpl_gather_blocking(fd,img,szp);
             break;
@@ -2196,7 +2196,7 @@ TPL_API int tpl_gather(int mode, ...) {
             gs = (tpl_gather_t**)va_arg(ap,void*);
             cb = (tpl_gather_cb*)va_arg(ap,tpl_gather_cb*);
             data = va_arg(ap,void*);
-            rc = tpl_gather_mem(addr,sz,gs,cb,data);
+            rc = tpl_gather_mem((char*)addr,sz,gs,cb,data);
             break;
         default:
             tpl_hook.fatal("unsupported tpl_gather mode %d\n",mode);
@@ -2321,7 +2321,7 @@ static int tpl_gather_nonblocking( int fd, tpl_gather_t **gs, tpl_gather_cb *cb,
                         tpl_hook.gather_max);
                     return -2;              /* error, caller should close fd */
                 }
-                if ( (img = tpl_hook.realloc((*gs)->img, catlen)) == NULL) {
+                if ( (img = (char*)tpl_hook.realloc((*gs)->img, catlen)) == NULL) {
                     fatal_oom();
                 }
                 memcpy(img + (*gs)->len, buf, rc);
@@ -2362,17 +2362,17 @@ static int tpl_gather_nonblocking( int fd, tpl_gather_t **gs, tpl_gather_cb *cb,
             /* store any leftover, partial tpl fragment for next read */
             if (tpl == img && img != buf) {  
                 /* consumed nothing from img!=buf */
-                if ( (*gs = tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
+                if ( (*gs = (tpl_gather_t*)tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
                     fatal_oom();
                 }
                 (*gs)->img = tpl;
                 (*gs)->len = catlen;
             } else if (tpl < img+catlen) {  
                 /* consumed 1+ tpl(s) from img!=buf or 0 from img==buf */
-                if ( (*gs = tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
+                if ( (*gs = (tpl_gather_t*)tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
                     fatal_oom();
                 }
-                if ( ((*gs)->img = tpl_hook.malloc(img+catlen - tpl)) == NULL ) {
+                if ( ((*gs)->img = (char*)tpl_hook.malloc(img+catlen - tpl)) == NULL ) {
                     fatal_oom();
                 }
                 (*gs)->len = img+catlen - tpl;
@@ -2406,7 +2406,7 @@ static int tpl_gather_mem( char *buf, size_t len, tpl_gather_t **gs, tpl_gather_
                 tpl_hook.gather_max);
             return -2;              /* error, caller should stop accepting input from source*/
         }
-        if ( (img = tpl_hook.realloc((*gs)->img, catlen)) == NULL) {
+        if ( (img = (char*)tpl_hook.realloc((*gs)->img, catlen)) == NULL) {
             fatal_oom();
         }
         memcpy(img + (*gs)->len, buf, len);
@@ -2447,17 +2447,17 @@ static int tpl_gather_mem( char *buf, size_t len, tpl_gather_t **gs, tpl_gather_
     /* store any leftover, partial tpl fragment for next read */
     if (tpl == img && img != buf) {  
         /* consumed nothing from img!=buf */
-        if ( (*gs = tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
+        if ( (*gs = (tpl_gather_t*)tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
             fatal_oom();
         }
         (*gs)->img = tpl;
         (*gs)->len = catlen;
     } else if (tpl < img+catlen) {  
         /* consumed 1+ tpl(s) from img!=buf or 0 from img==buf */
-        if ( (*gs = tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
+        if ( (*gs = (tpl_gather_t*)tpl_hook.malloc(sizeof(tpl_gather_t))) == NULL ) {
             fatal_oom();
         }
-        if ( ((*gs)->img = tpl_hook.malloc(img+catlen - tpl)) == NULL ) {
+        if ( ((*gs)->img = (char*)tpl_hook.malloc(img+catlen - tpl)) == NULL ) {
             fatal_oom();
         }
         (*gs)->len = img+catlen - tpl;
