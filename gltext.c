@@ -11,11 +11,11 @@ void setcolor(double rr,double gg,double bb,double aa)
 
 
 
-void azspillit(xy lok,char *x,
+void azspillit(xy lok, const char *cx,
 float a,float z)
 // x scale, y scale
 {
-
+    char *x = strdup(cx);
     int first=1; /*were drawin 1st dot*/
 #ifdef SDLD
     have_first=0;
@@ -109,6 +109,7 @@ float a,float z)
         }
     }
     if(duped)free(duped);
+    free(x);
 
 }
 

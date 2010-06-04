@@ -48,7 +48,7 @@ int _rtput(int i)
 }
 
 
-void rote_vt_terminfo(RoteTerm *rt, char *c)
+void rote_vt_terminfo(RoteTerm *rt, const char *c)
 {
     if(rt)
     {

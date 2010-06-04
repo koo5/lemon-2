@@ -26,7 +26,7 @@ void loadl2(char * fln)
     freel2();
     int l2size=100;
     size_t s=sizeof(char *) * 100;
-    l2=malloc(s);
+    l2=(char**)malloc(s);
     if (!l2)
     {
         printf("no place 4 %i byttrez\n",(int)s);
@@ -42,7 +42,7 @@ void loadl2(char * fln)
         l2numitems++;
         if (!(l2numitems%100))
         {
-            char **tmp=realloc(l2,sizeof(char *) *(l2size+100));
+            char **tmp=(char**)realloc(l2,sizeof(char *) *(l2size+100));
             if (!tmp)
                 return;
             l2=tmp;
@@ -52,7 +52,7 @@ void loadl2(char * fln)
     fclose(fp);
 }
 
-static char * sgns[] =
+const char * sgns[] =
 {
     "dzdptuzpznxnxpzp", /*\0*/
     "ogooaokkktao",/*\n*/
@@ -84,7 +84,7 @@ static char * sgns[] =
 };
 
 
-char *nums[]=
+const char *nums[]=
 {
     "@aazz        ",
     "aooaoz",
@@ -98,7 +98,7 @@ char *nums[]=
     "azzzzoaoaazazo",
 };
 
-static char * chrz[] =
+const char * chrz[] =
 {
     /*A*/"azoazz"
     /*B*/,"aaazzsaoziaa"

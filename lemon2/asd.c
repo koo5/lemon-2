@@ -1399,7 +1399,7 @@ int RunGLTest (void)
 					}
 					else
 					{
-					    activeface->scroll=0;
+					    if(key!=SDLK_RSHIFT)activeface->scroll=0;
 					    if(activeface->t==0&&!activeface->scripted)
 					    {
 						logit("debug messages r fun\n");

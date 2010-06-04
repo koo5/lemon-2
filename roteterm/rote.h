@@ -237,7 +237,7 @@ void rote_vt_draw(RoteTerm *rt, WINDOW *win, int startrow, int startcol,
  * keycode, must be a CURSES EXTENDED KEYCODE, the ones you get
  * when you use keypad(somewin, TRUE) (see man page). */
 void rote_vt_keypress(RoteTerm *rt, int i);
-void rote_vt_terminfo(RoteTerm *rt, char *c);
+void rote_vt_terminfo(RoteTerm *rt, const char *c);
 
 /* Takes a snapshot of the current contents of the terminal and
  * saves them to a dynamically allocated buffer. Returns a pointer
