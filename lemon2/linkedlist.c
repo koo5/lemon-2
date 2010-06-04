@@ -3,7 +3,7 @@
 TYPE* TYPE##listremove(TYPE * first, TYPE * item)\
 {\
     if(item==first)\
-	return first->next;\
+	return (TYPE*)first->next;\
     else\
     {\
 	TYPE * next = first;\
@@ -14,9 +14,9 @@ TYPE* TYPE##listremove(TYPE * first, TYPE * item)\
 	        next->next=item->next;\
 	        return first;\
 	    }\
-	    next=next->next;\
+	    next=(TYPE*)next->next;\
 	}\
     }\
-    return 0;\
+    return (TYPE*)0;\
 }
 

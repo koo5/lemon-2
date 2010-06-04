@@ -70,23 +70,23 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 //    printf ("ioctled to %i %i %i %i \n",ws.ws_col, ws.ws_row, ws.ws_xpixel, ws.ws_ypixel);
 //    if ((ws.ws_col==xx)&&(ws.ws_row==yy))
 
-	int or=rt->rows;
+	int oldr=rt->rows;
 	int oc=rt->cols;
 	int i;
 	rt->cols=xx;
 	rt->rows=yy;
 
 //        printf ("W\n");    
-	for (i = yy; i < or; i++)
+	for (i = yy; i < oldr; i++)
 	{//	printf(";;%i;;\n", i);
     		free(rt->cells[i]);
     	}
-	if(or != yy)
+	if(oldr != yy)
 	{
 		rt->line_dirty = (bool*) realloc(rt->line_dirty, sizeof(bool) * rt->rows);
 		rt->cells = (RoteCell**) realloc(rt->cells, sizeof(RoteCell*) * rt->rows);
 	}
-	for (i = or; i < yy; i++)
+	for (i = oldr; i < yy; i++)
 	{
 		rt->line_dirty[i] = 1;
     		rt->cells[i] = (RoteCell*) malloc(sizeof(RoteCell) * rt->cols);    
@@ -424,7 +424,7 @@ char * rotoclipin(int sel)
     else
         rote_vt_forkpty(t, "xclip -o");
     int br=0;
-    buf=malloc(512);
+    buf=(char*)malloc(512);
     rote_vt_update_thready(buf, 6, &br,t);
     //?
     buf[br]=0;

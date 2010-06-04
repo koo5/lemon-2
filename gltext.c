@@ -15,7 +15,7 @@ void azspillit(xy lok, const char *cx,
 float a,float z)
 // x scale, y scale
 {
-    char *x = strdup(cx);
+    char *x = strdup(cx);//this is just for compiler stupidity, were not actually modifying x
     int first=1; /*were drawin 1st dot*/
 #ifdef SDLD
     have_first=0;
@@ -110,7 +110,6 @@ float a,float z)
     }
     if(duped)free(duped);
     free(x);
-
 }
 
 void zspillit(xy lok,char *x,float z)

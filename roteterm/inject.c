@@ -30,15 +30,15 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 
 void appendlog(RoteTerm *rt)
 {
-   void* new;
+   void* neww;
    int loglen=20000;
    if(rt->logl<loglen)
    {
-	new = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
-	if(new)
+	neww = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
+	if(neww)
 	{
-	    rt->log=(RoteCell **)new;
-	    rt->log[rt->logl]=malloc((1+rt->cols)*sizeof(RoteCell));
+	    rt->log=(RoteCell **)neww;
+	    rt->log[rt->logl]=(RoteCell*)malloc((1+rt->cols)*sizeof(RoteCell));
 	    rt->logl++;
 	    if(rt->log[rt->logl-1])
 	    {

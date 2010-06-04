@@ -10,7 +10,7 @@ char *make_message(const char *fmt, ...) {
  int n = 0; 
  va_list ap;
 
- if((p = malloc(size)) == NULL)
+ if((p = (char*)malloc(size)) == NULL)
   return NULL;
 
  while(1) {
@@ -27,7 +27,7 @@ char *make_message(const char *fmt, ...) {
   else            /* glibc 2.0 */
    size *= 2;     /* twice the old size */
 
-  if((p = realloc (p, size)) == NULL)
+  if((p = (char*)realloc (p, size)) == NULL)
    return NULL;
  }
 }

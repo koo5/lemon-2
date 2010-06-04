@@ -127,7 +127,6 @@ typedef struct
     SDL_Thread *thr;
 }
 moomoo;
-
 typedef struct
 {
     Uint32 last_resize;
@@ -362,7 +361,7 @@ void add_term(face * f,int c,int r)
 
 void cycle(face *face1, face **g)
 {
-    *g=(*g)->next;
+    *g=(face*)(*g)->next;
     if(*g==0)
 	*g=face1;
 }
@@ -377,7 +376,7 @@ int faces_dirty(face * f)
     {
 	if(term_dirty(f->t))
 	    return 1;
-	f=f->next;
+	f=(face*)f->next;
     }
     return 0;
 }
@@ -396,7 +395,7 @@ void lockterms(face * f)
     while(f&&f->t)
     {
 	_mutexP(f->upd_t_data.lock);
-	f=f->next;
+	f=(face*)f->next;
 //      logit(".\n");
     }
 //    logit("done\n");
@@ -409,7 +408,7 @@ void unlockterms(face * f)
     while(f&&f->t)
     {
 	_mutexV(f->upd_t_data.lock);
-	f=f->next;
+	f=(face*)f->next;
     }
 #endif
 }
@@ -425,7 +424,7 @@ void facesclean(face * f)
     while(f&&f->t)
     {
 	faceclean(f);
-	f=f->next;
+	f=(face*)f->next;
     }
 }
 
@@ -460,7 +459,7 @@ int countfaces(face* f)
     while(f)
     {
 	i++;
-	f=f->next;
+	f=(face*)f->next;
     }
     return i;
 }
@@ -523,7 +522,7 @@ face *getprevface(face* f1,face* f)
 	if(cyc==f)
 	    return prev;
 	prev=cyc;
-	cyc=cyc->next;
+	cyc=(face*)cyc->next;
     }
     return 0;
 }
@@ -555,7 +554,7 @@ face * RemoveTerm(face* f1, RoteTerm * Term)
 	{
 	    return removeface(f1, next);
 	}
-	next=next->next;
+	next=(face*)next->next;
     }
     return 0;
 }
@@ -584,7 +583,7 @@ void  showfaces(face * g, face * activeface)
 	    g->t||g==activeface)showface(g);
 	    if(global_tabbing)
 		activeface->theme=th;
-	    g=g->next;
+	    g=(face*)g->next;
 	    #ifdef GL
 		glPopMatrix();
 	    #endif
@@ -619,7 +618,7 @@ void clipoutlastline(face *f)
 {
     if(f->t->crow<1)return;
     int i;
-    char *s=malloc(f->t->cols+1);
+    char *s=(char*)malloc(f->t->cols+1);
     s[f->t->cols]=0;
     for (i=0;i<f->t->cols;i++)
 	s[i]=f->t->cells[f->t->crow-1][i].ch;
@@ -756,7 +755,7 @@ void savefaces(face * f1)
 
 	    tpl_pack(tn,1);
 	}
-	f1=f1->next;
+	f1=(face*)f1->next;
     }
     tpl_dump(tn, TPL_FILE, fcfl);
     tpl_free(tn);
@@ -783,7 +782,7 @@ face *mousefocus(face *af, face *f1)
 	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*10>ay)&&(f1->x+f1->scale*13*10>ax))
 		result=f1;
 	}
-	f1=f1->next;
+	f1=(face*)f1->next;
     }
     return result;
 }
@@ -795,7 +794,7 @@ void zoomem(face *z,double y)
 	z->scale+=y;
 	z->x=z->x+z->x*y;
 	z->y=z->y+z->y*y;
-	z=z->next;
+	z=(face*)z->next;
     }
 }
 
@@ -904,27 +903,24 @@ void camtoface(face * activeface)
 face *lastface(face *f)
 {
 	while(f&&f->next)
-	    f=f->next;
+	    f=(face*)f->next;
 	return f;
 }
 face *add_face(void)
 {
-    return lastface(face1)->next=new_face();
+    return (face*)(lastface(face1)->next=new_face());
 }
+
 void initpython(void);
 void freepython(void);
 void reloadpythons(void);
 void reloadbuttons(void);
-int RunGLTest (void)
-{
 	int startup=1;
 #ifdef GL
 //	int mm=1;
 #else
 	int mm = 0;
 #endif
-	cam.x=0;
-	cam.y=0;
 	int bpp=8;
 	int w = 1280;
 	int h = 800;
@@ -978,6 +974,12 @@ int RunGLTest (void)
 		face1->next=new_face();
 		logit("still?\n");
 	}
+
+int RunGLTest (void)
+{
+	cam.x=0;
+	cam.y=0;
+
 #ifdef nerve
 	struct state *nerv=0;
 	nerv=nerverot_init(w,h);
@@ -1295,7 +1297,7 @@ int RunGLTest (void)
 								    yy+=26*fa->t->rows*fa->scale;
 								else
 								    yy+=26*100;
-								fa=fa->next;
+								fa=(face*)fa->next;
 							    }
 							    cam.x=-activeface->x;
 							    cam.y=-activeface->y;
@@ -1399,7 +1401,11 @@ int RunGLTest (void)
 					}
 					else
 					{
-					    if(key!=SDLK_RSHIFT)activeface->scroll=0;
+					    if(key!=SDLK_RSHIFT)
+					    {	
+						activeface->scroll=0;
+						dirty=1;
+					    }
 					    if(activeface->t==0&&!activeface->scripted)
 					    {
 						logit("debug messages r fun\n");
@@ -1532,11 +1538,11 @@ int RunGLTest (void)
 					{
 					    if(activeface->t==event.user.data1)
 					    {
-						activeface=activeface->next;
+						activeface=(face*)activeface->next;
 						if(!activeface)
 						    activeface=face1;
 					    }
-					    face1=RemoveTerm(face1, event.user.data1);
+					    face1=RemoveTerm(face1, (RoteTerm*)event.user.data1);
 					    dirty=1;
 					}
 					break;
@@ -1735,9 +1741,9 @@ void btnsfunc(char *path, char *justname)
 	{
 		logit("%s\n", justname);
 		numbuttons++;
-		buttons=realloc(buttons,sizeof(char*)* numbuttons);
+		buttons=(char**)realloc(buttons,sizeof(char*)* numbuttons);
 		buttons[numbuttons-1]=b;
-		buttonnames=realloc(buttonnames, sizeof(char*)*numbuttons);
+		buttonnames=(char**)realloc(buttonnames, sizeof(char*)*numbuttons);
 		buttonnames[numbuttons-1]=strdup(justname);
 	}
 }
@@ -1761,7 +1767,7 @@ void listdir(char *path, void func(char *, char *))
 	{	
 		path=strdup(path);
 		int maxsize = 50;
-		path=realloc(path, strlen(path)+maxsize+1);
+		path=(char*)realloc(path, strlen(path)+maxsize+1);
 		char* n=strrchr(path, 0);
 		struct dirent *ent;
 		while((ent = readdir(dir)) != NULL)
@@ -1851,7 +1857,7 @@ int main(int argc, char *argv[])
 	if(path)
 	{
 		logit("path:%s\n", path);
-		path=realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
+		path=(char*)realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l2"));
 		*n=0;
