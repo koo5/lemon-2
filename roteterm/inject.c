@@ -291,9 +291,9 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
 
 void unicrude(RoteTerm *rt, int x)
 {
-    if (wtf(x))
+    if (wtf(x,&rt->pd->wtfd))
     {
-	put_unicode_char(rt, etff);
+	put_unicode_char(rt, rt->pd->wtfd.etff);
     }
 }
 
