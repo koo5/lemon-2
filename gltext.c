@@ -112,7 +112,7 @@ float a,float z)
     free(x);
 }
 
-void zspillit(xy lok,char *x,float z)
+void zspillit(xy lok,const char *x,float z)
 {
     azspillit(lok,x,z,z);
 }
