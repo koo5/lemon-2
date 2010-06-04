@@ -1442,6 +1442,7 @@ int RunGLTest (void)
 							type(activeface, buttons[b]);
 						showbuttons=0;
 					}
+					dirty=1;
 					#endif
 					{
 						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
