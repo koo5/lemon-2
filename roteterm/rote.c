@@ -449,3 +449,19 @@ void rotoclipout(char * x, RoteTerm *t, int selection)
 
 
 
+
+int lines_r_dirty(RoteTerm *rt)
+{
+    int x;
+    for (x=0;x<rt->rows;x++)
+	if(rt->line_dirty[x])
+	    return 1;
+    return 0;
+}
+void clean_lines(RoteTerm *rt)
+{
+    int x;
+    for (x=0;x<rt->rows;x++)
+	rt->line_dirty[x]=0;
+}
+

@@ -184,25 +184,6 @@ void keyp(face* f, char ey)
 	rote_vt_keypress(f->t,ey);
 }
 
-
-int lines_r_dirty(RoteTerm *rt)
-{
-    int x;
-    for (x=0;x<rt->rows;x++)
-	if(rt->line_dirty[x])
-	    return 1;
-    return 0;
-}
-void lines_r_clean(RoteTerm *rt)
-{
-    int x;
-    for (x=0;x<rt->rows;x++)
-	rt->line_dirty[x]=0;
-}
-
-
-
-
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!\n");}}
 #define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!\n");}}
 
@@ -327,22 +308,6 @@ face * new_face(void)
     return f;
 }
 
-void add_terminal(face * f)
-{
-    logit("adding terminal|");
-    RoteTerm* t;
-    logit("%i\n",SDL_GetVideoSurface()->h);
-    t= rote_vt_create(SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
-    rote_vt_forkpty((RoteTerm*) t, "bash");
-    f->t=t;
-#ifdef threaded
-    f->upd_t_data.lock=SDL_CreateMutex();
-    f->upd_t_data.t=t;
-//    logit("upd_t_data.lock=%i", f->upd_t_data.lock);
-    f->upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
-    logit("|added.\n");
-#endif
-}
 void add_term(face * f,int c,int r)
 {
     logit("adding terminal|");
@@ -357,6 +322,10 @@ void add_term(face * f,int c,int r)
     f->upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
     logit("|added.\n");
 #endif
+}
+void add_terminal(face * f)
+{
+    add_term(f,SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
 }
 
 void cycle(face *face1, face **g)
@@ -416,7 +385,7 @@ void unlockterms(face * f)
 void faceclean(face *f)
 {
 	f->t->curpos_dirty=false;
-	lines_r_clean(f->t);
+	clean_lines(f->t);
 }
 
 void facesclean(face * f)
