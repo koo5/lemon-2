@@ -610,10 +610,7 @@ void shownerv(struct state *nerv)
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
     glTranslatef(0,0,-2.5);
-    glPushAttrib(GL_BLEND);
-    glEnable(GL_BLEND);
     nerverot_draw(3,nerv);
-    glPopAttrib();
     wm();
 }
 #endif
