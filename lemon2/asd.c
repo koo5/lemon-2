@@ -1416,6 +1416,8 @@ int RunGLTest (void)
 					{
 					    int af=(activeface->t==event.user.data1);
 					    RemoveTerm((RoteTerm*)event.user.data1);
+					    if(!faces.size())
+						faces.push_back(new_face());
 					    if(af)
 						activeface=faces.at(0);
 
