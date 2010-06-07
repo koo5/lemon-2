@@ -69,10 +69,6 @@
 #include "Python.h"
 #endif
 
-#ifdef swallows3d
-#include "../s3d-0.2.1.1/server/global.h"
-#endif
-
 #include <dirent.h>
 
 
@@ -135,7 +131,6 @@ typedef struct
     int lastyresize;
     double x,y;
     limits lim;
-    void * next;
     moomoo upd_t_data;
     double scale;
     int scroll;
@@ -150,11 +145,12 @@ typedef struct
     char *label;
 } face;
 
-face *face1;
+#include <iostream>
+#include <vector>
 
-
-#include "linkedlist.c"
-linkedlist(face)
+using namespace std;
+vector<face *> faces;
+face *activeface;
 
 #include "glterm.c"
 
@@ -176,7 +172,7 @@ float floabs(float x)
 
 float r1x=0;
 float r1y=0;
-float lv=1;
+float lv=2;
 
 void keyp(face* f, char ey)
 {
@@ -287,7 +283,7 @@ void resizooo(face *f, int x, int y, Uint8* duck)
 
 }
 
-Uint32 NewTimerCallback(Uint32 interval, void *param)
+Uint32 TimerCallback(Uint32 interval, void *param)
 {
 	SDL_Event e;
 	e.type=SDL_USEREVENT;
@@ -328,25 +324,17 @@ void add_terminal(face * f)
     add_term(f,SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
 }
 
-void cycle(face *face1, face **g)
-{
-    *g=(face*)(*g)->next;
-    if(*g==0)
-	*g=face1;
-}
 
 int term_dirty(RoteTerm *t)
 {
     return t->curpos_dirty || lines_r_dirty(t);
 }
-int faces_dirty(face * f)
+int faces_dirty(void)
 {
-    while(f&&f->t)
-    {
-	if(term_dirty(f->t))
-	    return 1;
-	f=(face*)f->next;
-    }
+    for(int i=0;i<faces.size();i++)
+	if(faces.at(i)->t)
+	    if(term_dirty(faces.at(i)->t))
+		return 1;
     return 0;
 }
 
@@ -356,29 +344,25 @@ void lockterm(face * f)
 	_mutexP(f->upd_t_data.lock);
 #endif
 }
-void lockterms(face * f)
+void lockterms(void)
 {
 #ifdef threaded
-
 //    logit("locking terms\n");
-    while(f&&f->t)
-    {
-	_mutexP(f->upd_t_data.lock);
-	f=(face*)f->next;
-//      logit(".\n");
-    }
+    for (int i=0; i < faces.size(); i++)
+	if(faces.at(i)->t)
+	{
+	    _mutexP(faces.at(i)->upd_t_data.lock);
+//	    logit(".\n");
+	}
 //    logit("done\n");
 #endif
 }
-void unlockterms(face * f)
+void unlockterms(void)
 {
 #ifdef threaded
-
-    while(f&&f->t)
-    {
-	_mutexV(f->upd_t_data.lock);
-	f=(face*)f->next;
-    }
+    for (int i=0; i < faces.size(); i++)
+	if(faces.at(i)->t)
+	    _mutexV(faces.at(i)->upd_t_data.lock);
 #endif
 }
 
@@ -388,13 +372,11 @@ void faceclean(face *f)
 	clean_lines(f->t);
 }
 
-void facesclean(face * f)
+void facesclean(void)
 {
-    while(f&&f->t)
-    {
-	faceclean(f);
-	f=(face*)f->next;
-    }
+    for (int i=0; i < faces.size(); i++)
+	if(faces.at(i)->t)
+	    faceclean(faces.at(i));
 }
 
 void showface(face *g)
@@ -419,18 +401,6 @@ void showface(face *g)
     }	
     if(!g->t&&!g->scripted)
 	draw_text(newtermmsg);
-}
-
-
-int countfaces(face* f)
-{
-    int i=0;
-    while(f)
-    {
-	i++;
-	f=(face*)f->next;
-    }
-    return i;
 }
 
 void focusrect(face * activeface)
@@ -481,56 +451,37 @@ void focusline(face * activeface)
 
 }
 
-face *getprevface(face* f1,face* f)
+void removeface(int i)
 {
-    face *prev, *cyc;
-    cyc=f1;
-    prev=0;
-    while(cyc)
+    if(faces.at(i)->t)
     {
-	if(cyc==f)
-	    return prev;
-	prev=cyc;
-	cyc=(face*)cyc->next;
-    }
-    return 0;
-}
-
-
-
-face* removeface(face *face1, face *f)
-{
-    if(f->t)
-    {
-	rote_vt_destroy(f->t);
+	rote_vt_destroy(faces.at(i)->t);
 #ifdef threaded
-	SDL_DestroyMutex(f->upd_t_data.lock);
-	SDL_KillThread(f->upd_t_data.thr);
+	SDL_DestroyMutex(faces.at(i)->upd_t_data.lock);
+	SDL_KillThread(faces.at(i)->upd_t_data.thr);
 #endif
     }
-    face * ret= facelistremove(face1,f);
-    free(f);
-    if(f==selface)selface=0;
-    return ret;
+    free(faces.at(i));
+    if(faces.at(i)==selface)selface=0;
+    faces.erase(faces.begin()+i);
 }
 
-face * RemoveTerm(face* f1, RoteTerm * Term)
+void RemoveTerm(RoteTerm * Term)
 {
-    face *next=f1;
-    while(next)
+    for(int i=0;i<faces.size();i++)
     {
-	if((next)->t==Term)
+	if(faces.at(i)->t==Term)
 	{
-	    return removeface(f1, next);
+	    return removeface(i);
 	}
-	next=(face*)next->next;
     }
-    return 0;
 }
-void  showfaces(face * g, face * activeface)
+void  showfaces(void)
 {
-	while(g)
+	for(int i =0;i<faces.size();i++)
 	{
+	    face *g;
+	    g=faces.at(i);
 	    #ifdef GL
 		glPushMatrix();
 		glTranslatef(g->x,g->y,0);
@@ -552,7 +503,6 @@ void  showfaces(face * g, face * activeface)
 	    g->t||g==activeface)showface(g);
 	    if(global_tabbing)
 		activeface->theme=th;
-	    g=(face*)g->next;
 	    #ifdef GL
 		glPopMatrix();
 	    #endif
@@ -628,21 +578,18 @@ void updateterminal(RoteTerm *t)
 	SDL_PushEvent(&e);
       }
 }
-void updateterminals(face *g)
+void updateterminals()
 {
-	while(g)
-	{
-	    if(g->t)
-		updateterminal(g->t);
-	    g=g->next;
-	}
+	for(i=0;i<faces.size();i++)
+	    if(faces.at(i)->t)
+		updateterminal(faces.at(i)->t);
 }
 #endif
 
-void freefaces(face *g)
+void freefaces(void)
 {
-	while(g)
-	    g=removeface(g,g);
+	for(int i=0;i<faces.size();i++)
+	    removeface(i);
 
 }
 
@@ -668,11 +615,9 @@ void savesettings(void)
 }
 
 
-face * loadfaces(void)
+void loadfaces(void)
 {
-    face * result=0, * next=0;
     face *g;
-
     tpl_node *tn;
     double a,b,c;
     int32_t t,cols,rows;
@@ -690,25 +635,21 @@ face * loadfaces(void)
 	    add_term(g,rows,cols);
 	}
 	g->theme=4;
-	if(!result)
-	    result=g;
-	if(next)
-	    next->next=g;
-	next=g;
+	faces.push_back(g);
     }
     tpl_free(tn);
-    return result;
 }
 
-void savefaces(face * f1)
+void savefaces(void)
 {
+    face *f1;
     tpl_node *tn;
     double a,b,c;
     int32_t t,cols,rows;
     tn = tpl_map("A(fffiii)",&a,&b,&c,&t,&cols,&rows);
-    while(f1)
+    for(int i=0;i<faces.size(); i++)
     {
-
+        f1=faces.at(i);
 	if(!f1->scripted)
 	{
 	    a=f1->scale;
@@ -721,20 +662,20 @@ void savefaces(face * f1)
 
 	    tpl_pack(tn,1);
 	}
-	f1=(face*)f1->next;
     }
     tpl_dump(tn, TPL_FILE, fcfl);
     tpl_free(tn);
 }
 
-face *mousefocus(face *af, face *f1)
+face *mousefocus(void)
 {
     int mx;
     int my;
     SDL_GetMouseState(&mx,&my);
-    face * result=af;
-    while(f1)
+    face * result=activeface;
+    for(int i=0;i<faces.size();i++)
     {
+	face *f1=faces.at(i);
 	int ax=(mx-cam.x);
 	int ay=(my-cam.y);
 
@@ -748,20 +689,15 @@ face *mousefocus(face *af, face *f1)
 	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*10>ay)&&(f1->x+f1->scale*13*10>ax))
 		result=f1;
 	}
-	f1=(face*)f1->next;
     }
     return result;
 }
 
 void zoomem(face *z,double y)
 {
-    while(z)
-    {
 	z->scale+=y;
 	z->x=z->x+z->x*y;
 	z->y=z->y+z->y*y;
-	z=(face*)z->next;
-    }
 }
 
 void gle(void)
@@ -781,6 +717,16 @@ void gle(void)
 				logit("testgl: OpenGL error: 0x%X\n", gl_error );
 		}
 #endif
+}
+void sdle(void)
+{
+	char* sdl_error;
+	sdl_error = SDL_GetError( );
+	if( sdl_error[0] != '\0' )
+	{
+		logit("testgl: SDL error '%s'\n", sdl_error);
+		SDL_ClearError();
+	}
 }
 
 #ifdef GL
@@ -866,27 +812,20 @@ void camtoface(face * activeface)
     cam.y=-activeface->y;
 }
 
-face *lastface(face *f)
-{
-	while(f&&f->next)
-	    f=(face*)f->next;
-	return f;
-}
 face *add_face(void)
 {
-    return (face*)(lastface(face1)->next=new_face());
+    face * f;
+    f=new_face();
+    faces.push_back(f);
+    return f;
 }
 
 void initpython(void);
 void freepython(void);
 void reloadpythons(void);
 void reloadbuttons(void);
+
 	int startup=1;
-#ifdef GL
-//	int mm=1;
-#else
-	int mm = 0;
-#endif
 	int bpp=8;
 	int w = 1280;
 	int h = 800;
@@ -899,7 +838,7 @@ void reloadbuttons(void);
 	int mustresize = 1;
 	int justresized = 0;
 	SDL_Surface* s;
-	face *activeface;
+
 
 	void myinit(void)
 	{
@@ -935,9 +874,8 @@ void reloadbuttons(void);
 	}
 	void initfaces(void)
 	{
-		face1=new_face();
-		activeface =face1 ;
-		face1->next=new_face();
+		faces.push_back(new_face());
+		faces.push_back(new_face());
 		logit("still?\n");
 	}
 
@@ -953,37 +891,28 @@ int RunGLTest (void)
 
 	myinit();
 	initgl();
-	activeface=face1=loadfaces();
-	if(!face1)
+	loadfaces();
+	if(!faces.size())
 	    initfaces();
+	activeface=faces.at(0);
 	initpython();
 
 	int dirty=1;
 	logit("mainloop descent commencing\n");
 	while( !done )
 	{
-		lockterms(face1);
+		lockterms();
 		Uint8 * k=SDL_GetKeyState(NULL);
-		if(dirty||faces_dirty(face1))
+		if(dirty||faces_dirty())
 		{
 			dirty=0;
-			facesclean(face1);
+			facesclean();
 			#ifdef GL
-			if(blending)
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                        else
-				glBlendFunc(GL_ONE, GL_ZERO);
 			glClear(GL_COLOR_BUFFER_BIT);
 			#else
 			SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 			#endif
 			#ifdef GL
-			#ifdef swallows3d
-			network_main();
-			graphics_reshape(w,h);
-			graphics_main();
-			wm();
-			#endif
 			#ifdef nerve
 			if(nerv)
 			{	
@@ -999,15 +928,12 @@ int RunGLTest (void)
 			glPushMatrix();
 			glTranslatef(cam.x,cam.y,0);
 			#endif
-
-
-
 			if(k[SDLK_RCTRL])
 			    focusrect(activeface);
 			focusline(activeface);
 
-			showfaces(face1, activeface);
-			facesclean(face1);
+			showfaces();
+			facesclean();
 			#ifdef GL
 			int dol2=do_l2;
 			do_l2=1;
@@ -1027,47 +953,33 @@ int RunGLTest (void)
 				show_buttons(0);
 			do_l2=dol2;
 			glPopMatrix();
-//			int x,y;
-//			SDL_GetMouseState(&x,&y);
-//			testbuttonpress(x,h-y,1);
 			SDL_GL_SwapBuffers( );
 			#else
 			SDL_UpdateRect(s,0,0,0,0);
 			#endif
-
 		}
 		gle();
-		char* sdl_error;
-		sdl_error = SDL_GetError( );
-		if( sdl_error[0] != '\0' )
-		{
-			logit("testgl: SDL error '%s'\n", sdl_error);
-			SDL_ClearError();
-		}
-
-
+		sdle();
 		SDL_Event event;
 		SDL_TimerID x=0;
 #ifdef threaded
 		if(dirty)
 #endif
-		    x= SDL_AddTimer(55, NewTimerCallback, 0);
+		    x= SDL_AddTimer(55, TimerCallback, 0);
 
-		unlockterms(face1);
+		unlockterms();
 //              logit("---------unlocked wating\n");
 		if(SDL_WaitEvent( &event ))
 		{
-		    lockterms(face1);
+		    lockterms();
 //                  logit("---------locked goooin %i\n", event.type);
 		    if(x)SDL_RemoveTimer(x);
 		    x=0;
 		    do {
 			int mod=event.key.keysym.mod;
 			int key=event.key.keysym.sym;
-
 			switch( event.type )
 			{
-
 				case SDL_MOUSEMOTION:
 					if(escaped||k[SDLK_RCTRL])
 					{
@@ -1095,7 +1007,7 @@ int RunGLTest (void)
 					    }
                     			}
 					if(!SDL_GetMouseState(0,0))
-						activeface=mousefocus(activeface,face1);
+						activeface=mousefocus();
 
 
 				break;
@@ -1139,25 +1051,25 @@ int RunGLTest (void)
 						{
 						    dirty=1;
 						    cam.y+=50;
-						    activeface=mousefocus(activeface,face1);
+						    activeface=mousefocus();
 						}
 						if(k[SDLK_DOWN])
 						{
 						    dirty=1;
 						    cam.y-=50;
-						    activeface=mousefocus(activeface,face1);
+						    activeface=mousefocus();
 						}
 						if(k[SDLK_LEFT])
 						{
 						    dirty=1;
 						    cam.x+=50;
-						    activeface=mousefocus(activeface,face1);
+						    activeface=mousefocus();
 						}
 						if(k[SDLK_RIGHT])
 						{
 						    dirty=1;
 						    cam.x-=50;
-						    activeface=mousefocus(activeface,face1);
+						    activeface=mousefocus();
 						}
 
 
@@ -1171,7 +1083,13 @@ int RunGLTest (void)
 							    clipoutlastline(activeface);
 							    break;
 							case SDLK_TAB:
-							    cycle(face1, &activeface);
+							    for(int i=0;i<faces.size();i++)
+								if(activeface==faces.at(i))
+								{
+								    if(i++==faces.size())
+									i=0;
+								    activeface=faces.at(i);
+								}
 							    global_tabbing=1;
 							    camtoface(activeface);
 							    dirty=1;
@@ -1219,11 +1137,11 @@ int RunGLTest (void)
 
 							break;
 							case SDLK_RETURN:
-							    zoomem(face1,0.05);
+							    zoomem(activeface,0.05);
 							    dirty=1;
 							    break;
 							case SDLK_BACKSPACE:
-							    zoomem(face1,-0.05);
+							    zoomem(activeface,-0.05);
 							    dirty=1;
 							    break;
 							
@@ -1248,17 +1166,16 @@ int RunGLTest (void)
 							break;
 							case SDLK_t:
 							{
-							    face * fa = face1;
 							    int yy=0;
-							    while(fa)
+							    for(int i=0;i<faces.size();i++)
 							    {
+								face * fa = faces.at(i);
 								fa->x=0;
 								fa->y=yy;
 								if(fa->t)
 								    yy+=26*fa->t->rows*fa->scale;
 								else
 								    yy+=26*100;
-								fa=(face*)fa->next;
 							    }
 							    cam.x=-activeface->x;
 							    cam.y=-activeface->y;
@@ -1276,15 +1193,14 @@ int RunGLTest (void)
 							    dirty=1;
 							break;
 							case SDLK_r:
-							    freefaces(face1);
+							    freefaces();
 							    initfaces();
 							    dirty=1;
 							break;
 							case SDLK_n:
 							    activeface=new_face();
-							    activeface->next=face1;
-							    face1=activeface;
-							    add_terminal(face1);
+							    faces.push_back(activeface);
+							    add_terminal(activeface);
 							    camtoface(activeface);
 							    dirty=1;
 							break;
@@ -1371,7 +1287,7 @@ int RunGLTest (void)
 					    {
 						logit("debug messages r fun\n");
 						add_terminal(activeface);
-						activeface->next=new_face();
+						faces.push_back(new_face());
 						dirty=1;
 					    }
 					    if(activeface->t)
@@ -1498,13 +1414,11 @@ int RunGLTest (void)
 				case SDL_USEREVENT:
 					if(event.user.code==1)
 					{
-					    if(activeface->t==event.user.data1)
-					    {
-						activeface=(face*)activeface->next;
-						if(!activeface)
-						    activeface=face1;
-					    }
-					    face1=RemoveTerm(face1, (RoteTerm*)event.user.data1);
+					    int af=(activeface->t==event.user.data1);
+					    RemoveTerm((RoteTerm*)event.user.data1);
+					    if(af)
+						activeface=faces.at(0);
+
 					    dirty=1;
 					}
 					break;
@@ -1549,21 +1463,21 @@ int RunGLTest (void)
 		    }
 		    if(!done)
 		    {
-			unlockterms(face1);
+			unlockterms();
 			#ifndef threaded
-				updateterminals(face1);
+			updateterminals();
 			#endif
 		    }
 		    else
 		    {
 			savemode(w,h,mdfl);
-			savefaces(face1);
+			savefaces();
 		    }
 		}
 
 	}
 	freepython();
-	freefaces(face1);
+	freefaces();
 	freel2();
 	SDL_Quit( );
 	return(0);
@@ -1673,7 +1587,7 @@ PyObject *pfreeface(PyObject *self, PyObject* args)
     face * f;
     if(PyArg_ParseTuple(args, "i",&f))
     {
-	face1=removeface(face1, f);
+	removeface(f);
 	Py_INCREF(Py_None);
 	return Py_None;
     }

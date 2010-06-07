@@ -1,7 +1,7 @@
 
 srcdir  = .
 # 
-CC      = gcc-4  -g -ggdb 
+CC      = g++  -g -ggdb 
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -17,7 +17,7 @@ CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
 pl=$(shell uname)
 
 ifeq ($(pl),Linux)
-CC      = gcc  -g -ggdb 
+CC      = g++  -g -ggdb 
 PYLIBS = -Dpython `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
 CFLIBS += -DLINUX -pthread `pkg-config --libs sdl` `pkg-config --cflags sdl` 
 GLLIBS += -lGL
@@ -41,9 +41,7 @@ a: $(TARGETS)
 X=$(srcdir)/../gltext.c ./glterm.c $(srcdir)/asd.c ../roteterm/* ../linetextdata.c
 
 lgl$(EXE): $(X)
-	$(CC)   -o $@ asd.c  -Dlibpng -lpng $(GLLIBS) $(CFLIBS) -Dnerve -lGLU  -lm
-gpp$(EXE): $(X)
-	g++   -o $@ asd.c  -Dlibpng -lpng $(GLLIBS) $(CFLIBS) -Dnerve -lGLU  -lm -Wno-write-strings
+	$(CC)   -o $@ asd.c  -Dlibpng -lpng $(GLLIBS) $(CFLIBS) -Dnerve -lGLU  -lm -Wno-write-strings
 
 lgls3d$(EXE): $(X) ../s3d-0.2.1.1/server/*
 	$(CC)   -o $@ -D swallows3d asd.c   -lpng $(GLLIBS) $(CFLIBS) -Dnerve ../s3d-0.2.1.1/server/*c -I../s3d-0.2.1.1/
