@@ -891,8 +891,13 @@ int RunGLTest (void)
 
 	myinit();
 	initgl();
+<<<<<<< HEAD
 	loadfaces();
 	if(!faces.size())
+=======
+	activeface=face1=loadfaces();
+	if(!face1)
+>>>>>>> origin/master
 	    initfaces();
 	activeface=faces.at(0);
 	initpython();
