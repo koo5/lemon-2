@@ -953,11 +953,6 @@ int RunGLTest (void)
 
 	myinit();
 	initgl();
-	
-#ifdef swallows3d
-	init();//s3d
-#endif
-	
 	activeface=face1=loadfaces();
 	if(!face1)
 	    initfaces();
