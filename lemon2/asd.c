@@ -758,7 +758,7 @@ void show_buttons(int picking)
 	while(n)
 	{
 		glLoadName(n-1);
-		show_button(-cam.x+SDL_GetVideoSurface()->w-100,-cam.y+(y+=100), buttonnames[--n],picking);
+		show_button(-cam.x+100,-cam.y+(y+=100), buttonnames[--n],picking);
 	}
 	glLoadName(-1);
 	glBlendFunc(GL_ONE, GL_ZERO);
