@@ -36,55 +36,6 @@ void loadcolors(void)
 int halflight;
 
 
-void draw_text_az(char *a, double y, double z)
-{
-    if(!a)return;
-  xy lok;
-  lok.x=0;
-  lok.y=0;
-  setcolor(1,1,1,1);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glBegin(GL_LINE_STRIP);
-  do 
-  {
-	lok=draw(lok,*a,y,z);
-	if (*a==10)
-	{
-	    lok.x=0;
-	    lok.y=lok.y+30*z;
-	    glEnd();
-	    glBegin(GL_LINE_STRIP);
-	}
-	if (!*a)
-	    break;
-	a++;
-  }
-  while(1);
-  glEnd();
-}
-
-void draw_text(char *a)
-{
-    draw_text_az(a,1,1);
-}
-
-
-void lokdraw_line(xy lok,const char *a)
-{// of text
-glBegin(GL_LINE_STRIP);
-do 
-{
-	lok=draw(lok,*a,1,1);
-	lok.x+=4;
-	if (!*a)
-	    break;
-	a++;
-}
-while(1);
-glEnd();
-}
-
-
 
 /*
 void draw_file(char *a)
