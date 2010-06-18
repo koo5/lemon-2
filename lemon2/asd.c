@@ -1068,7 +1068,7 @@ int RunGLTest (void)
 							    for(int i=0;i<faces.size();i++)
 								if(activeface==faces.at(i))
 								{
-								    if(i++==faces.size())
+								    if(++i==faces.size())
 									i=0;
 								    activeface=faces.at(i);
 								}
