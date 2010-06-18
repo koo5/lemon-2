@@ -322,5 +322,4 @@ void rotoclipout(char * x, RoteTerm *t, int selection);
 
 
 
-int lines_r_dirty(RoteTerm *rt);
-void clean_lines(RoteTerm *rt);
+int clean_term(RoteTerm *rt);

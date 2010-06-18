@@ -38,10 +38,11 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 #include "term.h"
 
 #ifdef WINDOWS
-struct timeval {
-  time_t      tv_sec;
-  suseconds_t tv_usec;
-};
+#include "sys/select.h"
+//struct timeval {
+  //time_t      tv_sec;
+  //suseconds_t tv_usec;
+//};
 #endif
 
 void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
@@ -450,18 +451,21 @@ void rotoclipout(char * x, RoteTerm *t, int selection)
 
 
 
-int lines_r_dirty(RoteTerm *rt)
+int get_lines_dirty_and_clean_them(RoteTerm *rt)
 {
-    int x;
+    int x,r;
     for (x=0;x<rt->rows;x++)
 	if(rt->line_dirty[x])
-	    return 1;
-    return 0;
+	{
+	    rt->line_dirty[x]=0;
+	    r=1;
+	}
+    return r;
 }
-void clean_lines(RoteTerm *rt)
+int clean_term(RoteTerm *rt)
 {
-    int x;
-    for (x=0;x<rt->rows;x++)
-	rt->line_dirty[x]=0;
+    int dirty=get_lines_dirty_and_clean_them(rt)||rt->curpos_dirty;
+    rt->curpos_dirty=0;
+    return !dirty;
 }
 

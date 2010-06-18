@@ -53,7 +53,9 @@ void rote_vt_terminfo(RoteTerm *rt, const char *c)
     if(rt)
     {
     rit=rt;
-    char *u=tigetstr(c);
+    char *cc=strdup(c);
+    char *u=tigetstr(cc);
+    free(cc);
     if (u)
     {
 	//if (u==(char *)-1)

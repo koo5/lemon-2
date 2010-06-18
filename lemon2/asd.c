@@ -325,17 +325,14 @@ void add_terminal(face * f)
 }
 
 
-int term_dirty(RoteTerm *t)
+int clean_faces(void)
 {
-    return t->curpos_dirty || lines_r_dirty(t);
-}
-int faces_dirty(void)
-{
+    int r=1;
     for(int i=0;i<faces.size();i++)
 	if(faces.at(i)->t)
-	    if(term_dirty(faces.at(i)->t))
-		return 1;
-    return 0;
+	    if(!clean_term(faces.at(i)->t))
+		r=0;
+    return r;
 }
 
 void lockterm(face * f)
@@ -364,19 +361,6 @@ void unlockterms(void)
 	if(faces.at(i)->t)
 	    _mutexV(faces.at(i)->upd_t_data.lock);
 #endif
-}
-
-void faceclean(face *f)
-{
-	f->t->curpos_dirty=false;
-	clean_lines(f->t);
-}
-
-void facesclean(void)
-{
-    for (int i=0; i < faces.size(); i++)
-	if(faces.at(i)->t)
-	    faceclean(faces.at(i));
 }
 
 void showface(face *g)
@@ -824,7 +808,7 @@ void initpython(void);
 void freepython(void);
 void reloadpythons(void);
 void reloadbuttons(void);
-
+//int RunGLTest (void)
 	int startup=1;
 	int bpp=8;
 	int w = 1280;
@@ -903,10 +887,9 @@ int RunGLTest (void)
 	{
 		lockterms();
 		Uint8 * k=SDL_GetKeyState(NULL);
-		if(dirty||faces_dirty())
+		if(dirty||!clean_faces())
 		{
 			dirty=0;
-			facesclean();
 			#ifdef GL
 			glClear(GL_COLOR_BUFFER_BIT);
 			#else
@@ -933,7 +916,6 @@ int RunGLTest (void)
 			focusline(activeface);
 
 			showfaces();
-			facesclean();
 			#ifdef GL
 			int dol2=do_l2;
 			do_l2=1;
