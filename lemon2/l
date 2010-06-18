@@ -2,5 +2,8 @@
 export SDL_VIDEO_ALLOW_SCREENSAVER=1
 SCRIPT=$(readlink -f $0)
 SCRIPT="${SCRIPT}gl"
-$SCRIPT
-#echo $SCRIPT
+if [ $1 ]
+then
+cd "$1"
+fi
+"$SCRIPT"
