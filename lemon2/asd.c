@@ -966,8 +966,8 @@ int RunGLTest (void)
 						if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
 						{
 							dirty=1;
-							activeface->x+=(float)event.motion.xrel/1.0f;
-							activeface->y+=(float)event.motion.yrel/1.0f;
+							activeface->x+=event.motion.xrel;
+							activeface->y+=event.motion.yrel;
 						}
 						if((SDL_BUTTON(3)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
 						{

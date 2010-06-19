@@ -110,11 +110,14 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
     xy lok;
     lok.x=0;
     lok.y=0;
-    int scroll=min(f->scroll,rt->logl);
     int j=0;
     int i;
 
+    #ifdef GL
+    glBegin(GL_LINE_STRIP);
+    #endif
 
+    int scroll=min(f->scroll,rt->logl);
     if(rt->log)
     {
 	for (i=rt->logl-scroll;i<rt->logl;i++)
@@ -126,14 +129,8 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 	    for(j=0;j<rt->log[i][0].ch;j++)
 	    {
 		lok.x=j*13*f->scale;
-#ifdef GL
-		glBegin(GL_LINE_STRIP);
-#endif
 		do_color(rt->log[i][j+1].attr, f);
 	        draw(lok,rt->log[i][j+1].ch,f->scale,f->scale);
-#ifdef GL
-		glEnd();
-#endif
 	    }
 	}
 
@@ -144,18 +141,11 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
     {
 	lok.y=(scroll+i)*26*f->scale;
 	if(f->scale>1)lok.y+=(f->scale-1)/2*26;
-//	int gotlog=1;
 	for (j=0; j<rt->cols; j++)
 	{
-#ifdef GL
-	    glBegin(GL_LINE_STRIP);
-#endif
-
 	    lok.x=j*13*f->scale;
 	    if(f->scale>1)lok.x+=(f->scale-1)/2*13;
-	    if(!tscroll)//draw_edges_between_different_bgs
 	    {
-		//halflight=1;
 		if((j>0))
 		    if((ROTE_ATTR_BG(rt->cells[i][j-1].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
 			zspillit(lok,"aaaz",f->scale);
@@ -168,14 +158,11 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 		if((i>0))
 		    if((ROTE_ATTR_BG(rt->cells[i-1][j].attr))!=(ROTE_ATTR_BG(rt->cells[i][j].attr)))
 			zspillit(lok,"aaza",f->scale);
-		//halflight=0;
 	    }
 //	    int bold=(!tscroll)&&((rt->cells[i][j].attr)&128);
 	    do_color(rt->cells[i][j].attr,f);
 	    	    
-	    isundercursor=(!rt->cursorhidden)&&(!tscroll)&&((rt->ccol==j)&&(rt->crow==i));
-	    //actually , not selected but under cursor
-
+	    isundercursor=(!rt->cursorhidden)&&((rt->ccol==j)&&(rt->crow==i));
 #ifdef GL
 	    if(isundercursor||(selface==f&&selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
 	    {
@@ -185,7 +172,6 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 		glEnd();
 		if(isundercursor)
 		{
-		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		    glPushMatrix();
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glRotatef(f->rotor,0,0,1);
@@ -202,7 +188,6 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 
 		    glTranslatef(lok.x+13,lok.y+13,0);
 		    glRotatef(f->rotor/10, 0,0,1);
-		    glColor4f(1,1,0,0.2);
 		    int i;
 		    int steps=10;
 		    for (i=0; i<360; i+=steps)
@@ -211,6 +196,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 			glPushMatrix();
 			glTranslatef(0,100,0);
 			glBegin(GL_QUADS);
+			glColor4f(1,1,0,0.2);
 			glVertex2f(-1,0);
 			glVertex2f(1,0);
 			glVertex2f(2,10);
@@ -218,19 +204,19 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 			glEnd();
 			glPopMatrix();
 		    }
-//		    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
 		    glPopMatrix();
 		}
 		glPushMatrix();
-		    glTranslatef(lok.x+13,lok.y+13,0);
-		    glPushMatrix();
-		    glRotatef(f->rotor+=((SDL_GetTicks()-f->lastrotor)/10),0,1,0);
-		    f->lastrotor=SDL_GetTicks();
-		    glBegin(GL_LINE_STRIP);
-			xy molok;molok.x=-13;molok.y=-13;
-			draw(molok,rt->cells[i][j].ch,f->scale,f->scale);
-		    glEnd();
-		    glPopMatrix();
+		glTranslatef(lok.x+13,lok.y+13,0);
+		glPushMatrix();
+		glRotatef(f->rotor+=((SDL_GetTicks()-f->lastrotor)/10),0,1,0);
+		f->lastrotor=SDL_GetTicks();
+		glBegin(GL_LINE_STRIP);
+		xy molok;molok.x=-13;molok.y=-13;
+		draw(molok,rt->cells[i][j].ch,f->scale,f->scale);
+		draw(molok,rt->cells[i][j].ch,f->scale,f->scale);
+		glEnd();
+		glPopMatrix();
 		glPopMatrix();
 		glBegin(GL_LINE_STRIP);
 	    }
@@ -244,9 +230,7 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
 
 #endif
 	    draw(lok,rt->cells[i][j].ch,f->scale,f->scale);
-#ifdef GL
-	    glEnd();
-#endif
+	    draw(lok,rt->cells[i][j].ch,f->scale,f->scale);
 	}
 
     }
@@ -282,6 +266,10 @@ void draw_terminal(face *f, int selstartx, int selstarty, int selendx, int selen
         glimits=0;
     }	
 */
+#ifdef GL
+	    glEnd();
+#endif
+
 }
 
 
