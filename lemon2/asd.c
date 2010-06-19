@@ -109,6 +109,20 @@ struct obj{
     virtual void draw()=0;
     virtual void keyp(int key,unicode,mod)=0;
 };
+#ifdef nerve
+    class nerverot:public obj
+    {
+	struct state *nerv
+	public:
+	    void shownerv()
+	    {
+	        nerverot_update(nerv);
+	        glTranslatef(x,y,z);
+	        nerverot_draw(3,nerv);
+	        resetmatrices();
+	    }
+    }
+#endif
 struct face:public obj
 {
     RoteTerm *t;
@@ -259,7 +273,7 @@ void resetmatrices(void)
     #ifdef GL
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
-        glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
+        glFrustum(0,SDL_GetVideoSurface()->w,0,SDL_GetVideoSurface()->h,1,100);
         glMatrixMode( GL_MODELVIEW );
         glLoadIdentity();
     #endif
@@ -471,20 +485,6 @@ void clipoutlastline(face *f)
 
 
 
-#ifdef nerve
-void shownerv(struct state *nerv)
-{
-    nerverot_update(nerv);
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity( );
-    glFrustum(-1, 1, -1, 1, 1.5, 10);
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-    glTranslatef(0,0,-2.5);
-    nerverot_draw(3,nerv);
-    wm();
-}
-#endif
 
 
 void freefaces(void)
