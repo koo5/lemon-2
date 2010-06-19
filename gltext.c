@@ -6,12 +6,11 @@ double r,g,b,a;
 void setcolor(double rr,double gg,double bb,double aa)
 {
     r=rr;g=gg;b=bb;a=aa;
-//    printf("%f %f %f %f\n",r,g,b,a);
 }
 
 
 
-void azspillit(xy lok, const char *cx,
+void azspillit2(xy lok, const char *cx,
 float a,float z)
 // x scale, y scale
 {
@@ -111,6 +110,10 @@ float a,float z)
     if(duped)free(duped);
     free(x);
 }
+
+void azspillit(xy lok, const char *cx, float a,float z)
+
+
 
 void zspillit(xy lok,const char *x,float z)
 {

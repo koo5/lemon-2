@@ -23,17 +23,9 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
-
-
-
 #include <stdlib.h>
-
 #include <stdio.h>
-
-
 #include <string.h>
-
 #include <math.h>
 #include "SDL.h"
 #include "SDL_events.h"
@@ -50,56 +42,54 @@
 #include "SDL_mutex.h"
 #include "../tpl/tpl.h"
 #ifdef GL
-#include "SDL_opengl.h"
-#include <GL/glu.h>
-#ifdef nerve
-#include "../toys/nerverot/stolenfromglu"
-#include "../toys/nerverot/nerverot.c"
-#endif
+    #include "SDL_opengl.h"
+    #include <GL/glu.h>
+    #ifdef nerve
+	#include "../toys/nerverot/stolenfromglu"
+	#include "../toys/nerverot/nerverot.c"
+    #endif
 #else
-#include "SDL_draw.h"
+    #include "SDL_draw.h"
 #endif
-
 #ifdef libpng
-#include "screenshot.c"
+    #include "screenshot.c"
 #endif
 #include "initsdl.c"
-
-#ifdef python
-#include "Python.h"
-#endif
-
 #include <dirent.h>
-
-
+#include "getexecname.c"
 #include "../roteterm/demo/sdlkeys.c"
+#ifdef SDLD
+    #include "../sdldlines.c"
+#endif
+#include "../gltext.c"
+#include "glterm.c"
+#include <iostream>
+#include <vector>
+#ifdef GL
+    inline void dooooot(float x,float y)
+    {
+        glVertex2f(x,y);
+    }
+#endif
+int showbuttons=0;
+int givehelp=1;
+int do_l2=0;
+char *fnfl="l2";//font file
+float lv=2;//glLineWidth
+char *stng;//settings
+char *mdfl;//modes
+char *fcfl;//faces
+char *ntfl;//newtermmsg
+char *newtermmsg;
+char *btns;//buttons/
 char **buttons;
 char **buttonnames;
 int numbuttons;
-int showbuttons=0;
-char *fnfl="l2";
-int do_l2=0;
-int givehelp=1;
-int blending=1;
-char *stng;
-char *mdfl;
-char *fcfl;
-char *pyth;
-char *btns;
-Uint32 lastclicktime;
-int dblclick=400;
-
-#ifdef GL
-inline void dooooot(float x,float y)
+float floabs(float x)
 {
-    glVertex2f(x,y);
+    return x>0 ? x : -x;
 }
-#endif
-
-
-static
-void
-logit(const char * iFormat, ...)
+void logit(const char * iFormat, ...)
 {
     va_list argp;
     va_start(argp, iFormat);
@@ -107,15 +97,6 @@ logit(const char * iFormat, ...)
     va_end(argp);
     printf("\n");
 }
-
-#ifdef SDLD
-#include "../sdldlines.c"
-#endif
-
-#include "../gltext.c"
-
-#include "getexecname.c"
-
 typedef struct
 {
     RoteTerm* t;
@@ -123,127 +104,172 @@ typedef struct
     SDL_Thread *thr;
 }
 moomoo;
-typedef struct
+struct obj{
+    double x,y,z;
+    virtual void draw()=0;
+    virtual void keyp(int key,unicode,mod)=0;
+};
+struct face:public obj
 {
-    Uint32 last_resize;
     RoteTerm *t;
+    Uint32 last_resize;
     int lastxresize;
     int lastyresize;
-    double x,y;
-    limits lim;
     moomoo upd_t_data;
     double scale;
     int scroll;
-    int theme;
     int oldcrow, oldccol;
-    double rotor;
     Uint32 lastrotor;
-    int scripted;
-    #ifdef python
-    PyObject *showfunc;
-    #endif
-    char *label;
-} face;
-
-#include <iostream>
-#include <vector>
-
+    double rotor;
+    int selstartx,selstarty,selendx,selendy;
+    face()
+    {
+	memset(this,0,sizeof(face));
+	f->scale=0.75;
+	return f;
+    }
+    void add_term(int c,int r)
+    {
+	logit("adding terminal");
+	t = rote_vt_create(c,r);
+	rote_vt_forkpty((RoteTerm*) t, "bash");
+	#ifdef threaded
+	    upd_t_data.lock=SDL_CreateMutex();
+	    upd_t_data.t=t;
+	    logit("upd_t_data.lock=%i", f->upd_t_data.lock);
+	    upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&upd_t_data);
+	#endif
+    }
+    void add_terminal()
+    {
+	add_term(SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
+    }
+    void draw()
+    {
+	if(t)
+	{
+    	    draw_terminal(this);
+        }
+	else
+    	    draw_text(newtermmsg);
+    }
+    void keyp(int key,unicode,mod)
+    {
+	if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
+	{
+	    if(key==SDLK_PAGEUP)
+		scroll+=9;
+	    if(key==SDLK_PAGEDOWN)
+	    	scroll-=9;
+	    if(key==SDLK_END)
+		scroll=0;
+	    if(key==SDLK_HOME)
+		if(t)
+		    scroll=t->logl;
+	    if(scroll<0)scroll=0;
+	}
+	if(key!=SDLK_RSHIFT)
+	    scroll=0;
+        if (t)
+    	    sdlkeys(t,key,unicode,mod);
+	else
+	{
+	    add_terminal();
+	    faces.push_back(new face);
+	}
+    }
+}
+class mplayer
+{
+    vector<String>list;    
+    void draw()
+    {
+    
+    }
+    void keyp(int key,unicode,mod)
+}
 using namespace std;
 vector<face *> faces;
-face *activeface;
-
-#include "glterm.c"
-
-char *ntfl;
-char *newtermmsg;//
-xy cam;//
-int global_tabbing=0;
-int selstartx, selstarty, selendx, selendy;
-int clicksphase;
-face * selface;
+obj *active=0;
+xy cam;
 RoteTerm *clipout, *clipout2;
-
-
-float floabs(float x)
-{
-    return x>0 ? x : -x;
-}
-
-
-float r1x=0;
-float r1y=0;
-float lv=2;
-
-void keyp(face* f, char ey)
-{
-    if (f->t)
-	rote_vt_keypress(f->t,ey);
-}
-
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!\n");}}
 #define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!\n");}}
-
-int update_terminal(void *data)
-{
-    while(1)
+#define CODE_TIMER 0
+#define CODE_QUIT 1
+#ifdef threaded
+    int update_terminal(void *data)
+    {	
+        while(1)
+        {
+	    moomoo * d = (moomoo *)data;
+	    char buf[512];
+	    int br=-1;
+	    //logit("UNLOCKED SELECT\n");
+	    rote_vt_update_thready(buf, 512, &br, d->t);
+	    //logit("*end SELECT, locking %i*\n", d->lock);
+	    _mutexP(d->lock);
+	    //logit("LOCKED\n");
+	    if (br>0)
+	    {
+		//logit("*locked injecting\n");
+		rote_vt_inject(d->t, buf, br);
+		//logit("*locked injected\n");
+		SDL_Event e;
+		e.type=SDL_USEREVENT;
+		e.user.code=0;
+		SDL_PushEvent(&e);
+	    }
+	    if(!d->t->childpid)
+	    {
+		SDL_Event e;
+		e.type=SDL_USEREVENT;
+		e.user.code=CODE_QUIT;
+		e.user.data1=d->t;
+		SDL_PushEvent(&e);
+		_mutexV(d->lock);
+		return 1;
+	    }
+	    _mutexV(d->lock);
+	}
+	return 1;
+    }
+#else
+    void updateterminal(RoteTerm *t)
     {
-      moomoo * d = (moomoo *)data;
-      char buf[512];
-      int br=-1;
-//     logit("UNLOCKED SELECT\n");
-      rote_vt_update_thready(buf, 512, &br, d->t);
-//     logit("*end SELECT, locking %i*\n", d->lock);
-	_mutexP(d->lock);
-//        logit("LOCKED\n");
-
-      if (br>0)
-      {
-	/* inject the data into the terminal */
-//        logit("*locked injecting\n");
-	rote_vt_inject(d->t, buf, br);
-//        logit("*locked injected\n");
-	SDL_Event e;
-	e.type=SDL_USEREVENT;
-	e.user.code=0;
-	SDL_PushEvent(&e);
-      }
-
-      if(!d->t->childpid)
-      {
-//	logit("Segmentation Fault\n");
-	SDL_Event e;
-	e.type=SDL_USEREVENT;
-	e.user.code=1;
-	e.user.data1=d->t;
-	SDL_PushEvent(&e);
-	_mutexV(d->lock);
-	return 777;
-      }
-      _mutexV(d->lock);
-     }
-      return 666;
-}
-
-
-
-
-
-
-void wm(void)
+        rote_vt_update(t);
+        if(!t->childpid)
+        {
+	    SDL_Event e;
+	    e.type=SDL_USEREVENT;
+	    e.user.code=CODE_QUIT;
+	    e.user.data1=t;
+	    SDL_PushEvent(&e);
+	}
+    }
+    void updateterminals()
+    {
+        for(i=0;i<faces.size();i++)
+            if(faces.at(i)->t)
+		updateterminal(faces.at(i)->t);
+    }
+#endif
+void resetmatrices(void)
 {
-#ifdef GL
-
-	glViewport( 0, 0, SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h );
-
+    #ifdef GL
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
-	glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-#endif
+        glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
+        glMatrixMode( GL_MODELVIEW );
+        glLoadIdentity();
+    #endif
 }
-
+void resetviewport(void)
+{
+    #ifdef GL
+	glViewport( 0, 0, SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h );
+    #endif
+}
 SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
 {
     static SDL_Rect xx ;
@@ -253,16 +279,12 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
     xx.h=h;
     return &xx;
 }
-
-
 void resizooo(face *f, int x, int y, Uint8* duck)
 {
-    if(!f->t)return;
     int up=duck[SDLK_HOME]||(y==-1);
     int dw=duck[SDLK_END]||(y==1);
     int lf=duck[SDLK_DELETE]||(x==-1);
     int ri=duck[SDLK_PAGEDOWN]||(x==1);
-
     if(up)
     y=-1;
     if(dw)
@@ -271,60 +293,14 @@ void resizooo(face *f, int x, int y, Uint8* duck)
     x=-1;
     if(ri)
     x=1;
-
     if((!x+f->lastxresize||!y+f->lastyresize)||(SDL_GetTicks()-f->last_resize>100)||!f->last_resize)
     {
 	rote_vt_resize(f->t, f->t->rows+y,f->t->cols+x);
 	f->last_resize=SDL_GetTicks();
     }
-
     f->lastxresize=x;
     f->lastyresize=y;
-
 }
-
-Uint32 TimerCallback(Uint32 interval, void *param)
-{
-	SDL_Event e;
-	e.type=SDL_USEREVENT;
-	e.user.code=0;
-	SDL_PushEvent(&e);
-	return interval;
-}
-
-
-
-
-face * new_face(void)
-{
-    face * f=(face*)malloc(sizeof(face));
-    memset(f,0,sizeof(face));
-    f->scale=0.75;
-    f->theme=4;
-    return f;
-}
-
-void add_term(face * f,int c,int r)
-{
-    logit("adding terminal|");
-    RoteTerm* t;
-    t= rote_vt_create(c,r);
-    rote_vt_forkpty((RoteTerm*) t, "bash");
-    f->t=t;
-#ifdef threaded
-    f->upd_t_data.lock=SDL_CreateMutex();
-    f->upd_t_data.t=t;
-//    logit("upd_t_data.lock=%i", f->upd_t_data.lock);
-    f->upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&f->upd_t_data);
-    logit("|added.\n");
-#endif
-}
-void add_terminal(face * f)
-{
-    add_term(f,SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
-}
-
-
 int clean_faces(void)
 {
     int r=1;
@@ -334,107 +310,83 @@ int clean_faces(void)
 		r=0;
     return r;
 }
-
 void lockterm(face * f)
 {
-#ifdef threaded
+    #ifdef threaded
 	_mutexP(f->upd_t_data.lock);
-#endif
+    #endif
 }
 void lockterms(void)
 {
-#ifdef threaded
-//    logit("locking terms\n");
-    for (int i=0; i < faces.size(); i++)
-	if(faces.at(i)->t)
-	{
-	    _mutexP(faces.at(i)->upd_t_data.lock);
-//	    logit(".\n");
-	}
-//    logit("done\n");
-#endif
+    #ifdef threaded
+	//logit("locking terms\n");
+        for (int i=0; i < faces.size(); i++)
+	    if(faces.at(i)->t)
+	    {
+		_mutexP(faces.at(i)->upd_t_data.lock);
+		//logit(".\n");
+	    }
+	//logit("done\n");
+    #endif
 }
 void unlockterms(void)
 {
-#ifdef threaded
-    for (int i=0; i < faces.size(); i++)
-	if(faces.at(i)->t)
-	    _mutexV(faces.at(i)->upd_t_data.lock);
-#endif
+    #ifdef threaded
+	for (int i=0; i < faces.size(); i++)
+    	    if(faces.at(i)->t)
+		_mutexV(faces.at(i)->upd_t_data.lock);
+    #endif
 }
-
-void showface(face *g)
-{
-
-    if(g->t)
-    {
-        if(g->label)
-        {
-	    draw_text_az(g->label, g->scale*g->t->cols/strlen(g->label),g->scale*g->t->rows);
-	    
-	}
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	draw_terminal(g,selstartx,selstarty,selendx,selendy,selface);
-    }
-    if(g->scripted)
-    {
-	#ifdef python
-	if(g->showfunc)
-	        PyEval_CallFunction(g->showfunc, "()");
-	#endif
-    }	
-    if(!g->t&&!g->scripted)
-	draw_text(newtermmsg);
-}
-
 void focusrect(face * activeface)
 {
-#ifdef GL
-
-    if(activeface->t)
+    #ifdef GL
+	if(activeface->t)
+	{
+	    glBegin(GL_LINES);
+	    glColor3f(1,0,0);
+	    glVertex2f(activeface->x, activeface->y);
+	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
+	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
+	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
+	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
+	    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
+	    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
+	    glVertex2f(activeface->x, activeface->y);
+	    glEnd();
+	}
+    #endif
+}
+#ifdef SDLD
+    void DrawLine(SDL_Surface *s, int x, int y, int x2, int y2, int c)
     {
-    glBegin(GL_LINES);
-    glColor3f(1,0,0);
-    glVertex2f(activeface->x, activeface->y);
-    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
-    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
-    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
-    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
-    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
-    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
-    glVertex2f(activeface->x, activeface->y);
-    glEnd();
+        if (y<1)y=1;    if (x<1)x=1;
+        if(y>gltextsdlsurface->h-2)y=gltextsdlsurface->h-2;
+        if(x>gltextsdlsurface->w-2)x=gltextsdlsurface->w-2;
+        if (y2<1)y2=1;    if (x2<1)x2=1;
+        if(y2>gltextsdlsurface->h-2)y2=gltextsdlsurface->h-2;
+        if(x2>gltextsdlsurface->w-2)x2=gltextsdlsurface->w-2;
+        Draw_Line(s,x,y,x2,y2,c);
     }
 #endif
-}
- 
-
 void focusline(face * activeface)
 {
     static double angel=0;
     float csize=30;
-#ifdef GL
-
-    glBegin(GL_POINTS);
-    glColor3f(1,0,0);
-//    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
-//    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel+3.14159265358979323846264/2)+activeface->x,csize*cos(angel+3.14159265358979323846264/2)+activeface->y);
-//    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel+3.14159265358979323846264)+activeface->x,csize*cos(angel+3.14159265358979323846264)+activeface->y);
-//    glVertex2i(0,0);
-    glVertex2f(csize*sin(angel+1.5*3.14159265358979323846264)+activeface->x,csize*cos(angel+1.5*3.14159265358979323846264)+activeface->y);
-   angel+=0.1;
-    if(angel>2*3.14159265358979323846264)angel=0;
-    glEnd();
-#else
-    DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y,    cam.x+activeface->x+100,cam.y+activeface->y,barvicka);
-    DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y+100,cam.x+activeface->x,    cam.y+activeface->y,barvicka);
-#endif
-
+    #ifdef GL
+        glBegin(GL_POINTS);
+        glColor3f(1,0,0);
+        glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
+        glVertex2f(csize*sin(angel+3.14159265358979323846264/2)+activeface->x,csize*cos(angel+3.14159265358979323846264/2)+activeface->y);
+        glVertex2f(csize*sin(angel+3.14159265358979323846264)+activeface->x,csize*cos(angel+3.14159265358979323846264)+activeface->y);
+        glVertex2f(csize*sin(angel+1.5*3.14159265358979323846264)+activeface->x,csize*cos(angel+1.5*3.14159265358979323846264)+activeface->y);
+	angel+=0.1;
+        if(angel>2*3.14159265358979323846264)angel=0;
+        glEnd();
+    #else
+	DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y,    cam.x+activeface->x+100,cam.y+activeface->y,barvicka);
+	DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y+100,cam.x+activeface->x,    cam.y+activeface->y,barvicka);
+    #endif
 }
-
 void removeface(int i)
 {
     if(faces.at(i)->t)
@@ -470,23 +422,8 @@ void  showfaces(void)
 		glPushMatrix();
 		glTranslatef(g->x,g->y,0);
 	    #endif
-	    #ifdef SDLD
-		gltx=g->x+cam.x;
-		glty=g->y+cam.y;
-	    #endif
 	    int th=0;
-	    if(global_tabbing)
-	    {
-		th=activeface->theme;
-		activeface->theme=1;
-	    }
-	    if(
-	    #ifdef python
-	    g->showfunc||
-	    #endif
-	    g->t||g==activeface)showface(g);
-	    if(global_tabbing)
-		activeface->theme=th;
+	    if(g->t||g==activeface)showface(g);
 	    #ifdef GL
 		glPopMatrix();
 	    #endif
@@ -549,26 +486,6 @@ void shownerv(struct state *nerv)
 }
 #endif
 
-#ifndef threaded
-void updateterminal(RoteTerm *t)
-{
-    rote_vt_update(t);
-      if(!t->childpid)
-      {
-	SDL_Event e;
-	e.type=SDL_USEREVENT;
-	e.user.code=1;
-	e.user.data1=t;
-	SDL_PushEvent(&e);
-      }
-}
-void updateterminals()
-{
-	for(i=0;i<faces.size();i++)
-	    if(faces.at(i)->t)
-		updateterminal(faces.at(i)->t);
-}
-#endif
 
 void freefaces(void)
 {
@@ -686,21 +603,21 @@ void zoomem(face *z,double y)
 
 void gle(void)
 {
-#ifdef GL
-		GLenum gl_error;
-		gl_error = glGetError( );
-		if( gl_error != GL_NO_ERROR )
-		{
-			if(gl_error==GL_STACK_UNDERFLOW)
-				logit("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
-			if(gl_error==GL_STACK_OVERFLOW)
-				logit("QUACK QUACK QUACK, OVERFLOVING STACK\n");
-			else if(gl_error==GL_INVALID_OPERATION)
-				logit("INVALID OPERATION, PATIENT EXPLODED\n");
-			else
-				logit("testgl: OpenGL error: 0x%X\n", gl_error );
-		}
-#endif
+    #ifdef GL
+	GLenum gl_error;
+	gl_error = glGetError( );
+	if( gl_error != GL_NO_ERROR )
+	{
+	    if(gl_error==GL_STACK_UNDERFLOW)
+		logit("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
+	    if(gl_error==GL_STACK_OVERFLOW)
+		logit("QUACK QUACK QUACK, OVERFLOVING STACK\n");
+	    else if(gl_error==GL_INVALID_OPERATION)
+		logit("INVALID OPERATION, PATIENT EXPLODED\n");
+	    else
+		logit("testgl: OpenGL error: 0x%X\n", gl_error );
+	}
+    #endif
 }
 void sdle(void)
 {
@@ -768,7 +685,7 @@ int testbuttonpress(int x, int y,int test)
     
     show_buttons(1);
     glPopMatrix();
-    wm();
+    resetmatrices();
     int i,j, k;
     int numhits = glRenderMode(GL_RENDER);
 //    logit("%i\n", numhits);
@@ -804,10 +721,17 @@ face *add_face(void)
     return f;
 }
 
-void initpython(void);
-void freepython(void);
-void reloadpythons(void);
 void reloadbuttons(void);
+
+Uint32 TimerCallback(Uint32 interval, void *param)
+{
+	SDL_Event e;
+	e.type=SDL_USEREVENT;
+	e.user.code=CODE_TIMER;
+	SDL_PushEvent(&e);
+	return interval;
+}
+
 //int RunGLTest (void)
 	int startup=1;
 	int bpp=8;
@@ -823,94 +747,67 @@ void reloadbuttons(void);
 	int justresized = 0;
 	SDL_Surface* s;
 
-
-	void myinit(void)
-	{
-		loadcolors();
-		logit("mmm..\n");
-		xy ss = parsemodes(w,h,mdfl,1,0,0);
-		if (ss.x!=-1){w=ss.x;h=ss.y;};
-	    #ifdef GL
-		s=initsdl(w,h,&bpp,SDL_OPENGL
-	    #else
-		gltextsdlsurface=s=initsdl(w,h,&bpp,
-	    #endif
-		+0);logit("inito\n");
-		SDL_EnableUNICODE(1);
-		SDL_InitSubSystem( SDL_INIT_TIMER);
-		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
-		if(ntfl)newtermmsg=GetFileIntoCharPointer1(ntfl);
-		logit("pretty far\n");
-		loadl2(fnfl);
-	}
-	void initgl(void)
-	{
-	    #ifdef GL
-		wm();
-//		int down=0;
-		glEnable(GL_BLEND);
-		//glShadeModel(GL_FLAT);
-		glClearColor( 0.0, 0.0, 0.0, 0.0 );
-		glLineWidth(lv);
-//		glDisable (GL_LINE_SMOOTH);
-//		glHint(GL_LINE_SMOOTH_HINT,GL_FASTEST);
-	    #endif
-	}
-	void initfaces(void)
-	{
-		faces.push_back(new_face());
-		faces.push_back(new_face());
-		logit("still?\n");
-	}
-
 int RunGLTest (void)
 {
-	cam.x=0;
-	cam.y=0;
-
-#ifdef nerve
-	struct state *nerv=0;
-	nerv=nerverot_init(w,h);
-#endif
-
-	myinit();
-	initgl();
-	loadfaces();
-	if(!faces.size())
-	    initfaces();
-	activeface=faces.at(0);
-	initpython();
-
-	int dirty=1;
-	logit("mainloop descent commencing\n");
-	while( !done )
+    cam.x=0;
+    cam.y=0;
+    xy ss = parsemodes(w,h,mdfl,1,0,0);
+    if (ss.x!=-1){w=ss.x;h=ss.y;};
+    #ifdef GL
+	s=initsdl(w,h,&bpp,SDL_OPENGL
+    #else
+	s=initsdl(w,h,&bpp,0
+    #endif
+    );
+    SDL_EnableUNICODE(1);
+    SDL_InitSubSystem( SDL_INIT_TIMER);
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
+    if(ntfl)newtermmsg=GetFileIntoCharPointer1(ntfl);
+    loadl2(fnfl);
+    loadcolors();
+    #ifdef GL
+	resetviewport();
+        resetmatrices();
+        glEnable(GL_BLEND);
+        glClearColor( 0.0, 0.0, 0.0, 0.0 );
+        glLineWidth(lv);
+    #endif
+    loadfaces();
+    if(!faces.size())
+    {
+	faces.push_back(new_face());
+	faces.push_back(new_face());
+    }
+    int dirty=1;
+    while( !done )
+    {
+	lockterms();
+	Uint8 * k=SDL_GetKeyState(NULL);
+	if(dirty||!clean_faces())
 	{
-		lockterms();
-		Uint8 * k=SDL_GetKeyState(NULL);
-		if(dirty||!clean_faces())
-		{
-			dirty=0;
-			#ifdef GL
-			glClear(GL_COLOR_BUFFER_BIT);
-			#else
-			SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
-			#endif
-			#ifdef GL
-			#ifdef nerve
-			if(nerv)
-			{	
-				glLineWidth(1);
-				shownerv(nerv);
-				glLineWidth(lv);
-				dirty=1;
-			}
-			#endif
-			glPushMatrix();
-			glTranslatef(cam.x,cam.y,0);
-			#endif
-			if(k[SDLK_RCTRL])
-			    focusrect(activeface);
-			focusline(activeface);
+	    dirty=0;
+	    #ifdef GL
+		glClear(GL_COLOR_BUFFER_BIT);
+	    #else
+		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
+	    #endif
+	    #ifdef GL
+		#ifdef nerve
+		    if(nerv)
+		    {	
+		    	glLineWidth(1);
+		    	shownerv(nerv);
+			glLineWidth(lv);
+			dirty=1;
+		    }
+		#endif
+		glPushMatrix();
+		glTranslatef(cam.x,cam.y,0);
+	    #endif
+	    if(active)
+	    if(k[SDLK_RCTRL])
+	        focusrect(activeface);
+	    focusline(activeface);
 
 			showfaces();
 			#ifdef GL
@@ -941,10 +838,10 @@ int RunGLTest (void)
 		sdle();
 		SDL_Event event;
 		SDL_TimerID x=0;
-#ifdef threaded
-		if(dirty)
-#endif
-		    x= SDL_AddTimer(55, TimerCallback, 0);
+		#ifdef threaded
+		    if(dirty)
+		#endif
+			x= SDL_AddTimer(55, TimerCallback, 0);
 
 		unlockterms();
 //              logit("---------unlocked wating\n");
@@ -1000,22 +897,6 @@ int RunGLTest (void)
 				}
 				break;
 				case SDL_KEYDOWN:
-					if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
-					{
-						dirty=1;
-						if(key==SDLK_PAGEUP)
-							activeface->scroll+=9;
-						if(key==SDLK_PAGEDOWN)
-							activeface->scroll-=9;
-						if(key==SDLK_END)
-							activeface->scroll=0;
-						if(key==SDLK_HOME)
-							if(activeface->t)
-							    activeface->scroll=activeface->t->logl;
-						if(activeface->scroll<0)activeface->scroll=0;
-//                                              logit("scroll:%i,logl:%i, log&%i, t:%i ,b:%i\n", tscroll,activeface->t->logl, activeface->t->log,activeface->t->scrolltop,activeface->t->scrollbottom);
-					}
-					else
 					if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
 					{
 					    clipin(activeface,0,1);
@@ -1116,32 +997,12 @@ int RunGLTest (void)
 
 							break;
 							case SDLK_RETURN:
-							    zoomem(activeface,0.05);
-							    dirty=1;
+							    active.z+=1;
 							    break;
 							case SDLK_BACKSPACE:
-							    zoomem(activeface,-0.05);
-							    dirty=1;
+							    active.z-=1;
 							    break;
-							
-							case SDLK_MINUS:
-							    activeface->scale-=0.05;
-							    dirty=1;
-
-
 							break;
-							case SDLK_EQUALS:
-							    activeface->scale+=0.05;
-							    dirty=1;
-
-							break;
-							case SDLK_F11:
-							    shrink=1;
-							break;
-							case SDLK_F12:
-							    //grow=1;
-							    done=1;
-
 							break;
 							case SDLK_t:
 							{
@@ -1158,7 +1019,6 @@ int RunGLTest (void)
 							    }
 							    cam.x=-activeface->x;
 							    cam.y=-activeface->y;
-							    
 							    break;
 							}
 
@@ -1198,7 +1058,7 @@ int RunGLTest (void)
 							    if (activeface->theme>4)activeface->theme=4;
 
 							    break;
-#ifdef GL
+							#ifdef GL
 
 							case SDLK_d:
 							    lv++;
@@ -1215,7 +1075,7 @@ int RunGLTest (void)
 							case SDLK_b:
 							    blending=!blending;
 							    break;
-#endif
+							#endif
 
 							case SDLK_END:
 							    resizooo(activeface, 0,1,k);
@@ -1229,7 +1089,7 @@ int RunGLTest (void)
 							case SDLK_PAGEDOWN:
 							    resizooo(activeface, 1,0,k);
 							break;
-#ifdef nerve
+							#ifdef nerve
 							case SDLK_F1:
 								if(nerv)
 								{
@@ -1251,29 +1111,13 @@ int RunGLTest (void)
 								if(nerv)
 									nerverot_cycleup(nerv);
 							break;
-#endif
+							#endif
 
 						}
 					}
 					else
 					{
-					    if(key!=SDLK_RSHIFT)
-					    {	
-						activeface->scroll=0;
-						dirty=1;
-					    }
-					    if(activeface->t==0&&!activeface->scripted)
-					    {
-						logit("debug messages r fun\n");
-						add_terminal(activeface);
-						faces.push_back(new_face());
-						dirty=1;
-					    }
-					    if(activeface->t)
-					    {
-						sdlkeys(activeface->t, key, event.key.keysym.unicode, mod);
-//						logit("%i\n", key);
-					    }
+					    active->keyp(activeface->t, key, event.key.keysym.unicode, mod);
 					}
 				break;
 				case SDL_QUIT:
@@ -1463,135 +1307,7 @@ int RunGLTest (void)
 	SDL_Quit( );
 	return(0);
 }
-#ifdef python
-PyObject *pglBegin(PyObject *self, PyObject* args)
-{
-    int y;
-    if(PyArg_ParseTuple(args, "i",&y))
-    {
-	glBegin(y);
-	Py_INCREF(Py_None)     ;
-	return Py_None;
-    }
-    return 0;
-}
-PyObject *pglEnd(PyObject *self, PyObject* args)
-{
-	glEnd();
-	Py_INCREF(Py_None)    ;
-	return Py_None;
-}
-PyObject *pglColor4f(PyObject *self, PyObject* args)
-{
-    float a,b,c,d;
-    if(PyArg_ParseTuple(args, "ffff",&a, &b, &c, &d))
-    {
-	glColor4f(a,b,c,d);
-	Py_INCREF(Py_None)   ;
-	return Py_None;
-    }
-    return 0;
-}
-PyObject *pglVertex2f(PyObject *self, PyObject* args)
-{
-    float a,b;
-    if(PyArg_ParseTuple(args, "ff",&a, &b))
-    {
-	glVertex2f(a,b);
-	Py_INCREF(Py_None)  ;
-	return Py_None;
-    }
-    return 0;
-}
-PyObject *pgetface(PyObject *self, PyObject* args)
-{
-	face*f=add_face();
-	f->t=0;
-	f->scripted=1;
-	PyObject *ret=Py_BuildValue("i", f);
-	Py_INCREF(ret) ;
-	return ret;
-}
-PyObject *phookdraw(PyObject *self, PyObject* args)
-{
-    PyObject *func;
-    face * f;
-    if(PyArg_ParseTuple(args, "iO",&f, &func))
-    {
-	f->showfunc=func;
-	Py_INCREF(Py_None);
-	return Py_None;
-    }
-    return 0;
-}
-PyObject *pfork(PyObject *self, PyObject* args)
-{
-    face * f;
-    char *s;
-    if(PyArg_ParseTuple(args, "is",&f, &s))
-    {
-	f->scripted=0;
-	add_terminal(f);
-	type(f,s);
-	Py_INCREF(Py_None);
-	return Py_None;
-    }
-    return 0;
-}
-PyObject *ptype(PyObject *self, PyObject* args)
-{
-    face * f;
-    char *s;
-    if(PyArg_ParseTuple(args, "is",&f, &s))
-    {
-	type(f,s);
-	Py_INCREF(Py_None);
-	return Py_None;
-    }
-    return 0;
-}
-PyObject *psetlabel(PyObject *self, PyObject* args)
-{
-    face * f;
-    char *s;
-    if(PyArg_ParseTuple(args, "is",&f, &s))
-    {
-	if(f->label)free(f->label);
-	f->label=strdup(s);
-	Py_INCREF(Py_None);
-	return Py_None;
-    }
-    return 0;
-}
-PyObject *pfreeface(PyObject *self, PyObject* args)
-{
-    face * f;
-    if(PyArg_ParseTuple(args, "i",&f))
-    {
-	removeface(f);
-	Py_INCREF(Py_None);
-	return Py_None;
-    }
-    return 0;
-}
-
-PyMethodDef lemon_methods[] =
-{
-{"glBegin",pglBegin,METH_VARARGS, "Return the meaning of everything."},
-{"glEnd",pglEnd,METH_NOARGS, "Return the meaning of everything."},
-{"glColor4f",pglColor4f,METH_VARARGS, "Return the meaning of everything."},
-{"glVertex2f",pglVertex2f,METH_VARARGS, "Return the meaning of everything."},
-{"getface",pgetface,METH_VARARGS, "Return the meaning of everything."},
-{"freeface",pfreeface,METH_VARARGS, "Return the meaning of everything."},
-{"hookdraw",phookdraw,METH_VARARGS, "Return the meaning of everything."},
-{"fork",pfork,METH_VARARGS, "Return the meaning of everything."},
-{"type",ptype,METH_VARARGS, "Return the meaning of everything."},
-{"setlabel",psetlabel,METH_VARARGS, "Return the meaning of everything."},
-{NULL,NULL}/* sentinel */
-};
-#endif
-
-void btnsfunc(char *path, char *justname)
+void add_button(char *path, char *justname)
 {
 	char *b=GetFileIntoCharPointer1(path);
 	if(b)
@@ -1644,29 +1360,10 @@ void listdir(char *path, void func(char *, char *))
 	}
 }
                       
-#include "makemessage.c"
-void initpython( void)
-{
-#ifdef python
-	Py_Initialize();
-        PyImport_AddModule("lemon");
-	Py_InitModule("lemon", lemon_methods);
-	PyRun_SimpleString("from lemon import *");
-	PyRun_SimpleString("afterstart=list()");
-	PyRun_SimpleString("beforefinish=list()");
-	char *t=make_message("path=\"%s\"",getexepath());
-	PyRun_SimpleString(t);
-	free(t);
-	logit("pythons from %s:\n", pyth);
-	listdir(pyth, &pythfunc);
-	PyRun_SimpleString("for one in afterstart:\n	one()");
-#endif
-}
-
 void initbuttons(void)
 {
 	logit("buttons:\n");
-	listdir(btns, &btnsfunc);
+	listdir(btns, &add_button);
 }
 
 void freebuttons(void)
@@ -1716,24 +1413,14 @@ int main(int argc, char *argv[])
 		logit("path:%s\n", path);
 		path=(char*)realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
-		fnfl=strdup(strcat(path, "l2"));
-		*n=0;
-		clfl=strdup(strcat(path, "colors"));
-		*n=0;
-		ntfl=strdup(strcat(path, "newtermmsg"));
-		*n=0;
-		stng=strdup(strcat(path, "settings"));
-		*n=0;
-		mdfl=strdup(strcat(path, "mode"));
-		*n=0;
-		fcfl=strdup(strcat(path, "faces"));
-		*n=0;
-		help=strdup(strcat(path, "nohelp"));
-		*n=0;
-		btns=strdup(strcat(path, "buttons/"));
-		*n=0;
-		pyth=strdup(strcat(path, "python/"));
-		free(path);
+		fnfl=strdup(strcat(path, "l2"));		*n=0;
+		clfl=strdup(strcat(path, "colors"));		*n=0;
+		ntfl=strdup(strcat(path, "newtermmsg"));	*n=0;
+		stng=strdup(strcat(path, "settings"));		*n=0;
+		mdfl=strdup(strcat(path, "mode"));		*n=0;
+		fcfl=strdup(strcat(path, "faces"));		*n=0;
+		help=strdup(strcat(path, "nohelp"));		*n=0;
+		btns=strdup(strcat(path, "buttons/"));		*n=0;
 	}
 	loadsettings();
 	int i;
