@@ -768,6 +768,7 @@ int testbuttonpress(int x, int y,int test)
     
     show_buttons(1);
     glPopMatrix();
+    wm();
     int i,j, k;
     int numhits = glRenderMode(GL_RENDER);
 //    logit("%i\n", numhits);
@@ -783,7 +784,6 @@ int testbuttonpress(int x, int y,int test)
 	    k++;
 	}
     }
-    wm();
     return -1;
 }
 
@@ -848,7 +848,7 @@ void reloadbuttons(void);
 	    #ifdef GL
 		wm();
 //		int down=0;
-		glDisable(GL_BLEND);
+		glEnable(GL_BLEND);
 		//glShadeModel(GL_FLAT);
 		glClearColor( 0.0, 0.0, 0.0, 0.0 );
 		glLineWidth(lv);
@@ -899,13 +899,10 @@ int RunGLTest (void)
 			#ifdef nerve
 			if(nerv)
 			{	
-				glPushAttrib(GL_BLEND);
-				glEnable(GL_BLEND);
 				glLineWidth(1);
 				shownerv(nerv);
 				glLineWidth(lv);
 				dirty=1;
-				glPopAttrib();
 			}
 			#endif
 			glPushMatrix();
@@ -969,8 +966,8 @@ int RunGLTest (void)
 						if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
 						{
 							dirty=1;
-							activeface->x+=event.motion.xrel;
-							activeface->y+=event.motion.yrel;
+							activeface->x+=(float)event.motion.xrel/1.0f;
+							activeface->y+=(float)event.motion.yrel/1.0f;
 						}
 						if((SDL_BUTTON(3)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
 						{
