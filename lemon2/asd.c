@@ -72,7 +72,7 @@
 #define as dynamic_cast<
 #define is as
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
-#define for_each_face for_each_object face*f=as face>o;
+#define for_each_face for_each_object face*f=as face*>(o);
 #ifdef GL
     inline void dooooot(float x,float y)
     {
@@ -90,7 +90,7 @@ struct Settingz
 }settingz={0,0,1,0,2};
 #include "../gltext.c"
 char *fnfl="l2";//font file
-char *stng;//settings
+char *stng;//settingz
 char *mdfl;//modes
 char *fcfl;//faces
 char *clfl;//colors
@@ -173,7 +173,7 @@ struct obj{
     double x,y,z;
     double a,b,c;
     double w,h,d;
-    virtual void draw();
+    virtual void draw(){};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
     void switchpositions(obj*o){
@@ -874,15 +874,6 @@ void focusline(face * activeface)
 */
 
 
-void type(face *f, char * r)
-{
-    while(*r)
-    {
-	keyp(f,*r);
-	r++;
-    }
-}
-
 /*void clipoutlastline(face *f)
 {
     if(f->t->crow<1)return;
@@ -899,7 +890,7 @@ void type(face *f, char * r)
 void loadsettings(void)
 {
     tpl_node *tn;
-    tn=tpl_map(tpl_settings, &settings);
+    tn=tpl_map(tpl_settingz, &settingz);
     if(!tpl_load(tn, TPL_FILE, stng))
 	tpl_unpack(tn,0);
     tpl_free(tn);
@@ -907,7 +898,7 @@ void loadsettings(void)
 void savesettings(void)
 {
     tpl_node *tn;
-    tn=tpl_map(tpl_settings, &settings);
+    tn=tpl_map(tpl_settingz, &settingz);
     tpl_pack(tn,0);
     tpl_dump(tn, TPL_FILE, stng);
     tpl_free(tn);
@@ -966,31 +957,6 @@ void saveobjects(void)
     tpl_free(tn);
 }
 */
-face *mousefocus(void)
-{
-    int mx;
-    int my;
-    SDL_GetMouseState(&mx,&my);
-    face * result=activeface;
-    for(int i=0;i<faces.size();i++)
-    {
-	face *f1=faces.at(i);
-	int ax=(mx-cam.x);
-	int ay=(my-cam.y);
-
-	if(f1->t)
-	{
-	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*f1->t->rows>ay)&&(f1->x+f1->scale*13*f1->t->cols>ax))
-		result=f1;
-	}                                                   
-	else
-	{
-	    if((f1->x<ax)&&(f1->y<ay)&&(f1->y+f1->scale*26*10>ay)&&(f1->x+f1->scale*13*10>ax))
-		result=f1;
-	}
-    }
-    return result;
-}
 
 void gle(void)
 {
@@ -1048,7 +1014,7 @@ void show_buttons(int picking)
 	while(n)
 	{
 		glLoadName(n-1);
-		show_button(-cam.x+100,-cam.y+(y+=100), buttonnames[--n],picking);
+		show_button(100,y+=100, buttonnames[--n],picking);
 	}
 //	glLoadName(-1);
 }
@@ -1068,7 +1034,6 @@ int testbuttonpress(int x, int y)
     gluPickMatrix (x,y,10,10, viewport);
     glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
     glMatrixMode (GL_MODELVIEW);
-    glTranslatef(cam.x,cam.y,0);
     glMatrixMode (GL_PROJECTION);
     
     show_buttons(1);
@@ -1091,7 +1056,7 @@ int testbuttonpress(int x, int y)
     }
     return -1;
 }
-int mousefocus(int x, int y)
+obj* mousefocus(int x, int y)
 {
     GLuint fuf[500];
     GLint viewport[4];
@@ -1123,7 +1088,7 @@ int mousefocus(int x, int y)
 	{
 	    GLuint n=fuf[k];
 //	    logit("%i\n", n);
-	    return n;
+	    return objects.at(n);
 	    k++;
 	}
     }
@@ -1145,14 +1110,14 @@ Uint32 TimerCallback(Uint32 interval, void *param)
 
 void updatelinesmooth()
 {
-    if(settings.line_antialiasing)
+    if(settingz.line_antialiasing)
         glEnable(GL_LINE_SMOOTH);
     else
         glDisable(GL_LINE_SMOOTH);
 }
 void updatelinewidth()
 {
-    glLineWidth(settings.lv);
+    glLineWidth(settingz.lv);
 }							    
 
 //int RunGLTest (void)
@@ -1174,12 +1139,14 @@ int anything_dirty()
     for_each_object
 	if(o->getDirty())
 	    return 1;
+    }
     return 0;
 }
 int nothing_dirty()
 {
     for_each_object
 	o->setDirty(0);
+    }
 }
 
 
@@ -1210,8 +1177,8 @@ int RunGLTest (void)
 //    loadobjects();
     if(!objects.size())
     {
-	objects.push_back(new_face());
-	objects.push_back(new_face());
+	objects.push_back(new face);
+	objects.push_back(new face);
     }
     while( !done )
     {
@@ -1228,9 +1195,9 @@ int RunGLTest (void)
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
 	    if(active)
-	    if(k[SDLK_RCTRL])
-	        focusrect(activeface);
-	    focusline(activeface);
+//	    if(k[SDLK_RCTRL])
+//	        focusrect(activeface);
+//	    focusline(activeface);
 	    for_each_object
 		o->translate_and_draw();
 		#ifdef GL
@@ -1240,7 +1207,7 @@ int RunGLTest (void)
 		#endif
 	    }
 	    #ifdef GL
-		if(settings.givehelp)
+		if(settingz.givehelp)
 		{	
 		    glPushMatrix();
 		    glRotatef(90,0,0,1);
@@ -1251,7 +1218,7 @@ int RunGLTest (void)
 			draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons\nt to tile faces");
 		    glPopMatrix();
 		}
-		if(showbuttons)
+		if(settingz.showbuttons)
 		    show_buttons(0);
 		SDL_GL_SwapBuffers( );
 	    #else
@@ -1283,13 +1250,13 @@ int RunGLTest (void)
 		switch( event.type )
 		{
 		    case SDL_MOUSEMOTION:
-			if(active&&(escaped||k[SDLK_RCTRL])&&(SDL_BUTTON(1)&SDL_GetMouseState(0,0))
+			if(active&&(escaped||k[SDLK_RCTRL])&&(SDL_BUTTON(1)&SDL_GetMouseState(0,0)))
 			{
 			    escaped=0;
 			    active->move(event.motion.xrel,event.motion.yrel,0);
 			}
 			if(!SDL_GetMouseState(0,0))
-			    active=mousefocus();
+			    active=mousefocus(event.motion.x,event.motion.y);
 		        break;
 		    case SDL_KEYDOWN:
 			dirty=1;		    
@@ -1299,13 +1266,13 @@ int RunGLTest (void)
 			    switch (key)
 			    {
 			        case SDLK_SLASH:
-				    showbuttons=!showbuttons;
+				    settingz.showbuttons=!settingz.showbuttons;
 				    break;
 				case SDLK_TAB:
 				    for_each_object
 					if(active==o)
 				        {
-					    if(++i==faces.size())
+					    if(++i==objects.size())
 					        i=0;
 					    obj*newactive=objects.at(i);
 					    newactive->switchpositions(active);
@@ -1335,10 +1302,10 @@ int RunGLTest (void)
 
 							break;
 */			    	case SDLK_RETURN:
-			    	    active.z+=1;
+			    	    active->z+=1;
 			    	    break;
 				case SDLK_BACKSPACE:
-			    	    active.z-=1;
+			    	    active->z-=1;
 		        	    break;
 				case SDLK_t:
 				{
@@ -1346,8 +1313,8 @@ int RunGLTest (void)
 				    for_each_object
 					o->x=yy;
 					o->y=0;
-					o->z=0
-					yy+=->w;
+					o->z=0;
+					yy+=o->w;
 				    }
 				    break;
 				}
@@ -1357,8 +1324,8 @@ int RunGLTest (void)
 				    for_each_object
 					o->x=0;
 				        o->y=yy;
-				        o->z=0
-				        yy+=->h;
+				        o->z=0 ;
+				        yy+=o->h;
 				    }
 				    break;
 				}
@@ -1367,9 +1334,9 @@ int RunGLTest (void)
 			    	    int yy=0;
 				    for_each_object
 					o->x=0;
-				        o->y=0
+				        o->y=0  ;
 				        o->z=yy;
-				        yy+=->d;
+				        yy+=o->d;
 				    }
 				    break;
 				}
@@ -1379,43 +1346,43 @@ int RunGLTest (void)
 				    #endif
 				    break;
 				case SDLK_l:
-			    	    do_l2=!do_l2;
+			    	    settingz.do_l2=!settingz.do_l2;
 				case SDLK_n:
 				    objects.push_back(new face);
 				    active=objects.at(objects.size()-1);
 				    break;
 				#ifdef GL
 				    case SDLK_PLUS:
-				        settings.line_antialiasing?settings.lv+=0.1:settings.lv++;
+				        settingz.line_antialiasing?settingz.lv+=0.1:settingz.lv++;
 				        GLint max;
-				        if(settings.line_antialiasing)
+				        if(settingz.line_antialiasing)
 					    glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE,&max);
 					else
 					    glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE,&max); 
-					if(settings.lv>max)settings.lv=max;
+					if(settingz.lv>max)settingz.lv=max;
 					updatelinewidth();
 					break;
 				    case SDLK_MINUS:
-				        settings.line_antialiasing?settings.lv-=0.1:settings.lv--;
-				        if(settings.lv<=0)settings.lv=settings.line_antialiasing?0.1:1;
+				        settingz.line_antialiasing?settingz.lv-=0.1:settingz.lv--;
+				        if(settingz.lv<=0)settingz.lv=settingz.line_antialiasing?0.1:1;
 					updatelinewidth();
 					break;
 				    case SDLK_a:
-				        settings.line_antialiasing=!settings.line_antialiasing;
+				        settingz.line_antialiasing=!settingz.line_antialiasing;
 				        updatelinesmooth();
 				        break;
 				#endif
 				case SDLK_END:
-				    if(is face>active)as face>active->resizooo(0,1,k);
+				    if(is face*>(active))as face*>(active)->resizooo(0,1,k);
 				    break;
 				case SDLK_HOME:
-				    if(is face>active)as face>active->resizooo(0,-1,k);
+				    if(is face*>(active))as face*>(active)->resizooo(0,-1,k);
 				    break;
 				case SDLK_DELETE:
-				    if(is face>active)as face>active->resizooo(-1,0,k);
+				    if(is face*>(active))as face*>(active)->resizooo(-1,0,k);
 				    break;
 				case SDLK_PAGEDOWN:
-				    if(is face>active)as face>active->resizooo(1,0,k);
+				    if(is face*>(active))as face*>(active)->resizooo(1,0,k);
 				    break;
 			    }
 			case SDL_QUIT:
@@ -1524,7 +1491,7 @@ int RunGLTest (void)
                                         logit("videoresize %ix%i bpp %i\n", w,h,bpp);
 					dirty=1;
 					s=SDL_SetVideoMode( w,h, bpp, s->flags);
-					wm();
+					resetviewport();
 					if(!justresized)
 					    mustresize=1;
 					justresized=0;
@@ -1538,7 +1505,7 @@ int RunGLTest (void)
 					{
 					    for_each_face
 						if (f->t == event.user.data1)
-						    objects.erase(i);
+						    objects.erase(objects.begin()+i);
 					    }
 					    dirty=1;
 					}
@@ -1549,7 +1516,7 @@ int RunGLTest (void)
 		    if (shrink||grow)
 		    {
 			resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
-			wm();
+			resetviewport();
 		    }
 		    if (mustresize)
 		    {
@@ -1595,8 +1562,7 @@ int RunGLTest (void)
 		}
 
 	}
-	freepython();
-	freefaces();
+	objects.clear();
 	freel2();
 	SDL_Quit( );
 	return(0);
@@ -1687,7 +1653,6 @@ int main(int argc, char *argv[])
 		stng=strdup(strcat(path, "settings"));		*n=0;
 		mdfl=strdup(strcat(path, "mode"));		*n=0;
 		fcfl=strdup(strcat(path, "faces"));		*n=0;
-		help=strdup(strcat(path, "nohelp"));		*n=0;
 		btns=strdup(strcat(path, "buttons/"));		*n=0;
 	}
 	loadsettings();
@@ -1697,11 +1662,6 @@ int main(int argc, char *argv[])
 		if(argc>i)
 		    fnfl=argv[i+1];
 	FILE* f;
-	if((f=fopen(help, "r")))
-	{
-	    givehelp=0;
-	    fclose(f);
-	}
 
 	clipout=rote_vt_create(10,10);
 	clipout2=rote_vt_create(10,10);
