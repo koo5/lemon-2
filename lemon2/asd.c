@@ -117,13 +117,61 @@ typedef struct
     SDL_Thread *thr;
 }
 moomoo;
+struct obj;
+obj * active;
 struct obj{
     int dirty;
     double x,y,z;
     double a,b,c;
+    double w,h,d;
     virtual void draw();
+    virtual void pick();
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d}
+    void switchpositions(obj*o){
+	double t,tt,ttt,tttt,ttttt,tttttt;
+	t-o->x;tt=o->y;ttt=o->z;tttt=o->a;ttttt=o->b;tttttt=o->c;
+	o->a=a;o->b=b;o->c=c;o->x=x;o->y=y;o->z=z;
+	x=t;y=tt;z=ttt;a=tttt;b=ttttt;c=tttttt;
+    }
+    void boundingbox()
+    {
+        glVertex(0,0,0);
+        glVertex(w,0,0);
+        glVertex(w,h,0);
+        glVertex(0,h,0);
+	if(d)
+	{
+    	    glVertex(0,0,d);
+	    glVertex(w,0,d);
+    	    glVertex(w,h,0);
+    	    glVertex(0,h,0);
+    	    glVertex(0,0,d);
+    	    glVertex(w,0,d);
+    	    glVertex(w,h,0);
+    	    glVertex(0,h,0);
+    	    glVertex(0,0,d);
+    	    glVertex(w,0,d);
+    	    glVertex(w,0,0);
+    	    glVertex(w,0,d);
+    	    glVertex(0,0,d);
+    	    glVertex(w,0,0);
+    	    glVertex(w,h,0);
+    	    glVertex(0,h,0);
+    	    glVertex(0,0,0);
+    	    glVertex(w,0,0);
+    	    glVertex(w,h,0);
+    	    glVertex(0,h,0);
+	}
+    }
+    
+    void pick()
+    {
+        glBegin(GL_QUADS);
+	boundingbox();
+	glEnd();
+    }
+
     void move(double xx,double yy,double zz)
     {
 	x+=xx;
@@ -143,13 +191,27 @@ struct obj{
 	    glPopMatrix();
 	#endif
     }
-    virtual void keyp(int key,unicode,mod)=0;
+    void translate_and_pick()
+    {
+	#ifdef GL
+	    glPushMatrix();
+	    glTranslated(x,y,z);
+	    glRotated(a,b,c);
+	#endif
+	pick();
+	#ifdef GL
+	    glPopMatrix();
+	#endif
+    }
+    virtual void keyp(int key,uni,mod)=0;
+    ~obj(){if(active==this)active=0;}
 };
 #ifdef nerve
     class nerverot:public obj
     {
         struct nerverotstate *nerv
         public:
+	int w,h;
         void draw()
         {
             nerverot_update(nerv);
@@ -157,32 +219,54 @@ struct obj{
         }
 	nerverot()
 	{
-	    nerv=nerverot_init(SDL_GetVideoSurface()->h,SDL_GetVideoSurface()->w);
+	    nerv=nerverot_init(w=SDL_GetVideoSurface()->w,h=SDL_GetVideoSurface()->h);
 	}
 	~nerverot()
 	{
 	    nerverot_free(nerv);
 	}
-	void keyp(int key,unicode,mod)
+	void keyp(int key,uni,mod)
 	{
-	
+	    switch(key)
+	    {
+		case SDLK_LEFT:
+		    nerverot_cycledown(nerv);
+		    break;
+		case SDLK_RIGHT:
+		    nerverot_cycleup(nerv);
+		    break;
+	    }
 	}
 	int getDirty(){return 1;}
     }
 #endif
 class facespawner:obj
 {
-	void keyp(int key,unicode,mod)
-	{
-	    faces.push_back(face*f=new face);
-	    f->x=x;
-	    f->y=y;
-	    f->z=z;
-	}
-        void draw()
+    int w=100;
+    int h=100;
+    void pick()
+    {
+        if(newtermmsg)
         {
-	    draw_text(newtermmsg);
+    	    glBegin(GL_QUADS);
+    	    glVertex(0,0,0);
+	    glVertex(w,0,0);
+	    glVertex(w,h,0);
+	    glVertex(0,h,0);
+	    glEnd();
 	}
+    }
+    void keyp(int key,uni,mod)
+    {
+        faces.push_back(face*f=new face);
+        f->x=x;
+        f->y=y;
+        f->z=z;
+    }
+    void draw()
+    {
+        draw_text(newtermmsg);
+    }
 }
 struct face:public obj
 {
@@ -213,6 +297,28 @@ struct face:public obj
 	    SDL_KillThread(upd_t_data.thr);
 	#endif
     }
+    void resizooo(int xx, int yy, Uint8* duck)
+    {
+        int up=duck[SDLK_HOME]||(yy==-1);
+        int dw=duck[SDLK_END]||(yy==1);
+        int lf=duck[SDLK_DELETE]||(yx==-1);
+        int ri=duck[SDLK_PAGEDOWN]||(yx==1);
+        if(up)
+	    yy=-1;
+	if(dw)
+	    yy=1;
+        if(lf)
+	    xx=-1;
+        if(ri)
+	    xx=1;
+        if((!xx+lastxresize||!yy+lastyresize)||(SDL_GetTicks()-last_resize>100)||!last_resize)
+        {
+    	    rote_vt_resize(t, t->rows+yy,t->cols+xx);
+	    last_resize=SDL_GetTicks();
+	}
+	lastxresize=xx;
+	lastyresize=yy;
+    }
     void add_term(int c,int r)
     {
 	logit("adding terminal");
@@ -234,9 +340,11 @@ struct face:public obj
     	draw_terminal(this);
     	
     }
-    void keyp(int key,unicode,mod)
+    void keyp(int key,uni,mod)
     {
-	if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
+    	if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
+	    clipin(activeface,0,1);
+	else if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 	{
 	    if(key==SDLK_PAGEUP)
 		scroll+=9;
@@ -252,7 +360,7 @@ struct face:public obj
 	{
 	    if(key!=SDLK_RSHIFT)
 	        scroll=0;
-    	    sdlkeys(t,key,unicode,mod);
+    	    sdlkeys(t,key,uni,mod);
 	}
 	}
 	void lock()
@@ -361,12 +469,16 @@ RoteTerm *clipout, *clipout2;
 		updateterminal(faces.at(i)->t);
     }
 #endif
+void setmatrix()
+{
+    glFrustum(0,SDL_GetVideoSurface()->w,0,SDL_GetVideoSurface()->h,1,100);
+}
 void resetmatrices(void)
 {
     #ifdef GL
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
-        glFrustum(0,SDL_GetVideoSurface()->w,0,SDL_GetVideoSurface()->h,1,100);
+	setmatrix();
         glMatrixMode( GL_MODELVIEW );
         glLoadIdentity();
     #endif
@@ -386,28 +498,7 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
     xx.h=h;
     return &xx;
 }
-void resizooo(face *f, int x, int y, Uint8* duck)
-{
-    int up=duck[SDLK_HOME]||(y==-1);
-    int dw=duck[SDLK_END]||(y==1);
-    int lf=duck[SDLK_DELETE]||(x==-1);
-    int ri=duck[SDLK_PAGEDOWN]||(x==1);
-    if(up)
-    y=-1;
-    if(dw)
-    y=1;
-    if(lf)
-    x=-1;
-    if(ri)
-    x=1;
-    if((!x+f->lastxresize||!y+f->lastyresize)||(SDL_GetTicks()-f->last_resize>100)||!f->last_resize)
-    {
-	rote_vt_resize(f->t, f->t->rows+y,f->t->cols+x);
-	f->last_resize=SDL_GetTicks();
-    }
-    f->lastxresize=x;
-    f->lastyresize=y;
-}
+
 int clean_faces(void)
 {
     int c=1;
@@ -434,6 +525,7 @@ void unlockterms(void)
 	//logit("done");
     #endif
 }
+/*
 void focusrect(face * activeface)
 {
     #ifdef GL
@@ -484,34 +576,7 @@ void focusline(face * activeface)
 	DrawLine(s,cam.x+activeface->x,cam.y+activeface->y+100,cam.x+activeface->x,    cam.y+activeface->y,barvicka);
     #endif
 }
-
-void RemoveTerm(RoteTerm * Term)
-{
-    for(int i=0;i<faces.size();i++)
-    {
-	if(faces.at(i)->t==Term)
-	{
-	    return removeface(i);
-	}
-    }
-}
-void  showfaces(void)
-{
-	for(int i =0;i<faces.size();i++)
-	{
-	    face *g;
-	    g=faces.at(i);
-	    #ifdef GL
-		glPushMatrix();
-		glTranslatef(g->x,g->y,0);
-	    #endif
-	    int th=0;
-	    if(g->t||g==activeface)showface(g);
-	    #ifdef GL
-		glPopMatrix();
-	    #endif
-	}
-}
+*/
 
 void clipin(face *f,int noes, int sel)
 {
@@ -567,7 +632,7 @@ void savesettings(void)
     tpl_free(tn);
 }
 
-
+/*
 void loadobjects(void)
 {
     face *g;
@@ -619,7 +684,7 @@ void saveobjects(void)
     tpl_dump(tn, TPL_FILE, fcfl);
     tpl_free(tn);
 }
-
+*/
 face *mousefocus(void)
 {
     int mx;
@@ -695,30 +760,27 @@ void show_button(int x, int y, char * n, int picking)
 }
 void show_buttons(int picking)
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	int n=numbuttons;
 	int y=0;
 	glInitNames();
 	glPushName(-1);
-//	logit("yep\n");
 	while(n)
 	{
 		glLoadName(n-1);
 		show_button(-cam.x+100,-cam.y+(y+=100), buttonnames[--n],picking);
 	}
-	glLoadName(-1);
-	glBlendFunc(GL_ONE, GL_ZERO);
+//	glLoadName(-1);
 }
 
 
-int testbuttonpress(int x, int y,int test)
+int testbuttonpress(int x, int y)
 {
     GLuint fuf[500];
     GLint viewport[4];
     glGetIntegerv (GL_VIEWPORT, viewport);
     glSelectBuffer(500, fuf);
     glMatrixMode (GL_PROJECTION);
-    if(!test)glRenderMode (GL_SELECT);
+    glRenderMode (GL_SELECT);
     glPushMatrix ();
     glLoadIdentity ();
 
@@ -748,23 +810,46 @@ int testbuttonpress(int x, int y,int test)
     }
     return -1;
 }
+int mousefocus(int x, int y)
+{
+    GLuint fuf[500];
+    GLint viewport[4];
+    glGetIntegerv (GL_VIEWPORT, viewport);
+    glSelectBuffer(500, fuf);
+    glMatrixMode (GL_PROJECTION);
+    glRenderMode (GL_SELECT);
+    glPushMatrix ();
+    glLoadIdentity ();
+    gluPickMatrix (x,y,10,10, viewport);
+    setmatrix();
+    glMatrixMode (GL_MODELVIEW);
+    glInitNames();
+    glPushName(-1);
+    for_each_object
+        glLoadName(i);
+	o->translate_and_pick();
+    }
+    glMatrixMode (GL_PROJECTION);
+    glPopMatrix();
+    int i,j, k;
+    int numhits = glRenderMode(GL_RENDER);
+//    logit("%i\n", numhits);
+    for(i=0,k=0;i<numhits;i++)
+    {
+	GLuint numnames=fuf[k++];
+	k++;k++;
+	for(j=0;j<numnames;j++)
+	{
+	    GLuint n=fuf[k];
+//	    logit("%i\n", n);
+	    return n;
+	    k++;
+	}
+    }
+    return active;
+}
 
 #endif
-
-
-void camtoface(face * activeface)
-{
-    cam.x=-activeface->x;
-    cam.y=-activeface->y;
-}
-
-face *add_face(void)
-{
-    face * f;
-    f=new_face();
-    faces.push_back(f);
-    return f;
-}
 
 void reloadbuttons(void);
 
@@ -815,6 +900,8 @@ int nothing_dirty()
     for_each_object
 	o->setDirty(0);
 }
+
+
 int RunGLTest (void)
 {
     xy ss = parsemodes(w,h,mdfl,1,0,0);
@@ -839,7 +926,7 @@ int RunGLTest (void)
         updatelinewidth();
 	updatelinesmooth();
     #endif
-    loadobjects();
+//    loadobjects();
     if(!objects.size())
     {
 	objects.push_back(new_face());
@@ -847,10 +934,12 @@ int RunGLTest (void)
     }
     while( !done )
     {
+	int dirty=1;
 	lockterms();
 	Uint8 * k=SDL_GetKeyState(NULL);
-	if(anything_dirty())
+	if(dirty||anything_dirty())
 	{
+	    dirty=0;
 	    nothing_dirty();
 	    #ifdef GL
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -861,184 +950,98 @@ int RunGLTest (void)
 	    if(k[SDLK_RCTRL])
 	        focusrect(activeface);
 	    focusline(activeface);
-
-			showfaces();
-			#ifdef GL
-			int dol2=do_l2;
-			do_l2=1;
-			if(givehelp)
-			{	glPushMatrix();
-				glRotatef(90,0,0,1);
-				glTranslatef(0,-w,0);
-				if(!(escaped||k[SDLK_RCTRL]))
-					draw_text("\npress right ctrl for more fun...");
-				else
-					draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons\nt to tile faces");
-					
-				glPopMatrix();
-				
-			}
-			if(showbuttons)
-				show_buttons(0);
-			do_l2=dol2;
-			glPopMatrix();
-			SDL_GL_SwapBuffers( );
-			#else
-			SDL_UpdateRect(s,0,0,0,0);
-			#endif
+	    for_each_object
+		o->translate_and_draw();
+		#ifdef GL
+		glBegin(GL_LINE_STRIP);
+		o->boundingbox();
+		glEnd();
+		#endf
+	    }
+	    #ifdef GL
+		if(settings.givehelp)
+		{	
+		    glPushMatrix();
+		    glRotatef(90,0,0,1);
+		    glTranslatef(0,-w,0);
+		    if(!(escaped||k[SDLK_RCTRL]))
+			draw_text("\npress right ctrl for more fun...");
+		    else
+			draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons\nt to tile faces");
+		    glPopMatrix();
 		}
-		gle();
-		sdle();
-		SDL_Event event;
-		SDL_TimerID x=0;
-		#ifdef threaded
-		    if(dirty)
-		#endif
-			x= SDL_AddTimer(55, TimerCallback, 0);
+		if(showbuttons)
+		    show_buttons(0);
+		SDL_GL_SwapBuffers( );
+	    #else
+		SDL_UpdateRect(s,0,0,0,0);
+	    #endif
+	    gle();
+	}
+	sdle();
+	SDL_Event event;
+	SDL_TimerID x=0;
+	#ifdef threaded
+	    if(dirty)
+	#endif
+		x= SDL_AddTimer(55, TimerCallback, 0);
 
-		unlockterms();
-//              logit("---------unlocked wating\n");
-		if(SDL_WaitEvent( &event ))
+	unlockterms();
+	//logit("---------unlocked wating\n");
+	if(SDL_WaitEvent( &event ))
+	{
+	    lockterms();
+	    //logit("---------locked goooin %i\n", event.type);
+	    if(x)SDL_RemoveTimer(x);
+	    x=0;
+	    do
+	    {
+		int key=event.key.keysym.sym;
+		int uni=event.key.keysym.unicode;
+		int mod=event.key.keysym.mod;
+		switch( event.type )
 		{
-		    lockterms();
-//                  logit("---------locked goooin %i\n", event.type);
-		    if(x)SDL_RemoveTimer(x);
-		    x=0;
-		    do {
-			int mod=event.key.keysym.mod;
-			int key=event.key.keysym.sym;
-			switch( event.type )
+		    case SDL_MOUSEMOTION:
+			if(active&&(escaped||k[SDLK_RCTRL])&&(SDL_BUTTON(1)&SDL_GetMouseState(0,0))
 			{
-				case SDL_MOUSEMOTION:
-					if(escaped||k[SDLK_RCTRL])
-					{
-						escaped=0;
-						if((SDL_BUTTON(1)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
-						{
-							dirty=1;
-							activeface->x+=event.motion.xrel;
-							activeface->y+=event.motion.yrel;
-						}
-						if((SDL_BUTTON(3)|SDL_BUTTON(2))&SDL_GetMouseState(0,0))
-						{
-							dirty=1;
-							cam.x-=event.motion.xrel;
-						    	cam.y-=event.motion.yrel;
-						}
+			    escaped=0;
+			    active->move(event.motion.xrel,event.motion.yrel,0);
+			}
+			if(!SDL_GetMouseState(0,0))
+			    active=mousefocus();
+		        break;
+		    case SDL_KEYDOWN:
+			dirty=1;		    
+			if(key==SDLK_RCTRL)
+    			    escaped=1;
+			if(escaped||(mod&&KMOD_RCTRL))
+			    switch (key)
+			    {
+			        case SDLK_SLASH:
+				    showbuttons=!showbuttons;
+				    break;
+				case SDLK_TAB:
+				    for_each_object
+					if(active==o)
+				        {
+					    if(++i==faces.size())
+					        i=0;
+					    obj*newactive=objects.at(i);
+					    newactive->switchpositions(active);
+					    active=newactive;
 					}
-					else
-					{
-					    if(activeface->t)
-					    {
-						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
-						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
-						rote_vt_mousemove  (activeface->t,tx,ty);
-					    }
-                    			}
-					if(!SDL_GetMouseState(0,0))
-						activeface=mousefocus();
-
-
-				break;
-				case SDL_KEYUP:
-				{
-					if ( (key == SDLK_RCTRL) )
-					{
-						dirty=1;
-						global_tabbing=0;
-					}
-				}
-				break;
-				case SDL_KEYDOWN:
-					if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
-					{
-					    clipin(activeface,0,1);
-					}
-					else
-					if(key==SDLK_RCTRL||mod&KMOD_RCTRL||escaped)
-					{
-						dirty=1;
-						escaped=0;
-						if(key==SDLK_RCTRL) escaped=1;
-						if(k[SDLK_UP])
-						{
-						    dirty=1;
-						    cam.y+=50;
-						    activeface=mousefocus();
-						}
-						if(k[SDLK_DOWN])
-						{
-						    dirty=1;
-						    cam.y-=50;
-						    activeface=mousefocus();
-						}
-						if(k[SDLK_LEFT])
-						{
-						    dirty=1;
-						    cam.x+=50;
-						    activeface=mousefocus();
-						}
-						if(k[SDLK_RIGHT])
-						{
-						    dirty=1;
-						    cam.x-=50;
-						    activeface=mousefocus();
-						}
-
-
-
-						switch (key)
-						{
-							case 
-							case SDLK_SLASH:
-							    showbuttons=!showbuttons;
-							    break;
-							case SDLK_INSERT:
-							    clipoutlastline(activeface);
-							    break;
-							case SDLK_TAB:
-							    for(int i=0;i<faces.size();i++)
-								if(activeface==faces.at(i))
-								{
-								    if(++i==faces.size())
-									i=0;
-								    activeface=faces.at(i);
-								}
-							    global_tabbing=1;
-							    camtoface(activeface);
-							    dirty=1;
-							break;
-							case SDLK_F2:
-							    gofullscreen=1;
-							break;
-							case SDLK_F3:
-							    
-							    dirty=1;
-							break;
-							case SDLK_F4:
-							    
-							    dirty=1;
-							break;
-							case SDLK_F5:
-							    reloadpythons();
-							    reloadbuttons();
-							    dirty=1;
-							break;
-							case SDLK_F6:
-							    ;
-							    dirty=1;
-							break;
-
-							case SDLK_F7:
-							    savemode(w,h,mdfl);
-							break;
-							case SDLK_F8:
-							    loadl2(fnfl);
-							break;
-							case SDLK_F9:
-							    activeface->scale-=0.1;
-							    if(activeface->t)
-								rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
+				    }
+				    break;
+				case SDLK_F2:
+				    gofullscreen=1;
+				    break;
+				case SDLK_F8:
+			    	    loadl2(fnfl);
+			    	    break;
+/*			    	case SDLK_F9:
+			    	    activeface->scale-=0.1;
+						    if(activeface->t)
+							rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
 							    dirty=1;
 
 
@@ -1050,129 +1053,96 @@ int RunGLTest (void)
 							    dirty=1;
 
 							break;
-							case SDLK_RETURN:
-							    active.z+=1;
-							    break;
-							case SDLK_BACKSPACE:
-							    active.z-=1;
-							    break;
-							break;
-							break;
-							case SDLK_t:
-							{
-							    int yy=0;
-							    for(int i=0;i<faces.size();i++)
-							    {
-								face * fa = faces.at(i);
-								fa->x=0;
-								fa->y=yy;
-								if(fa->t)
-								    yy+=26*fa->t->rows*fa->scale;
-								else
-								    yy+=26*100;
-							    }
-							    cam.x=-activeface->x;
-							    cam.y=-activeface->y;
-							    break;
-							}
-
-							case SDLK_p:
-							    #ifdef libpng
-							    saveScreenshot();
-							    #endif
-							break;
-							case SDLK_l:
-							    do_l2=!do_l2;
-							    dirty=1;
-							break;
-							case SDLK_r:
-							    freefaces();
-							    initfaces();
-							    dirty=1;
-							break;
-							case SDLK_n:
-							    activeface=new_face();
-							    faces.push_back(activeface);
-							    add_terminal(activeface);
-							    camtoface(activeface);
-							    dirty=1;
-							break;
-							case SDLK_PERIOD:
-							    cam.x=-activeface->x;
-							    cam.y=-activeface->y;
-							    dirty=1;
-							break;
-							#ifdef GL
-
-							case SDLK_PLUS:
-							    settings.line_antialiasing?settings.lv+=0.1:settings.lv++;
-							    GLint max;
-							    if(settings.line_antialiasing)
-								glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE,&max);
-							    else
-							    	glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE,&max); 
-							    if(settings.lv>max)settings.lv=max;
-							    updatelinewidth();
-							    break;
-							case SDLK_MINUS:
-							    settings.line_antialiasing?settings.lv-=0.1:settings.lv--;
-							    if(settings.lv<=0)settings.lv=settings.line_antialiasing?0.1:1;
-							    updatelinewidth();
-							    break;
-							case SDLK_a:
-							    settings.line_antialiasing=!settings.line_antialiasing;
-							    updatelinesmooth();
-							    break;
-							#endif
-
-							case SDLK_END:
-							    resizooo(activeface, 0,1,k);
-							break;
-							case SDLK_HOME:
-							    resizooo(activeface, 0,-1,k);
-							break;
-							case SDLK_DELETE:
-							    resizooo(activeface, -1,0,k);
-							break;
-							case SDLK_PAGEDOWN:
-							    resizooo(activeface, 1,0,k);
-							break;
-							#ifdef nerve
-							case SDLK_F1:
-								if(nerv)
-								{
-									nerverot_free(nerv);
-									dirty=1;
-									nerv=0;
-								}
-								else
-								{
-									nerv=nerverot_init(w,h);
-									dirty=1;
-								}
-							break;
-							case SDLK_m:
-								if(nerv)
-									nerverot_cycledown(nerv);
-							break;
-							case SDLK_COMMA:
-								if(nerv)
-									nerverot_cycleup(nerv);
-							break;
-							#endif
-
-						}
-					}
-					else
-					{
-					    active->keyp(activeface->t, key, event.key.keysym.unicode, mod);
-					}
-				break;
-				case SDL_QUIT:
-					done = 1;
-					break;
-				case SDL_MOUSEBUTTONDOWN:
+*/			    	case SDLK_RETURN:
+			    	    active.z+=1;
+			    	    break;
+				case SDLK_BACKSPACE:
+			    	    active.z-=1;
+		        	    break;
+				case SDLK_t:
 				{
+			    	    int yy=0;
+				    for_each_object
+					o->x=yy;
+					o->y=0;
+					o->z=0
+					yy+=->w;
+				    }
+				    break;
+				}
+				case SDLK_y:
+				{
+				    int yy=0;
+				    for_each_object
+					o->x=0;
+				        o->y=yy;
+				        o->z=0
+				        yy+=->h;
+				    }
+				    break;
+				}
+				case SDLK_u:
+				{
+			    	    int yy=0;
+				    for_each_object
+					o->x=0;
+				        o->y=0
+				        o->z=yy;
+				        yy+=->d;
+				    }
+				    break;
+				}
+				case SDLK_p:
+				    #ifdef libpng
+				        saveScreenshot();
+				    #endif
+				    break;
+				case SDLK_l:
+			    	    do_l2=!do_l2;
+				case SDLK_n:
+				    objects.push_back(new face);
+				    active=objects.at(objects.size()-1);
+				    break;
+				#ifdef GL
+				    case SDLK_PLUS:
+				        settings.line_antialiasing?settings.lv+=0.1:settings.lv++;
+				        GLint max;
+				        if(settings.line_antialiasing)
+					    glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE,&max);
+					else
+					    glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE,&max); 
+					if(settings.lv>max)settings.lv=max;
+					updatelinewidth();
+					break;
+				    case SDLK_MINUS:
+				        settings.line_antialiasing?settings.lv-=0.1:settings.lv--;
+				        if(settings.lv<=0)settings.lv=settings.line_antialiasing?0.1:1;
+					updatelinewidth();
+					break;
+				    case SDLK_a:
+				        settings.line_antialiasing=!settings.line_antialiasing;
+				        updatelinesmooth();
+				        break;
+				#endif
+				case SDLK_END:
+				    if(is face>active)as face>active->resizooo(0,1,k);
+				    break;
+				case SDLK_HOME:
+				    if(is face>active)as face>active->resizooo(0,-1,k);
+				    break;
+				case SDLK_DELETE:
+				    if(is face>active)as face>active->resizooo(-1,0,k);
+				    break;
+				case SDLK_PAGEDOWN:
+				    if(is face>active)as face>active->resizooo(1,0,k);
+				    break;
+			    }
+			case SDL_QUIT:
+			    done = 1;
+			    break;
+			    /*
+			case SDL_MOUSEBUTTONDOWN:
+			{
 				    if(activeface->t)
 				    {
 					#ifdef GL
@@ -1262,7 +1232,7 @@ int RunGLTest (void)
 					logit("mouseup");
 				    }
 				    break;
-				}
+				}*/
 				case SDL_VIDEOEXPOSE:
 					dirty=1;
 					break;
@@ -1278,23 +1248,17 @@ int RunGLTest (void)
 					    mustresize=1;
 					justresized=0;
 				    }
-				    if(activeface->t)
-					rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
+				    //if(is face>active)
+				//	rote_vt_resize(as face>active, h/26/activeface->scale,w/13/activeface->scale);
 				    dirty=1;
 				break;
 				case SDL_USEREVENT:
 					if(event.user.code==CODE_QUIT)
 					{
-
 					    for_each_face
 						if (f->t == event.user.data1)
 						    objects.erase(i);
 					    }
-					    if(!faces.size())
-						faces.push_back(new face);
-					    if(af)
-						activeface=faces.at(0);
-
 					    dirty=1;
 					}
 					break;
@@ -1347,7 +1311,7 @@ int RunGLTest (void)
 		    else
 		    {
 			savemode(w,h,mdfl);
-			savefaces();
+			//savefaces();
 		    }
 		}
 
@@ -1371,18 +1335,6 @@ void add_button(char *path, char *justname)
 		buttonnames[numbuttons-1]=strdup(justname);
 	}
 }
-
-#ifdef python
-void pythfunc(char *path, char *justname)
-{
-	char *b=GetFileIntoCharPointer1(path);
-	if(b)
-	{
-		logit("%s\n", justname);
-		PyRun_SimpleString(b);
-	}
-}
-#endif
 
 void listdir(char *path, void func(char *, char *))
 {
@@ -1428,20 +1380,6 @@ void freebuttons(void)
 	buttonnames=0;
 	buttons=0;
 	numbuttons=0;
-}
-
-void freepython(void)
-{
-    #ifdef python
-    PyRun_SimpleString("for one in beforefinish:\n	one()");
-    Py_Finalize();
-    #endif
-}
-
-void reloadpythons(void)
-{
-    freepython();
-    initpython();
 }
 
 void reloadbuttons(void)
