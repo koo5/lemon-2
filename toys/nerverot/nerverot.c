@@ -66,7 +66,7 @@ static int blotShapeCount = sizeof (blotShape) / sizeof (XPoint);
 
 
 
-struct state {
+struct nerverotstate {
    int requestedBlotCount;	/* number of blots */
    int maxIters;		/* max iterations per model */
    FLOAT nervousness;	/* variability of xoff/yoff per iteration (0..1) */
@@ -149,7 +149,7 @@ static void initBlot (Blot *b, FLOAT x, FLOAT y, FLOAT z)
 }
 
 /* scale the blots to have a max distance of 1 from the center */
-static void scaleBlotsToRadius1 (struct state *st)
+static void scaleBlotsToRadius1 (struct nerverotstate *st)
 {
     FLOAT max = 0.0;
     int n;
@@ -182,7 +182,7 @@ static void scaleBlotsToRadius1 (struct state *st)
 }
 
 /* randomly reorder the blots */
-static void randomlyReorderBlots (struct state *st)
+static void randomlyReorderBlots (struct nerverotstate *st)
 {
     int n;
 
@@ -196,7 +196,7 @@ static void randomlyReorderBlots (struct state *st)
 }
 
 /* randomly rotate the blots around the origin */
-static void randomlyRotateBlots (struct state *st)
+static void randomlyRotateBlots (struct nerverotstate *st)
 {
     int n;
 
@@ -248,7 +248,7 @@ static void randomlyRotateBlots (struct state *st)
  */
 
 /* set up the initial array of blots to be a at the edge of a sphere */
-static void setupBlotsSphere (struct state *st)
+static void setupBlotsSphere (struct nerverotstate *st)
 {
     int n;
 
@@ -283,7 +283,7 @@ static void setupBlotsSphere (struct state *st)
 }
 
 /* set up the initial array of blots to be a simple cube */
-static void setupBlotsCube (struct state *st)
+static void setupBlotsCube (struct nerverotstate *st)
 {
     int i, j, k, n;
 
@@ -340,7 +340,7 @@ static void setupBlotsCube (struct state *st)
 }
 
 /* set up the initial array of blots to be a cylinder */
-static void setupBlotsCylinder (struct state *st)
+static void setupBlotsCylinder (struct nerverotstate *st)
 {
     int i, j, n;
     FLOAT distBetween;
@@ -385,7 +385,7 @@ static void setupBlotsCylinder (struct state *st)
 }
 
 /* set up the initial array of blots to be a squiggle */
-static void setupBlotsSquiggle (struct state *st)
+static void setupBlotsSquiggle (struct nerverotstate *st)
 {
     FLOAT x, y, z, xv, yv, zv, len;
     int minCoor, maxCoor;
@@ -447,7 +447,7 @@ static void setupBlotsSquiggle (struct state *st)
 
 /* set up the initial array of blots to be near the corners of a
  * cube, distributed slightly */
-static void setupBlotsCubeCorners (struct state *st)
+static void setupBlotsCubeCorners (struct nerverotstate *st)
 {
     int n;
 
@@ -473,7 +473,7 @@ static void setupBlotsCubeCorners (struct state *st)
 
 /* set up the initial array of blots to be randomly distributed
  * on the surface of a tetrahedron */
-static void setupBlotsTetrahedron (struct state *st)
+static void setupBlotsTetrahedron (struct nerverotstate *st)
 {
     /* table of corners of the tetrahedron */
     static const FLOAT cor[4][3] = { {  0.0,   1.0,  0.0 },
@@ -533,7 +533,7 @@ static void setupBlotsTetrahedron (struct state *st)
 
 /* set up the initial array of blots to be an almost-evenly-distributed
  * square sheet */
-static void setupBlotsSheet (struct state *st)
+static void setupBlotsSheet (struct nerverotstate *st)
 {
     int x, y;
 
@@ -572,7 +572,7 @@ static void setupBlotsSheet (struct state *st)
 }
 
 /* set up the initial array of blots to be a swirlycone */
-static void setupBlotsSwirlyCone (struct state *st)
+static void setupBlotsSwirlyCone (struct nerverotstate *st)
 {
     FLOAT radSpace = 1.0 / (st->requestedBlotCount - 1);
     FLOAT zSpace = radSpace * 2;
@@ -601,11 +601,11 @@ static void setupBlotsSwirlyCone (struct state *st)
 }
 
 /* forward declaration for recursive use immediately below */
-static void randomBlots (struct state *st);
+static void randomBlots (struct nerverotstate *st);
 
 /* set up the blots to be two of the other choices, placed next to
  * each other */
-static void setupBlotsDuo (struct state *st)
+static void setupBlotsDuo (struct nerverotstate *st)
 {
     int origRequest = st->requestedBlotCount;
     FLOAT tx, ty, tz, radius;
@@ -688,7 +688,7 @@ static void setupBlotsDuo (struct state *st)
  */
 
 /* free the blots, in preparation for a new shape */
-static void freeBlots (struct state *st)
+static void freeBlots (struct nerverotstate *st)
 {
     if (st->blots != NULL)
     {
@@ -710,14 +710,14 @@ static void freeBlots (struct state *st)
 }
 
 #include "setupBlots"
-static void randomBlots (struct state *st)
+static void randomBlots (struct nerverotstate *st)
 {
     int which = RAND_FLOAT_01 * 11;
     freeBlots (st);
     setupBlots(st,which);
     st->cur_num=which;
 }    
-static void commandBlots (struct state *st)
+static void commandBlots (struct nerverotstate *st)
 {
     freeBlots (st);
     setupBlots(st, st->please_num);
@@ -725,7 +725,7 @@ static void commandBlots (struct state *st)
 }
 
 /* set up the segments arrays */
-static void setupSegs (struct state *st)
+static void setupSegs (struct nerverotstate *st)
 {
     /* there are blotShapeCount - 1 line segments per blot */
     st->segCount = st->blotCount * (blotShapeCount - 1);
@@ -741,7 +741,7 @@ static void setupSegs (struct state *st)
 
 /* set up the colormap */
 /*
-static void setupColormap (struct state *st)
+static void setupColormap (struct nerverotstate *st)
 {
     int n;
     XGCValues gcv;
@@ -786,7 +786,7 @@ static void setupColormap (struct state *st)
  */
 
 /* set up the system */
-static void setup (struct state *st,int w,int h)
+static void setup (struct nerverotstate *st,int w,int h)
 {
     st->colorCount = 2000;
     st->windowWidth = w;
@@ -818,7 +818,7 @@ static void setup (struct state *st,int w,int h)
  */
 
 /* "render" the blots into segsToDraw, with the current rotation factors */
-static void renderSegs (struct state *st)
+static void renderSegs (struct nerverotstate *st)
 {
     int n;
     int m = 0;
@@ -904,7 +904,7 @@ static void renderSegs (struct state *st)
 }
 
 /* update blots, adjusting the offsets and rotation factors. */
-static void updateWithFeeling (struct state *st)
+static void updateWithFeeling (struct nerverotstate *st)
 {
     int n, i, j;
 
@@ -965,7 +965,7 @@ static void updateWithFeeling (struct state *st)
 }
 
 /* erase segsToErase and draw segsToDraw */
-static void eraseAndDraw (struct state *st)
+static void eraseAndDraw (struct nerverotstate *st)
 {
     glPushMatrix();
     glTranslatef(-1,-1,0);
@@ -992,7 +992,7 @@ static void eraseAndDraw (struct state *st)
 
 
 
-static void twonhalfd_draw (struct state *st)
+static void twonhalfd_draw (struct nerverotstate *st)
 {
     int n;
     int m = 0;
@@ -1029,7 +1029,7 @@ static void twonhalfd_draw (struct state *st)
 
 //#include "stolenfromglu"
 
-static void threed_draw (struct state *st)
+static void threed_draw (struct nerverotstate *st)
 {
     int n;
     int m = 0;
@@ -1089,9 +1089,9 @@ static void threed_draw (struct state *st)
 }
 
 /* do one iteration */
-static void nerverot_update (struct state *closure)
+static void nerverot_update (struct nerverotstate *closure)
 {
-  struct state *st = (struct state *) closure;
+  struct nerverotstate *st = (struct nerverotstate *) closure;
     /* switch segsToErase and segsToDraw */
     LineSegment *temp = st->segsToDraw;
     st->segsToDraw = st->segsToErase;
@@ -1105,7 +1105,7 @@ static void nerverot_update (struct state *closure)
 }
     /* erase old segments and draw new ones */
  
-static void nerverot_draw(float d, struct state *st)
+static void nerverot_draw(float d, struct nerverotstate *st)
 { 
   if(d==2)
     eraseAndDraw (st);
@@ -1117,7 +1117,7 @@ static void nerverot_draw(float d, struct state *st)
 }
 
 /* initialize the user-specifiable params */
-static void initParams (struct state *st)
+static void initParams (struct nerverotstate *st)
 {
     int problems = 0;
 
@@ -1198,10 +1198,10 @@ static void initParams (struct state *st)
     st->please_num=-1;
 }
 
-static struct state
+static struct nerverotstate
 * nerverot_init (int w, int h)
 {
-  struct state *st = (struct state *) calloc (1, sizeof(*st));
+  struct nerverotstate *st = (struct nerverotstate *) calloc (1, sizeof(*st));
 
     initParams (st);
     setup (st,w,h);
@@ -1211,13 +1211,13 @@ static struct state
     return st;
 }
 
-static void nerverot_cycleup(struct state *st)
+static void nerverot_cycleup(struct nerverotstate *st)
 {
     st->please_num++;
     if (st->please_num > 10)
 	st->please_num = -1;
 }
-static void nerverot_cycledown(struct state *st)
+static void nerverot_cycledown(struct nerverotstate *st)
 {
     st->please_num--;
     if (st->please_num < -1)
@@ -1225,7 +1225,7 @@ static void nerverot_cycledown(struct state *st)
 }
 
 static void
-nerverot_free (struct state *st)
+nerverot_free (struct nerverotstate *st)
 {
   freeBlots (st);
   free (st);

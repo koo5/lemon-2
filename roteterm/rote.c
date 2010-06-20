@@ -90,6 +90,7 @@ void tt_winsize(RoteTerm *rt,int fd, int xx, int yy)
 	for (i = oldr; i < yy; i++)
 	{
 		rt->line_dirty[i] = 1;
+		rt->dirty=1;
     		rt->cells[i] = (RoteCell*) malloc(sizeof(RoteCell) * rt->cols);    
     	}
 
@@ -371,6 +372,7 @@ void rote_vt_restore_snapshot(RoteTerm *rt, void *snapbuf) {
 
    for (i = 0; i < rt->rows; i++, snapbuf += bytes_per_row) {
       rt->line_dirty[i] = true;
+      rt->dirty=1;
       memcpy(rt->cells[i], snapbuf, bytes_per_row);
    }
 }
@@ -450,22 +452,4 @@ void rotoclipout(char * x, RoteTerm *t, int selection)
 
 
 
-
-int get_lines_dirty_and_clean_them(RoteTerm *rt)
-{
-    int x,r;
-    for (x=0;x<rt->rows;x++)
-	if(rt->line_dirty[x])
-	{
-	    rt->line_dirty[x]=0;
-	    r=1;
-	}
-    return r;
-}
-int clean_term(RoteTerm *rt)
-{
-    int dirty=get_lines_dirty_and_clean_them(rt)||rt->curpos_dirty;
-    rt->curpos_dirty=0;
-    return !dirty;
-}
 

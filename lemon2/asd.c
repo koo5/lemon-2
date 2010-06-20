@@ -65,17 +65,30 @@
 #include "glterm.c"
 #include <iostream>
 #include <vector>
+#define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
+#define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!");}}
+#define as dynamic_cast<
+#define is as
+#define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
+#define for_each_face for_each_object face*f=as face>o;
 #ifdef GL
     inline void dooooot(float x,float y)
     {
         glVertex2f(x,y);
     }
 #endif
-int showbuttons=0;
-int givehelp=1;
-int do_l2=0;
+char *tpl_settings="S(iiis)";
+struct settings
+{
+    int32_t line_antialiasing=0;
+    int32_t showbuttons=0;
+    int32_t givehelp=1;
+    int32_t do_l2=0;
+    double lv=2;//glLineWidth
+}
+
 char *fnfl="l2";//font file
-float lv=2;//glLineWidth
+
 char *stng;//settings
 char *mdfl;//modes
 char *fcfl;//faces
@@ -105,24 +118,72 @@ typedef struct
 }
 moomoo;
 struct obj{
+    int dirty;
     double x,y,z;
-    virtual void draw()=0;
+    double a,b,c;
+    virtual void draw();
+    virtual int getDirty(){return dirty;}
+    virtual void setDirty(int d){dirty=d}
+    void move(double xx,double yy,double zz)
+    {
+	x+=xx;
+	y+=yy;
+	z+=zz;
+	dirty=1;
+    }
+    void translate_and_draw()
+    {
+	#ifdef GL
+	    glPushMatrix();
+	    glTranslated(x,y,z);
+	    glRotated(a,b,c);
+	#endif
+	draw();
+	#ifdef GL
+	    glPopMatrix();
+	#endif
+    }
     virtual void keyp(int key,unicode,mod)=0;
 };
 #ifdef nerve
     class nerverot:public obj
     {
-	struct state *nerv
-	public:
-	    void shownerv()
-	    {
-	        nerverot_update(nerv);
-	        glTranslatef(x,y,z);
-	        nerverot_draw(3,nerv);
-	        resetmatrices();
-	    }
+        struct nerverotstate *nerv
+        public:
+        void draw()
+        {
+            nerverot_update(nerv);
+            nerverot_draw(3,nerv);
+        }
+	nerverot()
+	{
+	    nerv=nerverot_init(SDL_GetVideoSurface()->h,SDL_GetVideoSurface()->w);
+	}
+	~nerverot()
+	{
+	    nerverot_free(nerv);
+	}
+	void keyp(int key,unicode,mod)
+	{
+	
+	}
+	int getDirty(){return 1;}
     }
 #endif
+class facespawner:obj
+{
+	void keyp(int key,unicode,mod)
+	{
+	    faces.push_back(face*f=new face);
+	    f->x=x;
+	    f->y=y;
+	    f->z=z;
+	}
+        void draw()
+        {
+	    draw_text(newtermmsg);
+	}
+}
 struct face:public obj
 {
     RoteTerm *t;
@@ -136,11 +197,21 @@ struct face:public obj
     Uint32 lastrotor;
     double rotor;
     int selstartx,selstarty,selendx,selendy;
+    int getDirty(){return dirty||t->dirty;}
+    void setDirty(int d){t->dirty=d;obj::setDirty(d);}
     face()
     {
 	memset(this,0,sizeof(face));
-	f->scale=0.75;
+	f->scale=1;
 	return f;
+    }
+    void ~face()
+    {
+	rote_vt_destroy(t);
+	#ifdef threaded
+	    SDL_DestroyMutex(upd_t_data.lock);
+	    SDL_KillThread(upd_t_data.thr);
+	#endif
     }
     void add_term(int c,int r)
     {
@@ -160,12 +231,8 @@ struct face:public obj
     }
     void draw()
     {
-	if(t)
-	{
-    	    draw_terminal(this);
-        }
-	else
-    	    draw_text(newtermmsg);
+    	draw_terminal(this);
+    	
     }
     void keyp(int key,unicode,mod)
     {
@@ -178,37 +245,63 @@ struct face:public obj
 	    if(key==SDLK_END)
 		scroll=0;
 	    if(key==SDLK_HOME)
-		if(t)
-		    scroll=t->logl;
+		scroll=t->logl;
 	    if(scroll<0)scroll=0;
 	}
-	if(key!=SDLK_RSHIFT)
-	    scroll=0;
-        if (t)
-    	    sdlkeys(t,key,unicode,mod);
 	else
 	{
-	    add_terminal();
-	    faces.push_back(new face);
+	    if(key!=SDLK_RSHIFT)
+	        scroll=0;
+    	    sdlkeys(t,key,unicode,mod);
 	}
+	}
+	void lock()
+	{
+	    #ifdef threaded
+		if(t)_mutexP(upd_t_data.lock);
+	    #endif
+	}
+	void unlock()
+	{
+	    #ifdef threaded
+		if(t)_mutexV(upd_t_data.lock);
+	    #endif
+	}
+
     }
 }
 class mplayer
 {
+    int twist;
     vector<String>list;    
     void draw()
     {
-    
+	
     }
     void keyp(int key,unicode,mod)
+    {
+	switch(key){
+	    case SDLK_t:
+	    twist=!twist;
+	    break;
+	    case SDLK_UP:
+	    pos--;
+	    break;
+	    case SDLk_DOWN:
+	    pos++;
+	    break;
+	}
+    }
+    void load()
+    {
+	
+    }
 }
 using namespace std;
-vector<face *> faces;
+vector<obj *> objects;
 obj *active=0;
 xy cam;
 RoteTerm *clipout, *clipout2;
-#define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!\n");}}
-#define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!\n");}}
 #define CODE_TIMER 0
 #define CODE_QUIT 1
 #ifdef threaded
@@ -317,38 +410,28 @@ void resizooo(face *f, int x, int y, Uint8* duck)
 }
 int clean_faces(void)
 {
-    int r=1;
-    for(int i=0;i<faces.size();i++)
-	if(faces.at(i)->t)
-	    if(!clean_term(faces.at(i)->t))
-		r=0;
-    return r;
-}
-void lockterm(face * f)
-{
-    #ifdef threaded
-	_mutexP(f->upd_t_data.lock);
-    #endif
+    int c=1;
+    for_each_face
+	if(!clean_term(as face>objects.at(i)->t))
+	    c=0;
+    return c;
 }
 void lockterms(void)
 {
     #ifdef threaded
-	//logit("locking terms\n");
-        for (int i=0; i < faces.size(); i++)
-	    if(faces.at(i)->t)
-	    {
-		_mutexP(faces.at(i)->upd_t_data.lock);
-		//logit(".\n");
-	    }
-	//logit("done\n");
+	//logit("locking terms");
+	for_each_face
+	    f->lock();
+	//logit("done");
     #endif
 }
 void unlockterms(void)
 {
     #ifdef threaded
-	for (int i=0; i < faces.size(); i++)
-    	    if(faces.at(i)->t)
-		_mutexV(faces.at(i)->upd_t_data.lock);
+	//logit("unlocking terms");
+	for_each_face
+	    f->unlock();
+	//logit("done");
     #endif
 }
 void focusrect(face * activeface)
@@ -397,23 +480,9 @@ void focusline(face * activeface)
         if(angel>2*3.14159265358979323846264)angel=0;
         glEnd();
     #else
-	DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y,    cam.x+activeface->x+100,cam.y+activeface->y,barvicka);
-	DrawLine(gltextsdlsurface,cam.x+activeface->x,cam.y+activeface->y+100,cam.x+activeface->x,    cam.y+activeface->y,barvicka);
+	DrawLine(s,cam.x+activeface->x,cam.y+activeface->y,    cam.x+activeface->x+100,cam.y+activeface->y,barvicka);
+	DrawLine(s,cam.x+activeface->x,cam.y+activeface->y+100,cam.x+activeface->x,    cam.y+activeface->y,barvicka);
     #endif
-}
-void removeface(int i)
-{
-    if(faces.at(i)->t)
-    {
-	rote_vt_destroy(faces.at(i)->t);
-#ifdef threaded
-	SDL_DestroyMutex(faces.at(i)->upd_t_data.lock);
-	SDL_KillThread(faces.at(i)->upd_t_data.thr);
-#endif
-    }
-    free(faces.at(i));
-    if(faces.at(i)==selface)selface=0;
-    faces.erase(faces.begin()+i);
 }
 
 void RemoveTerm(RoteTerm * Term)
@@ -468,7 +537,7 @@ void type(face *f, char * r)
     }
 }
 
-void clipoutlastline(face *f)
+/*void clipoutlastline(face *f)
 {
     if(f->t->crow<1)return;
     int i;
@@ -480,43 +549,26 @@ void clipoutlastline(face *f)
     rotoclipout(s,clipout, 1);
     logit("%s\n",s);
     free(s);
-}
-
-
-
-
-
-
-void freefaces(void)
-{
-	for(int i=0;i<faces.size();i++)
-	    removeface(i);
-
-}
-
+}*/
 void loadsettings(void)
 {
     tpl_node *tn;
-    int32_t b;
-    tn=tpl_map("i", &b);
+    tn=tpl_map(tpl_settings, &settings);
     if(!tpl_load(tn, TPL_FILE, stng))
-	if(tpl_unpack(tn,0)>0)
-	    blending=b;
+	tpl_unpack(tn,0);
     tpl_free(tn);
 }
 void savesettings(void)
 {
     tpl_node *tn;
-    int32_t b;
-    tn=tpl_map("i", &b);
-    b=blending;
+    tn=tpl_map(tpl_settings, &settings);
     tpl_pack(tn,0);
     tpl_dump(tn, TPL_FILE, stng);
     tpl_free(tn);
 }
 
 
-void loadfaces(void)
+void loadobjects(void)
 {
     face *g;
     tpl_node *tn;
@@ -541,7 +593,7 @@ void loadfaces(void)
     tpl_free(tn);
 }
 
-void savefaces(void)
+void saveobjects(void)
 {
     face *f1;
     tpl_node *tn;
@@ -592,13 +644,6 @@ face *mousefocus(void)
 	}
     }
     return result;
-}
-
-void zoomem(face *z,double y)
-{
-	z->scale+=y;
-	z->x=z->x+z->x*y;
-	z->y=z->y+z->y*y;
 }
 
 void gle(void)
@@ -732,6 +777,18 @@ Uint32 TimerCallback(Uint32 interval, void *param)
 	return interval;
 }
 
+void updatelinesmooth()
+{
+    if(settings.line_antialiasing)
+        glEnable(GL_LINE_SMOOTH);
+    else
+        glDisable(GL_LINE_SMOOTH);
+}
+void updatelinewidth()
+{
+    glLineWidth(settings.lv);
+}							    
+
 //int RunGLTest (void)
 	int startup=1;
 	int bpp=8;
@@ -746,11 +803,20 @@ Uint32 TimerCallback(Uint32 interval, void *param)
 	int mustresize = 1;
 	int justresized = 0;
 	SDL_Surface* s;
-
+int anything_dirty()
+{
+    for_each_object
+	if(o->getDirty())
+	    return 1;
+    return 0;
+}
+int nothing_dirty()
+{
+    for_each_object
+	o->setDirty(0);
+}
 int RunGLTest (void)
 {
-    cam.x=0;
-    cam.y=0;
     xy ss = parsemodes(w,h,mdfl,1,0,0);
     if (ss.x!=-1){w=ss.x;h=ss.y;};
     #ifdef GL
@@ -770,39 +836,26 @@ int RunGLTest (void)
         resetmatrices();
         glEnable(GL_BLEND);
         glClearColor( 0.0, 0.0, 0.0, 0.0 );
-        glLineWidth(lv);
+        updatelinewidth();
+	updatelinesmooth();
     #endif
-    loadfaces();
-    if(!faces.size())
+    loadobjects();
+    if(!objects.size())
     {
-	faces.push_back(new_face());
-	faces.push_back(new_face());
+	objects.push_back(new_face());
+	objects.push_back(new_face());
     }
-    int dirty=1;
     while( !done )
     {
 	lockterms();
 	Uint8 * k=SDL_GetKeyState(NULL);
-	if(dirty||!clean_faces())
+	if(anything_dirty())
 	{
-	    dirty=0;
+	    nothing_dirty();
 	    #ifdef GL
 		glClear(GL_COLOR_BUFFER_BIT);
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
-	    #endif
-	    #ifdef GL
-		#ifdef nerve
-		    if(nerv)
-		    {	
-		    	glLineWidth(1);
-		    	shownerv(nerv);
-			glLineWidth(lv);
-			dirty=1;
-		    }
-		#endif
-		glPushMatrix();
-		glTranslatef(cam.x,cam.y,0);
 	    #endif
 	    if(active)
 	    if(k[SDLK_RCTRL])
@@ -936,6 +989,7 @@ int RunGLTest (void)
 
 						switch (key)
 						{
+							case 
 							case SDLK_SLASH:
 							    showbuttons=!showbuttons;
 							    break;
@@ -1048,32 +1102,26 @@ int RunGLTest (void)
 							    cam.y=-activeface->y;
 							    dirty=1;
 							break;
-							case SDLK_a:
-							    activeface->theme--;
-							    if (activeface->theme<0)activeface->theme=0;
-
-							    break;
-							case SDLK_s:
-							    activeface->theme++;
-							    if (activeface->theme>4)activeface->theme=4;
-
-							    break;
 							#ifdef GL
 
-							case SDLK_d:
-							    lv++;
-							    if(lv>5)lv=5;
-							    glLineWidth(lv);
-
+							case SDLK_PLUS:
+							    settings.line_antialiasing?settings.lv+=0.1:settings.lv++;
+							    GLint max;
+							    if(settings.line_antialiasing)
+								glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE,&max);
+							    else
+							    	glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE,&max); 
+							    if(settings.lv>max)settings.lv=max;
+							    updatelinewidth();
 							    break;
-							case SDLK_f:
-							    lv--;
-							    if(lv<1)lv=1;
-							    glLineWidth(lv);
-
+							case SDLK_MINUS:
+							    settings.line_antialiasing?settings.lv-=0.1:settings.lv--;
+							    if(settings.lv<=0)settings.lv=settings.line_antialiasing?0.1:1;
+							    updatelinewidth();
 							    break;
-							case SDLK_b:
-							    blending=!blending;
+							case SDLK_a:
+							    settings.line_antialiasing=!settings.line_antialiasing;
+							    updatelinesmooth();
 							    break;
 							#endif
 
@@ -1235,12 +1283,15 @@ int RunGLTest (void)
 				    dirty=1;
 				break;
 				case SDL_USEREVENT:
-					if(event.user.code==1)
+					if(event.user.code==CODE_QUIT)
 					{
-					    int af=(activeface->t==event.user.data1);
-					    RemoveTerm((RoteTerm*)event.user.data1);
+
+					    for_each_face
+						if (f->t == event.user.data1)
+						    objects.erase(i);
+					    }
 					    if(!faces.size())
-						faces.push_back(new_face());
+						faces.push_back(new face);
 					    if(af)
 						activeface=faces.at(0);
 

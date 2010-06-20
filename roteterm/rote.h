@@ -134,6 +134,7 @@ typedef struct RoteTerm_ {
    /* --- dirtiness flags: the following flags will be raised when the
     * corresponding items are modified. They can only be unset by YOU
     * (when, for example, you redraw the term or something) --- */
+   bool dirty;
    bool curpos_dirty;           /* whether cursor location has changed */
    bool *line_dirty;            /* whether each row is dirty  */
    /* --- end dirtiness flags */
@@ -322,4 +323,3 @@ void rotoclipout(char * x, RoteTerm *t, int selection);
 
 
 
-int clean_term(RoteTerm *rt);

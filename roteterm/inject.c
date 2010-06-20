@@ -61,6 +61,7 @@ static void cursor_line_down(RoteTerm *rt) {
    int i;
    rt->crow++;
    rt->curpos_dirty = true;
+   rt->dirty=true;
    if (rt->crow <= rt->scrollbottom) return;
 
     appendlog(rt);
@@ -70,10 +71,12 @@ static void cursor_line_down(RoteTerm *rt) {
 
    for (i = rt->scrolltop; i < rt->scrollbottom; i++) {
       rt->line_dirty[i] = true;
+      rt->dirty=true;
       memcpy(rt->cells[i], rt->cells[i+1], sizeof(RoteCell) * rt->cols);
    }
       
    rt->line_dirty[rt->scrollbottom] = true;
+   rt->dirty=true;
 
    /* clear last row of the scrolling region */
    for (i = 0; i < rt->cols; i++) {
@@ -87,6 +90,7 @@ static void cursor_line_up(RoteTerm *rt) {
    int i;
    rt->crow--;
    rt->curpos_dirty = true;
+   rt->dirty=true;
    if (rt->crow >= rt->scrolltop) return;
 
    /* must scroll the scrolling region up by 1 line, and put cursor on 
@@ -95,10 +99,12 @@ static void cursor_line_up(RoteTerm *rt) {
    
    for (i = rt->scrollbottom; i > rt->scrolltop; i--) {
       rt->line_dirty[i] = true;
+      rt->dirty=true;
       memcpy(rt->cells[i], rt->cells[i-1], sizeof(RoteCell) * rt->cols);
    }
       
    rt->line_dirty[rt->scrolltop] = true;
+   rt->dirty=true;
 
    /* clear first row of the scrolling region */
    for (i = 0; i < rt->cols; i++) {
@@ -123,6 +129,7 @@ static inline void put_unicode_char(RoteTerm *rt, int c) {
 
    rt->line_dirty[rt->crow] = true;
    rt->curpos_dirty = true;
+   rt->dirty=true;
 }
 
 static inline void put_normal_char(RoteTerm *rt, char c) {
@@ -166,10 +173,12 @@ static void handle_control_char(RoteTerm *rt, char c) {
       case '\n':  /* line feed */
          rt->ccol = 0; cursor_line_down(rt);
          rt->curpos_dirty = true;
+	 rt->dirty=true;
          break;
       case '\b': /* backspace */
          if (rt->ccol > 0) rt->ccol--;
          rt->curpos_dirty = true;
+	 rt->dirty=true;
          break;
       case '\t': /* tab */
          while (rt->ccol % 8) put_normal_char(rt, ' ');
