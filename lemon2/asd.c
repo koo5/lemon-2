@@ -1,4 +1,4 @@
-/********************************************************************
+/*******************************************************************
 * Description:
 * Author: koom,,, <>
 * Created at: Sat Jul 25 04:25:26 CEST 2009
@@ -72,7 +72,7 @@
 #define as dynamic_cast<
 #define is as
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
-#define for_each_face for_each_object face*f=as face*>(o);
+#define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
 #ifdef GL
     inline void dooooot(float x,float y)
     {
@@ -765,8 +765,14 @@ RoteTerm *clipout, *clipout2;
 void updateterminals()
 {
     #ifndef threaded
-	for_each_face
-	    updateterminal(f->t);
+	for(int i=0;i<objects.size();i++) 
+	{ 
+	    obj*o=objects.at(i);
+	    if (as face*>(o))
+	    {
+		face*f=as face*>(o);
+		updateterminal(f->t);
+	    }
 	}
     #endif
 }
@@ -804,8 +810,14 @@ void lockterms(void)
 {
     #ifdef threaded
 	//logit("locking terms");
-	for_each_face
-	    f->lock();
+	for(int i=0;i<objects.size();i++) 
+	{ 
+	    obj*o=objects.at(i);
+	    if (dynamic_cast< face*>(o))
+	    {
+		face*f=as face*>(o);
+		f->lock();
+	    }
 	}
 	//logit("done");
     #endif
@@ -816,7 +828,7 @@ void unlockterms(void)
 	//logit("unlocking terms");
 	for_each_face
 	    f->unlock();
-	}
+	}}
 	//logit("done");
     #endif
 }
@@ -1506,7 +1518,7 @@ int RunGLTest (void)
 					    for_each_face
 						if (f->t == event.user.data1)
 						    objects.erase(objects.begin()+i);
-					    }
+					    }}
 					    dirty=1;
 					}
 					break;
@@ -1635,8 +1647,9 @@ void reloadbuttons(void)
 
 int main(int argc, char *argv[])
 {
-        char *help=0;
-
+	obj * o=new face;
+	printf("%i\n",o);
+	face *ff=dynamic_cast<face*>(o);
 	logit("hi\n");
 	logit("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
 
