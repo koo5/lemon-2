@@ -37,7 +37,6 @@
 #include "../XY.h"
 #include "modes.c"
 #include "../more-mess/rdfl.c"
-#include "../more-mess/resize.c"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
 #include "../tpl/tpl.h"
@@ -67,6 +66,7 @@
 #include <vector>
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
 #define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!");}}
+#define CODE_DATA 0
 #define CODE_TIMER 0
 #define CODE_QUIT 1
 #define as dynamic_cast<
@@ -173,6 +173,10 @@ struct obj{
     double x,y,z;
     double a,b,c;
     double w,h,d;
+    obj()
+    {
+	x=y=z=a=b=c=w=h=d=dirty=0;
+    }
     virtual void draw(){};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
@@ -312,7 +316,7 @@ struct obj{
 	        //logit("*locked injected\n");
 	        SDL_Event e;
 	        e.type=SDL_USEREVENT;
-	        e.user.code=0;
+	        e.user.code=CODE_DATA;
 	        SDL_PushEvent(&e);
 	    }
 	    if(!d->t->childpid)
@@ -347,8 +351,14 @@ struct face:public obj
     void setDirty(int d){t->dirty=d;obj::setDirty(d);}
     face()
     {
-	memset(this,0,sizeof(face));
 	scale=1;
+	add_terminal();
+	last_resize=lastxresize=lastyresize=0;
+	scroll=0;
+	oldcrow=oldccol=-1;
+	lastrotor=rotor=0;
+	selstartx=selstarty=selendx=selendy=-1;
+
     }
     ~face()
     {
@@ -832,73 +842,6 @@ void unlockterms(void)
 	//logit("done");
     #endif
 }
-/*
-void focusrect(face * activeface)
-{
-    #ifdef GL
-	if(activeface->t)
-	{
-	    glBegin(GL_LINES);
-	    glColor3f(1,0,0);
-	    glVertex2f(activeface->x, activeface->y);
-	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
-	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y);
-	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
-	    glVertex2f(activeface->x+activeface->scale*13*activeface->t->cols, activeface->y+activeface->scale*26*activeface->t->rows);
-	    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
-	    glVertex2f(activeface->x, activeface->y+activeface->scale*26*activeface->t->rows);
-	    glVertex2f(activeface->x, activeface->y);
-	    glEnd();
-	}
-    #endif
-}
-#ifdef SDLD
-    void DrawLine(SDL_Surface *s, int x, int y, int x2, int y2, int c)
-    {
-        if (y<1)y=1;    if (x<1)x=1;
-        if(y>gltextsdlsurface->h-2)y=gltextsdlsurface->h-2;
-        if(x>gltextsdlsurface->w-2)x=gltextsdlsurface->w-2;
-        if (y2<1)y2=1;    if (x2<1)x2=1;
-        if(y2>gltextsdlsurface->h-2)y2=gltextsdlsurface->h-2;
-        if(x2>gltextsdlsurface->w-2)x2=gltextsdlsurface->w-2;
-        Draw_Line(s,x,y,x2,y2,c);
-    }
-#endif
-void focusline(face * activeface)
-{
-    static double angel=0;
-    float csize=30;
-    #ifdef GL
-        glBegin(GL_POINTS);
-        glColor3f(1,0,0);
-        glVertex2f(csize*sin(angel)+activeface->x,csize*cos(angel)+activeface->y);
-        glVertex2f(csize*sin(angel+3.14159265358979323846264/2)+activeface->x,csize*cos(angel+3.14159265358979323846264/2)+activeface->y);
-        glVertex2f(csize*sin(angel+3.14159265358979323846264)+activeface->x,csize*cos(angel+3.14159265358979323846264)+activeface->y);
-        glVertex2f(csize*sin(angel+1.5*3.14159265358979323846264)+activeface->x,csize*cos(angel+1.5*3.14159265358979323846264)+activeface->y);
-	angel+=0.1;
-        if(angel>2*3.14159265358979323846264)angel=0;
-        glEnd();
-    #else
-	DrawLine(s,cam.x+activeface->x,cam.y+activeface->y,    cam.x+activeface->x+100,cam.y+activeface->y,barvicka);
-	DrawLine(s,cam.x+activeface->x,cam.y+activeface->y+100,cam.x+activeface->x,    cam.y+activeface->y,barvicka);
-    #endif
-}
-*/
-
-
-/*void clipoutlastline(face *f)
-{
-    if(f->t->crow<1)return;
-    int i;
-    char *s=(char*)malloc(f->t->cols+1);
-    s[f->t->cols]=0;
-    for (i=0;i<f->t->cols;i++)
-	s[i]=f->t->cells[f->t->crow-1][i].ch;
-    rote_vt_forsake_child(clipout);
-    rotoclipout(s,clipout, 1);
-    logit("%s\n",s);
-    free(s);
-}*/
 void loadsettings(void)
 {
     tpl_node *tn;
@@ -1164,7 +1107,7 @@ int nothing_dirty()
 
 int RunGLTest (void)
 {
-    xy ss = parsemodes(w,h,mdfl,1,0,0);
+    xy ss = parsemodeline(GetFileIntoCharPointer1("mode"));
     if (ss.x!=-1){w=ss.x;h=ss.y;};
     #ifdef GL
 	s=initsdl(w,h,&bpp,SDL_OPENGL
@@ -1206,10 +1149,6 @@ int RunGLTest (void)
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
-	    if(active)
-//	    if(k[SDLK_RCTRL])
-//	        focusrect(activeface);
-//	    focusline(activeface);
 	    for_each_object
 		o->translate_and_draw();
 		#ifdef GL
@@ -1240,6 +1179,7 @@ int RunGLTest (void)
 	}
 	sdle();
 	SDL_Event event;
+	memset(&event,0,sizeof(event));
 	SDL_TimerID x=0;
 	#ifdef threaded
 	    if(dirty)
@@ -1314,10 +1254,12 @@ int RunGLTest (void)
 
 							break;
 */			    	case SDLK_RETURN:
-			    	    active->z+=1;
+				    if(active)
+			    		active->z+=1;
 			    	    break;
 				case SDLK_BACKSPACE:
-			    	    active->z-=1;
+			    	    if(active)
+			    		active->z-=1;
 		        	    break;
 				case SDLK_t:
 				{
@@ -1385,18 +1327,19 @@ int RunGLTest (void)
 				        break;
 				#endif
 				case SDLK_END:
-				    if(is face*>(active))as face*>(active)->resizooo(0,1,k);
+				    if(active&&is face*>(active))as face*>(active)->resizooo(0,1,k);
 				    break;
 				case SDLK_HOME:
-				    if(is face*>(active))as face*>(active)->resizooo(0,-1,k);
+				    if(active&&is face*>(active))as face*>(active)->resizooo(0,-1,k);
 				    break;
 				case SDLK_DELETE:
-				    if(is face*>(active))as face*>(active)->resizooo(-1,0,k);
+				    if(active&&is face*>(active))as face*>(active)->resizooo(-1,0,k);
 				    break;
 				case SDLK_PAGEDOWN:
-				    if(is face*>(active))as face*>(active)->resizooo(1,0,k);
+				    if(active&&is face*>(active))as face*>(active)->resizooo(1,0,k);
 				    break;
 			    }
+			    break;
 			case SDL_QUIT:
 			    done = 1;
 			    break;
@@ -1525,11 +1468,6 @@ int RunGLTest (void)
 			}
 		    }
 		    while (SDL_PollEvent(&event));
-		    if (shrink||grow)
-		    {
-			resize(&w,&h,&bpp,&s->flags,&shrink,&grow);
-			resetviewport();
-		    }
 		    if (mustresize)
 		    {
 			mustresize=0;
@@ -1647,9 +1585,6 @@ void reloadbuttons(void)
 
 int main(int argc, char *argv[])
 {
-	obj * o=new face;
-	printf("%i\n",o);
-	face *ff=dynamic_cast<face*>(o);
 	logit("hi\n");
 	logit("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
 
