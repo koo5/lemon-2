@@ -175,55 +175,20 @@ struct obj{
     double w,h,d;
     obj()
     {
-	x=y=z=a=b=c=w=h=d=dirty=0;
+	x=y=z=a=b=c=dirty=0;
+	w=h=d=1;
     }
     virtual void draw(){};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
-    void switchpositions(obj*o){
+    void switchpositions(obj*o)
+    {
 	double t,tt,ttt,tttt,ttttt,tttttt;
 	t-o->x;tt=o->y;ttt=o->z;tttt=o->a;ttttt=o->b;tttttt=o->c;
 	o->a=a;o->b=b;o->c=c;o->x=x;o->y=y;o->z=z;
 	x=t;y=tt;z=ttt;a=tttt;b=ttttt;c=tttttt;
     }
-    void boundingbox()
-    {
-        glVertex3f(0,0,0);
-        glVertex3f(w,0,0);
-        glVertex3f(w,h,0);
-        glVertex3f(0,h,0);
-	if(d)
-	{
-    	    glVertex3f(0,0,d);
-	    glVertex3f(w,0,d);
-    	    glVertex3f(w,h,0);
-    	    glVertex3f(0,h,0);
-    	    glVertex3f(0,0,d);
-    	    glVertex3f(w,0,d);
-    	    glVertex3f(w,h,0);
-    	    glVertex3f(0,h,0);
-    	    glVertex3f(0,0,d);
-    	    glVertex3f(w,0,d);
-    	    glVertex3f(w,0,0);
-    	    glVertex3f(w,0,d);
-    	    glVertex3f(0,0,d);
-    	    glVertex3f(w,0,0);
-    	    glVertex3f(w,h,0);
-    	    glVertex3f(0,h,0);
-    	    glVertex3f(0,0,0);
-    	    glVertex3f(w,0,0);
-    	    glVertex3f(w,h,0);
-    	    glVertex3f(0,h,0);
-	}
-    }
     
-    virtual void pick()
-    {
-        glBegin(GL_QUADS);
-	boundingbox();
-	glEnd();
-    }
-
     void move(double xx,double yy,double zz)
     {
 	x+=xx;
@@ -239,27 +204,25 @@ struct obj{
 	    glRotated(a,1,0,0);
 	    glRotated(b,0,1,0);
 	    glRotated(c,0,0,1);
+	    glScalef(w,h,d);
 	#endif
 	draw();
 	#ifdef GL
 	    glPopMatrix();
 	#endif
     }
-    void translate_and_pick()
+    virtual void keyp(int key,int uni,int mod)
     {
-	#ifdef GL
-	    glPushMatrix();
-	    glTranslated(x,y,z);
-	    glRotated(a,1,0,0);
-	    glRotated(b,0,1,0);
-	    glRotated(c,0,0,1);
-	#endif
-	pick();
-	#ifdef GL
-	    glPopMatrix();
-	#endif
+	if(mod&KMOD_RCTRL)
+	    if(key==SDLK_RETURN)
+	    {
+		w+=0.1;h+=0.1;d+=0.1;
+	    }
+	    else if(key==SDLK_BACKSPACE)
+	    {
+		w-=0.1;h-=0.1;d-=0.1;
+	    }
     }
-    virtual void keyp(int key,int uni,int mod)=0;
     ~obj(){if(active==this)active=0;}
 };
 #ifdef nerve
@@ -267,15 +230,18 @@ struct obj{
     {
         struct nerverotstate *nerv;
         public:
-	int w,h;
         void draw()
         {
             nerverot_update(nerv);
+            glPushMatrix();
+            glScaled(1/w,1/h,1);
             nerverot_draw(3,nerv);
+            glPopMatrix();
         }
 	nerverot()
 	{
 	    nerv=nerverot_init(w=SDL_GetVideoSurface()->w,h=SDL_GetVideoSurface()->h);
+	    d=w;
 	}
 	~nerverot()
 	{
@@ -638,6 +604,9 @@ class facespawner:public obj
 	GLfloat heights[16][16], scale;
 	int16_t buf[2][256];
 	int getDirty(){return 1;}
+	void keyp(int key,int uni,int mod)
+	{
+        }
 	void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
 	{
 	    if(y1 == y2)
@@ -788,7 +757,9 @@ void updateterminals()
 }
 void setmatrix()
 {
-    glFrustum(0,SDL_GetVideoSurface()->w,0,SDL_GetVideoSurface()->h,1,100);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
 }
 void resetmatrices(void)
 {
@@ -1028,7 +999,7 @@ obj* mousefocus(int x, int y)
     glPushName(-1);
     for_each_object
         glLoadName(i);
-	o->translate_and_pick();
+	o->translate_and_draw();
     }
     glMatrixMode (GL_PROJECTION);
     glPopMatrix();
@@ -1042,7 +1013,7 @@ obj* mousefocus(int x, int y)
 	for(j=0;j<numnames;j++)
 	{
 	    GLuint n=fuf[k];
-//	    logit("%i\n", n);
+	    logit("%i\n", n);
 	    return objects.at(n);
 	    k++;
 	}
@@ -1089,6 +1060,7 @@ void updatelinewidth()
 	int mustresize = 1;
 	int justresized = 0;
 	SDL_Surface* s;
+	double camx,camy,camz;
 int anything_dirty()
 {
     for_each_object
@@ -1107,6 +1079,7 @@ int nothing_dirty()
 
 int RunGLTest (void)
 {
+    camz=2;
     xy ss = parsemodeline(GetFileIntoCharPointer1("mode"));
     if (ss.x!=-1){w=ss.x;h=ss.y;};
     #ifdef GL
@@ -1132,30 +1105,30 @@ int RunGLTest (void)
 //    loadobjects();
     if(!objects.size())
     {
-	objects.push_back(new face);
-	objects.push_back(new face);
+	objects.push_back(new nerverot);
+	objects.push_back(active=new spectrum_analyzer);
+	
     }
     while( !done )
     {
 	int dirty=1;
 	lockterms();
 	Uint8 * k=SDL_GetKeyState(NULL);
-	if(dirty||anything_dirty())
+	if(dirty|=anything_dirty())
 	{
-	    dirty=0;
+
 	    nothing_dirty();
 	    #ifdef GL
 		glClear(GL_COLOR_BUFFER_BIT);
+		//glPushMatrix();
+		glLoadIdentity();
+		glFrustum(-1,1,-1,1,1,1000);
+		gluLookAt(camx,camy,camz,0,0,0,0,10,0);
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
 	    for_each_object
 		o->translate_and_draw();
-		#ifdef GL
-		glBegin(GL_LINE_STRIP);
-		o->boundingbox();
-		glEnd();
-		#endif
 	    }
 	    #ifdef GL
 		if(settingz.givehelp)
@@ -1171,6 +1144,7 @@ int RunGLTest (void)
 		}
 		if(settingz.showbuttons)
 		    show_buttons(0);
+		//glPopMatrix();
 		SDL_GL_SwapBuffers( );
 	    #else
 		SDL_UpdateRect(s,0,0,0,0);
@@ -1179,13 +1153,12 @@ int RunGLTest (void)
 	}
 	sdle();
 	SDL_Event event;
-	memset(&event,0,sizeof(event));
 	SDL_TimerID x=0;
 	#ifdef threaded
 	    if(dirty)
 	#endif
 		x= SDL_AddTimer(55, TimerCallback, 0);
-
+        dirty=0;
 	unlockterms();
 	//logit("---------unlocked wating\n");
 	if(SDL_WaitEvent( &event ))
@@ -1207,14 +1180,15 @@ int RunGLTest (void)
 			    escaped=0;
 			    active->move(event.motion.xrel,event.motion.yrel,0);
 			}
-			if(!SDL_GetMouseState(0,0))
+			if(SDL_BUTTON(1)&SDL_GetMouseState(0,0))
 			    active=mousefocus(event.motion.x,event.motion.y);
+			    
 		        break;
 		    case SDL_KEYDOWN:
-			dirty=1;		    
-			if(key==SDLK_RCTRL)
-    			    escaped=1;
+			dirty=1;
 			if(escaped||(mod&&KMOD_RCTRL))
+			{
+			    escaped=0;
 			    switch (key)
 			    {
 			        case SDLK_SLASH:
@@ -1232,10 +1206,10 @@ int RunGLTest (void)
 					}
 				    }
 				    break;
-				case SDLK_F2:
+				case SDLK_f:
 				    gofullscreen=1;
 				    break;
-				case SDLK_F8:
+				case SDLK_r:
 			    	    loadl2(fnfl);
 			    	    break;
 /*			    	case SDLK_F9:
@@ -1253,14 +1227,7 @@ int RunGLTest (void)
 							    dirty=1;
 
 							break;
-*/			    	case SDLK_RETURN:
-				    if(active)
-			    		active->z+=1;
-			    	    break;
-				case SDLK_BACKSPACE:
-			    	    if(active)
-			    		active->z-=1;
-		        	    break;
+					*/
 				case SDLK_t:
 				{
 			    	    int yy=0;
@@ -1338,11 +1305,53 @@ int RunGLTest (void)
 				case SDLK_PAGEDOWN:
 				    if(active&&is face*>(active))as face*>(active)->resizooo(1,0,k);
 				    break;
+				case SDLK_F1:
+				    camx-=1;
+				    break;
+				case SDLK_F2:
+				    camx-=100;
+				    break;
+				case SDLK_F3:
+				    camx+=100;
+				    break;
+				case SDLK_F4:
+				    camx+=1;
+				    break;
+				case SDLK_F5:
+				    camy-=1;
+				    break;
+				case SDLK_F6:
+				    camy-=100;
+				    break;
+				case SDLK_F7:
+				    camy+=100;
+				    break;
+				case SDLK_F8:
+				    camy+=1;
+				    break;
+				case SDLK_F9:
+				    camz-=1;
+				    break;
+				case SDLK_F10:
+				    camz-=100;
+				    break;
+				case SDLK_F11:
+				    camz+=100;
+				    break;
+				case SDLK_F12:
+				    camz+=1;
+				    break;
+				default:
+				    if(active)
+					active->keyp(key,uni,mod);
 			    }
-			    break;
-			case SDL_QUIT:
-			    done = 1;
-			    break;
+			}
+			if(key==SDLK_RCTRL)
+			    escaped=1;
+			break;
+		    case SDL_QUIT:
+		        done = 1;
+		        break;
 			    /*
 			case SDL_MOUSEBUTTONDOWN:
 			{
