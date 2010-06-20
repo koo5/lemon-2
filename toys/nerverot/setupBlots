@@ -1,5 +1,5 @@
 /* set up the initial arrays of blots */
-static void setupBlots (struct state *st,int which)
+static void setupBlots (struct nerverotstate *st,int which)
 {
     switch (which)
     {

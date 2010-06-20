@@ -61,12 +61,14 @@
 #ifdef SDLD
     #include "../sdldlines.c"
 #endif
-#include "../gltext.c"
-#include "glterm.c"
+
+
 #include <iostream>
 #include <vector>
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
 #define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!");}}
+#define CODE_TIMER 0
+#define CODE_QUIT 1
 #define as dynamic_cast<
 #define is as
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
@@ -77,27 +79,71 @@
         glVertex2f(x,y);
     }
 #endif
-char *tpl_settings="S(iiis)";
-struct settings
+char *tpl_settingz="S(iiis)";
+struct Settingz
 {
-    int32_t line_antialiasing=0;
-    int32_t showbuttons=0;
-    int32_t givehelp=1;
-    int32_t do_l2=0;
-    double lv=2;//glLineWidth
-}
-
+    int32_t line_antialiasing;
+    int32_t showbuttons;
+    int32_t givehelp;
+    int32_t do_l2;
+    double lv;//glLineWidth
+}settingz={0,0,1,0,2};
+#include "../gltext.c"
 char *fnfl="l2";//font file
-
 char *stng;//settings
 char *mdfl;//modes
 char *fcfl;//faces
+char *clfl;//colors
 char *ntfl;//newtermmsg
 char *newtermmsg;
 char *btns;//buttons/
 char **buttons;
 char **buttonnames;
 int numbuttons;
+typedef 
+struct 
+{
+    unsigned char r,g,b;
+}
+color;
+color colors[16];
+void loadcolors(void)
+{
+    int i,useless;
+    for (i=0;i<16;i++)
+    {
+	colors[i].r=255/16*i;
+	colors[i].g=255/16*i;
+	colors[i].b=255/16*i;
+    }
+    if(!clfl)return;
+    FILE * fp = fopen(clfl,"r");
+    if (fp == NULL)
+    {
+        printf("cant load 'colors'\n");
+        return;
+    }
+    useless=fread(&colors,3,16,fp);
+    fclose(fp);
+}
+
+int min(int a, int b)
+{
+    return a < b ? a : b;
+}
+
+int in(int a, int b, int c)
+{
+    return(a<=b&&c>=b);
+}
+
+
+void do_color(int attr)
+{
+    int c=ROTE_ATTR_XFG(attr);//0-15
+    setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
+}
+
 float floabs(float x)
 {
     return x>0 ? x : -x;
@@ -118,6 +164,9 @@ typedef struct
 }
 moomoo;
 struct obj;
+using namespace std;
+
+vector<obj *> objects;
 obj * active;
 struct obj{
     int dirty;
@@ -125,9 +174,8 @@ struct obj{
     double a,b,c;
     double w,h,d;
     virtual void draw();
-    virtual void pick();
     virtual int getDirty(){return dirty;}
-    virtual void setDirty(int d){dirty=d}
+    virtual void setDirty(int d){dirty=d;}
     void switchpositions(obj*o){
 	double t,tt,ttt,tttt,ttttt,tttttt;
 	t-o->x;tt=o->y;ttt=o->z;tttt=o->a;ttttt=o->b;tttttt=o->c;
@@ -136,36 +184,36 @@ struct obj{
     }
     void boundingbox()
     {
-        glVertex(0,0,0);
-        glVertex(w,0,0);
-        glVertex(w,h,0);
-        glVertex(0,h,0);
+        glVertex3f(0,0,0);
+        glVertex3f(w,0,0);
+        glVertex3f(w,h,0);
+        glVertex3f(0,h,0);
 	if(d)
 	{
-    	    glVertex(0,0,d);
-	    glVertex(w,0,d);
-    	    glVertex(w,h,0);
-    	    glVertex(0,h,0);
-    	    glVertex(0,0,d);
-    	    glVertex(w,0,d);
-    	    glVertex(w,h,0);
-    	    glVertex(0,h,0);
-    	    glVertex(0,0,d);
-    	    glVertex(w,0,d);
-    	    glVertex(w,0,0);
-    	    glVertex(w,0,d);
-    	    glVertex(0,0,d);
-    	    glVertex(w,0,0);
-    	    glVertex(w,h,0);
-    	    glVertex(0,h,0);
-    	    glVertex(0,0,0);
-    	    glVertex(w,0,0);
-    	    glVertex(w,h,0);
-    	    glVertex(0,h,0);
+    	    glVertex3f(0,0,d);
+	    glVertex3f(w,0,d);
+    	    glVertex3f(w,h,0);
+    	    glVertex3f(0,h,0);
+    	    glVertex3f(0,0,d);
+    	    glVertex3f(w,0,d);
+    	    glVertex3f(w,h,0);
+    	    glVertex3f(0,h,0);
+    	    glVertex3f(0,0,d);
+    	    glVertex3f(w,0,d);
+    	    glVertex3f(w,0,0);
+    	    glVertex3f(w,0,d);
+    	    glVertex3f(0,0,d);
+    	    glVertex3f(w,0,0);
+    	    glVertex3f(w,h,0);
+    	    glVertex3f(0,h,0);
+    	    glVertex3f(0,0,0);
+    	    glVertex3f(w,0,0);
+    	    glVertex3f(w,h,0);
+    	    glVertex3f(0,h,0);
 	}
     }
     
-    void pick()
+    virtual void pick()
     {
         glBegin(GL_QUADS);
 	boundingbox();
@@ -184,7 +232,9 @@ struct obj{
 	#ifdef GL
 	    glPushMatrix();
 	    glTranslated(x,y,z);
-	    glRotated(a,b,c);
+	    glRotated(a,1,0,0);
+	    glRotated(b,0,1,0);
+	    glRotated(c,0,0,1);
 	#endif
 	draw();
 	#ifdef GL
@@ -196,20 +246,22 @@ struct obj{
 	#ifdef GL
 	    glPushMatrix();
 	    glTranslated(x,y,z);
-	    glRotated(a,b,c);
+	    glRotated(a,1,0,0);
+	    glRotated(b,0,1,0);
+	    glRotated(c,0,0,1);
 	#endif
 	pick();
 	#ifdef GL
 	    glPopMatrix();
 	#endif
     }
-    virtual void keyp(int key,uni,mod)=0;
+    virtual void keyp(int key,int uni,int mod)=0;
     ~obj(){if(active==this)active=0;}
 };
 #ifdef nerve
     class nerverot:public obj
     {
-        struct nerverotstate *nerv
+        struct nerverotstate *nerv;
         public:
 	int w,h;
         void draw()
@@ -225,7 +277,7 @@ struct obj{
 	{
 	    nerverot_free(nerv);
 	}
-	void keyp(int key,uni,mod)
+	void keyp(int key,int uni,int mod)
 	{
 	    switch(key)
 	    {
@@ -238,36 +290,46 @@ struct obj{
 	    }
 	}
 	int getDirty(){return 1;}
+    };
+#endif
+#ifdef threaded
+    int update_terminal(void *data)
+    {
+	while(1)
+    	{
+	    moomoo * d = (moomoo *)data;
+	    char buf[512];
+	    int br=-1;
+	    //logit("UNLOCKED SELECT\n");
+	    rote_vt_update_thready(buf, 512, &br, d->t);
+	    //logit("*end SELECT, locking %i*\n", d->lock);
+	    _mutexP(d->lock);
+	    //logit("LOCKED\n");
+	    if (br>0)
+	    {
+	        //logit("*locked injecting\n");
+	        rote_vt_inject(d->t, buf, br);
+	        //logit("*locked injected\n");
+	        SDL_Event e;
+	        e.type=SDL_USEREVENT;
+	        e.user.code=0;
+	        SDL_PushEvent(&e);
+	    }
+	    if(!d->t->childpid)
+	    {
+	        SDL_Event e;
+	        e.type=SDL_USEREVENT;
+	        e.user.code=CODE_QUIT;
+	        e.user.data1=d->t;
+	        SDL_PushEvent(&e);
+	        _mutexV(d->lock);
+	        return 1;
+	    }
+	    _mutexV(d->lock);
+	}
+	return 1;
     }
 #endif
-class facespawner:obj
-{
-    int w=100;
-    int h=100;
-    void pick()
-    {
-        if(newtermmsg)
-        {
-    	    glBegin(GL_QUADS);
-    	    glVertex(0,0,0);
-	    glVertex(w,0,0);
-	    glVertex(w,h,0);
-	    glVertex(0,h,0);
-	    glEnd();
-	}
-    }
-    void keyp(int key,uni,mod)
-    {
-        faces.push_back(face*f=new face);
-        f->x=x;
-        f->y=y;
-        f->z=z;
-    }
-    void draw()
-    {
-        draw_text(newtermmsg);
-    }
-}
 struct face:public obj
 {
     RoteTerm *t;
@@ -286,10 +348,9 @@ struct face:public obj
     face()
     {
 	memset(this,0,sizeof(face));
-	f->scale=1;
-	return f;
+	scale=1;
     }
-    void ~face()
+    ~face()
     {
 	rote_vt_destroy(t);
 	#ifdef threaded
@@ -301,8 +362,8 @@ struct face:public obj
     {
         int up=duck[SDLK_HOME]||(yy==-1);
         int dw=duck[SDLK_END]||(yy==1);
-        int lf=duck[SDLK_DELETE]||(yx==-1);
-        int ri=duck[SDLK_PAGEDOWN]||(yx==1);
+        int lf=duck[SDLK_DELETE]||(xx==-1);
+        int ri=duck[SDLK_PAGEDOWN]||(xx==1);
         if(up)
 	    yy=-1;
 	if(dw)
@@ -319,6 +380,22 @@ struct face:public obj
 	lastxresize=xx;
 	lastyresize=yy;
     }
+
+    #ifndef threaded
+	void updateterminal()
+	{
+    	    rote_vt_update(t);
+    	    if(!t->childpid)
+    	    {
+	        SDL_Event e;
+	        e.type=SDL_USEREVENT;
+	        e.user.code=CODE_QUIT;
+	        e.user.data1=t;
+	        SDL_PushEvent(&e);
+	    }
+	}
+    #endif
+
     void add_term(int c,int r)
     {
 	logit("adding terminal");
@@ -327,23 +404,38 @@ struct face:public obj
 	#ifdef threaded
 	    upd_t_data.lock=SDL_CreateMutex();
 	    upd_t_data.t=t;
-	    logit("upd_t_data.lock=%i", f->upd_t_data.lock);
+	    logit("upd_t_data.lock=%i",upd_t_data.lock);
 	    upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&upd_t_data);
 	#endif
     }
     void add_terminal()
     {
-	add_term(SDL_GetVideoSurface()->h/26/f->scale,SDL_GetVideoSurface()->w/13/f->scale);
+	add_term(SDL_GetVideoSurface()->h/26/scale,SDL_GetVideoSurface()->w/13/scale);
     }
+
     void draw()
     {
-    	draw_terminal(this);
+    	draw_terminal();
     	
     }
-    void keyp(int key,uni,mod)
+    void clipin(int noes, int sel)
+    {
+	char * r=rotoclipin(sel);
+	char *s=r;
+	if(s)
+	{
+	    while(*r)
+	    {
+		if((noes && (*r)!=10 && (*r)!=13 ) || !noes) rote_vt_keypress(t,*r);
+		r++;
+	    }
+	    free(s);
+	}
+    }
+    void keyp(int key,int uni,int mod)
     {
     	if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
-	    clipin(activeface,0,1);
+	    clipin(0,1);
 	else if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 	{
 	    if(key==SDLK_PAGEUP)
@@ -362,40 +454,302 @@ struct face:public obj
 	        scroll=0;
     	    sdlkeys(t,key,uni,mod);
 	}
-	}
-	void lock()
+    }
+    void lock()
+    {
+        #ifdef threaded
+    	    if(t)_mutexP(upd_t_data.lock);
+	#endif
+    }
+    void unlock()
+    {
+        #ifdef threaded
+	    if(t)_mutexV(upd_t_data.lock);
+	#endif
+    }
+    void draw_terminal()
+    {
+        xy lok;
+        lok.x=0;
+        lok.y=0;
+        int j=0;
+        int i;
+        #ifdef GL
+	    glBegin(GL_LINE_STRIP);
+        #endif
+        int scroll=min(scroll,t->logl);
+	if(t->log)
 	{
-	    #ifdef threaded
-		if(t)_mutexP(upd_t_data.lock);
-	    #endif
-	}
-	void unlock()
+	    for (i=t->logl-scroll;i<t->logl;i++)
+	    {
+	        if(!t->log[i])break;
+	        lok.y=(i-t->logl+scroll)*26*scale;
+	        if(t->logstart) lok.y-=100;
+		if(t->logstart) lok.x-=100;
+		for(j=0;j<t->log[i][0].ch;j++)
+	        {
+		    lok.x=j*13*scale;
+		    do_color(t->log[i][j+1].attr);
+	    	    drawchar(lok,t->log[i][j+1].ch,scale,scale);
+		}	
+	    }
+        }
+	int isundercursor;
+	for (i=0; i<t->rows; i++)
 	{
-	    #ifdef threaded
-		if(t)_mutexV(upd_t_data.lock);
-	    #endif
+	    lok.y=(scroll+i)*26*scale;
+	    if(scale>1)lok.y+=(scale-1)/2*26;
+	    for (j=0; j<t->cols; j++)
+	    {
+		lok.x=j*13*scale;
+		if(scale>1)lok.x+=(scale-1)/2*13;
+		{
+		    if((j>0))
+			if((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+			    zspillit(lok,"aaaz",scale);
+		    if((j<t->cols-1))
+			if((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+			    zspillit(lok,"zazz",scale);
+		    if((i<t->rows-1))
+			if((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+			    zspillit(lok,"azzz",scale);
+		    if((i>0))
+			if((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+			    zspillit(lok,"aaza",scale);
+		}
+		do_color(t->cells[i][j].attr);
+		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
+		#ifdef GL
+		    if(isundercursor||(selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
+		    {
+			if((oldcrow!=t->crow)||(oldccol!=t->ccol))
+			    rotor=0;//if cursor moved, reset letter rotor
+			//zspillit(lok,nums[0],2.4*f->scale);//draw cursor
+			glEnd();
+			if(isundercursor)
+			{
+			    glPushMatrix();
+			    glTranslatef(lok.x+13,lok.y+13,0);
+			    glRotatef(rotor,0,0,1);
+    	        	    glBegin(GL_LINE_LOOP);
+        	    	    int w=13;
+            		    glColor4f(1,0,0,1);
+			    glVertex2f(-w*scale,-w*scale);
+			    glVertex2f(+w*scale,-w*scale);
+			    glVertex2f(+w*scale,+w*scale);
+	    		    glVertex2f(-w*scale,+w*scale);
+			    glEnd();
+			    glPopMatrix();
+			    glPushMatrix();
+                            glTranslatef(lok.x+13,lok.y+13,0);
+			    glRotatef(rotor/10, 0,0,1);
+			    int i;
+			    int steps=10;
+			    for (i=0; i<360; i+=steps)
+			    {
+				glRotatef(steps, 0,0,1);
+				glPushMatrix();
+				glTranslatef(0,100,0);
+				glBegin(GL_QUADS);
+				glColor4f(1,1,0,0.2);
+				glVertex2f(-1,0);
+				glVertex2f(1,0);
+				glVertex2f(2,10);
+				glVertex2f(-2,10);
+				glEnd();
+				glPopMatrix();
+			    }
+			    glPopMatrix();
+			}
+		    	glPushMatrix();
+			glTranslatef(lok.x+13,lok.y+13,0);
+			glPushMatrix();
+    			glRotatef(rotor+=((SDL_GetTicks()-lastrotor)/10),0,1,0);
+			lastrotor=SDL_GetTicks();
+			glBegin(GL_LINE_STRIP);
+			xy molok;molok.x=-13;molok.y=-13;
+			drawchar(molok,t->cells[i][j].ch,scale,scale);
+			glEnd();
+			glPopMatrix();
+			glPopMatrix();
+			glBegin(GL_LINE_STRIP);
+		    }
+		    else
+		#else
+		    if(isundercursor)
+			// but still cursor square
+			zspillit(lok,nums[0],1.2*scale);
+	        #endif
+		drawchar(lok,t->cells[i][j].ch,scale,scale);
+	    }
+	}
+	#ifdef GL
+	    oldcrow=t->crow;//4 cursor rotation
+	    oldccol=t->ccol;
+	    glEnd();
+	#endif
+    }
+
+};
+class facespawner:public obj
+{
+    int w;
+    int h;
+    facespawner(){w=h=100;}
+    void pick()
+    {
+        if(newtermmsg)
+        {
+    	    glBegin(GL_QUADS);
+    	    glVertex3f(0,0,0);
+	    glVertex3f(w,0,0);
+	    glVertex3f(w,h,0);
+	    glVertex3f(0,h,0);
+	    glEnd();
+	}
+    }
+    void keyp(int key,int uni,int mod)
+    {
+	face*f=new face;
+        objects.push_back(f);
+        f->x=x;
+        f->y=y;
+        f->z=z;
+    }
+    void draw()
+    {
+        draw_text(newtermmsg);
+    }
+};                                                               
+
+#ifdef GL
+    class spectrum_analyzer:public obj
+    {
+	GLfloat heights[16][16], scale;
+	int16_t buf[2][256];
+	int getDirty(){return 1;}
+	void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
+	{
+	    if(y1 == y2)
+	    {
+		glVertex3f(x1, y1, z1);
+		glVertex3f(x2, y1, z1);
+		glVertex3f(x2, y2, z2);
+		glVertex3f(x2, y2, z2);
+		glVertex3f(x1, y2, z2);
+		glVertex3f(x1, y1, z1);
+	    }
+	    else
+	    {
+		glVertex3f(x1, y1, z1);
+		glVertex3f(x2, y1, z2);
+		glVertex3f(x2, y2, z2);
+		glVertex3f(x2, y2, z2);
+		glVertex3f(x1, y2, z1);
+		glVertex3f(x1, y1, z1);
+	    }
+	}
+	void draw_bar(GLfloat x_offset, GLfloat z_offset, GLfloat height, GLfloat red, GLfloat green, GLfloat blue )
+	{
+	    GLfloat width = 0.1;
+	    glColor3f(red,green,blue);
+	    draw_rectangle(x_offset, height, z_offset, x_offset + width, height, z_offset + 0.1);
+	    draw_rectangle(x_offset, 0, z_offset, x_offset + width, 0, z_offset + 0.1);
+	
+	    glColor3f(0.5 * red, 0.5 * green, 0.5 * blue);
+	    draw_rectangle(x_offset, 0.0, z_offset + 0.1, x_offset + width, height, z_offset + 0.1);
+	    draw_rectangle(x_offset, 0.0, z_offset, x_offset + width, height, z_offset );
+
+	    glColor3f(0.25 * red, 0.25 * green, 0.25 * blue);
+	    draw_rectangle(x_offset, 0.0, z_offset , x_offset, height, z_offset + 0.1);	
+	    draw_rectangle(x_offset + width, 0.0, z_offset , x_offset + width, height, z_offset + 0.1);
+	}
+	
+	void oglspectrum_gen_heights(int16_t data[2][256])
+	{
+	    int i,c;
+	    int y;
+	    GLfloat val;
+	    static GLfloat scale=0;
+	    if(!scale)
+	        scale = 1.0 / log(256.0);
+	    int xscale[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
+    	    for(y = 15; y > 0; y--)
+	    {
+	        for(i = 0; i < 16; i++)
+	        {
+		    heights[y][i] = heights[y - 1][i];
+		}
+	    }
+	    for(i = 0; i < 16; i++)
+	    {
+		for(c = xscale[i], y = 0; c < xscale[i + 1]; c++)
+		{
+		    if(data[0][c] > y)
+		    y = data[0][c];
+		}
+		y >>= 7;
+		if(y > 0)
+		    val = (log(y) * scale);
+		else
+		    val = 0;
+		heights[0][i] = val;
+	    }
+	}
+	
+	void draw()
+	{
+	    int x,y;
+	    GLfloat x_offset, z_offset, r_base, b_base;
+    	    glBegin(GL_TRIANGLES);
+	    for(y = 0; y < 16; y++)
+	    {
+		z_offset = -1.6 + ((15 - y) * 0.2);
+		b_base = y * (1.0 / 15);
+		r_base = 1.0 - b_base;
+		for(x = 0; x < 16; x++)
+		{
+		    x_offset = -1.6 + (x * 0.2);			
+		    draw_bar(x_offset, z_offset, heights[y][x], r_base - (x * (r_base / 15.0)), x * (1.0 / 15), b_base);
+		}
+	    }
+	    glEnd();
+	    FILE *f;
+	    if(f=fopen("/tmp/somefunnyname", "r"))
+	    {
+		fread(buf,512,2,f);
+    		fclose(f);
+		remove("/tmp/somefunnyname");
+		oglspectrum_gen_heights(buf);
+	    }
 	}
 
-    }
-}
-class mplayer
+
+	
+};
+#endif
+
+#include <string>
+class mplayer:public obj
 {
+    int pos;
     int twist;
-    vector<String>list;    
+    vector<string>list;    
     void draw()
     {
 	
     }
-    void keyp(int key,unicode,mod)
+    void keyp(int key,int uni,int mod)
     {
-	switch(key){
+	switch(key)
+	{
 	    case SDLK_t:
 	    twist=!twist;
 	    break;
 	    case SDLK_UP:
 	    pos--;
 	    break;
-	    case SDLk_DOWN:
+	    case SDLK_DOWN:
 	    pos++;
 	    break;
 	}
@@ -404,71 +758,18 @@ class mplayer
     {
 	
     }
-}
-using namespace std;
-vector<obj *> objects;
-obj *active=0;
-xy cam;
+};
+
 RoteTerm *clipout, *clipout2;
-#define CODE_TIMER 0
-#define CODE_QUIT 1
-#ifdef threaded
-    int update_terminal(void *data)
-    {	
-        while(1)
-        {
-	    moomoo * d = (moomoo *)data;
-	    char buf[512];
-	    int br=-1;
-	    //logit("UNLOCKED SELECT\n");
-	    rote_vt_update_thready(buf, 512, &br, d->t);
-	    //logit("*end SELECT, locking %i*\n", d->lock);
-	    _mutexP(d->lock);
-	    //logit("LOCKED\n");
-	    if (br>0)
-	    {
-		//logit("*locked injecting\n");
-		rote_vt_inject(d->t, buf, br);
-		//logit("*locked injected\n");
-		SDL_Event e;
-		e.type=SDL_USEREVENT;
-		e.user.code=0;
-		SDL_PushEvent(&e);
-	    }
-	    if(!d->t->childpid)
-	    {
-		SDL_Event e;
-		e.type=SDL_USEREVENT;
-		e.user.code=CODE_QUIT;
-		e.user.data1=d->t;
-		SDL_PushEvent(&e);
-		_mutexV(d->lock);
-		return 1;
-	    }
-	    _mutexV(d->lock);
+
+void updateterminals()
+{
+    #ifndef threaded
+	for_each_face
+	    updateterminal(f->t);
 	}
-	return 1;
-    }
-#else
-    void updateterminal(RoteTerm *t)
-    {
-        rote_vt_update(t);
-        if(!t->childpid)
-        {
-	    SDL_Event e;
-	    e.type=SDL_USEREVENT;
-	    e.user.code=CODE_QUIT;
-	    e.user.data1=t;
-	    SDL_PushEvent(&e);
-	}
-    }
-    void updateterminals()
-    {
-        for(i=0;i<faces.size();i++)
-            if(faces.at(i)->t)
-		updateterminal(faces.at(i)->t);
-    }
-#endif
+    #endif
+}
 void setmatrix()
 {
     glFrustum(0,SDL_GetVideoSurface()->w,0,SDL_GetVideoSurface()->h,1,100);
@@ -499,20 +800,13 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
     return &xx;
 }
 
-int clean_faces(void)
-{
-    int c=1;
-    for_each_face
-	if(!clean_term(as face>objects.at(i)->t))
-	    c=0;
-    return c;
-}
 void lockterms(void)
 {
     #ifdef threaded
 	//logit("locking terms");
 	for_each_face
 	    f->lock();
+	}
 	//logit("done");
     #endif
 }
@@ -522,6 +816,7 @@ void unlockterms(void)
 	//logit("unlocking terms");
 	for_each_face
 	    f->unlock();
+	}
 	//logit("done");
     #endif
 }
@@ -578,20 +873,6 @@ void focusline(face * activeface)
 }
 */
 
-void clipin(face *f,int noes, int sel)
-{
-    char * r=rotoclipin(sel);
-    char *s=r;
-    if(s)
-    {
-    while(*r)
-    {
-	if((noes && (*r)!=10 && (*r)!=13 ) || !noes) keyp(f,*r);
-	r++;
-    }
-    free(s);
-    }
-}
 
 void type(face *f, char * r)
 {
@@ -956,7 +1237,7 @@ int RunGLTest (void)
 		glBegin(GL_LINE_STRIP);
 		o->boundingbox();
 		glEnd();
-		#endf
+		#endif
 	    }
 	    #ifdef GL
 		if(settings.givehelp)
@@ -1304,9 +1585,7 @@ int RunGLTest (void)
 		    if(!done)
 		    {
 			unlockterms();
-			#ifndef threaded
 			updateterminals();
-			#endif
 		    }
 		    else
 		    {

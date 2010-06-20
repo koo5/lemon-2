@@ -112,28 +112,24 @@ float a,float z)
 }
 
 void azspillit(xy lok, const char *cx, float a,float z)
-
-
+{
+     azspillit2(lok,cx,a,z);
+     azspillit2(lok,cx,a,z);
+}
 
 void zspillit(xy lok,const char *x,float z)
 {
     azspillit(lok,x,z,z);
 }
-/*
-static void spillit(xy lok,char *x)
-{
-    zspillit(lok,x,1);
-}
-*/
 
 
-xy draw(xy lok,unsigned int i, double s, double z)
+xy drawchar(xy lok,unsigned int i, double s, double z)
 {
     xy nlok;
     nlok=lok;
     nlok.x+=13*s;
 
-    if (do_l2&&l2)
+    if (settingz.do_l2&&l2)
         if (i<l2numitems)
             if (l2[i])
                 if (strlen(l2[i]))
@@ -167,128 +163,128 @@ xy draw(xy lok,unsigned int i, double s, double z)
         azspillit(lok, "azza  @ddgg        -|  @ddgg        ",s,z);
     else if (i==283)
     {
-        draw(lok, 'e',s,z);
+        drawchar(lok, 'e',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==353)
     {
-        draw(lok, 's',s,z);
+        drawchar(lok, 's',s,z);
         azspillit(lok, "haofxa",s,z);
     }
 
     else if (i==269)
     {
-        draw(lok, 'c',s,z);
+        drawchar(lok, 'c',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==345)
     {
-        draw(lok, 'r',s,z);
+        drawchar(lok, 'r',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==382)
     {
-        draw(lok, 'z',s,z);
+        drawchar(lok, 'z',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==253)
     {
-        draw(lok, 'y',s,z);
+        drawchar(lok, 'y',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==225)
     {
-        draw(lok, 'a',s,z);
+        drawchar(lok, 'a',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==237)
     {
-        draw(lok, 'i',s,z);
+        drawchar(lok, 'i',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==233)
     {
-        draw(lok, 'e',s,z);
+        drawchar(lok, 'e',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==201)
     {
-        draw(lok, 'E',s,z);
+        drawchar(lok, 'E',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==282)
     {
-        draw(lok, 'E',s,z);
+        drawchar(lok, 'E',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==344)
     {
-        draw(lok, 'R',s,z);
+        drawchar(lok, 'R',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==356)
     {
-        draw(lok, 'T',s,z);
+        drawchar(lok, 'T',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==221)
     {
-        draw(lok, 'Y',s,z);
+        drawchar(lok, 'Y',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==218)
     {
-        draw(lok, 'U',s,z);
+        drawchar(lok, 'U',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==205)
     {
-        draw(lok, 'I',s,z);
+        drawchar(lok, 'I',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==211)
     {
-        draw(lok, 'O',s,z);
+        drawchar(lok, 'O',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==243)
     {
-        draw(lok, 'o',s,z);
+        drawchar(lok, 'o',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==193)
     {
-        draw(lok, 'A',s,z);
+        drawchar(lok, 'A',s,z);
         azspillit(lok, "ofxa",s,z);
     }
     else if (i==352)
     {
-        draw(lok, 'S',s,z);
+        drawchar(lok, 'S',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==270)
     {
-        draw(lok, 'D',s,z);
+        drawchar(lok, 'D',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==381)
     {
-        draw(lok, 'Z',s,z);
+        drawchar(lok, 'Z',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==268)
     {
-        draw(lok, 'C',s,z);
+        drawchar(lok, 'C',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==327)
     {
-        draw(lok, 'N',s,z);
+        drawchar(lok, 'N',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==328)
     {
-        draw(lok, 'n',s,z);
+        drawchar(lok, 'n',s,z);
         azspillit(lok, "haofxa",s,z);
     }
     else if (i==38)
@@ -395,7 +391,7 @@ void draw_line(int x,int y,const char *a)
     do
     {
 
-        lok=draw(lok,*a,1,1);
+        lok=drawchar(lok,*a,1,1);
         lok.x+=4;
         if (!*a)
             break;
@@ -413,7 +409,7 @@ void draw_line_z(const char *a, double z)
     do
     {
 
-        lok=draw(lok,*a,z,z);
+        lok=drawchar(lok,*a,z,z);
         lok.x+=4;
         if (!*a)
             break;
@@ -436,7 +432,7 @@ void draw_text_az(char *a, double y, double z)
   glBegin(GL_LINE_STRIP);
   do 
   {
-	lok=draw(lok,*a,y,z);
+	lok=drawchar(lok,*a,y,z);
 	if (*a==10)
 	{
 	    lok.x=0;
@@ -463,7 +459,7 @@ void lokdraw_line(xy lok,const char *a)
 glBegin(GL_LINE_STRIP);
 do 
 {
-	lok=draw(lok,*a,1,1);
+	lok=drawchar(lok,*a,1,1);
 	lok.x+=4;
 	if (!*a)
 	    break;
