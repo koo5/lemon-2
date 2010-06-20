@@ -172,11 +172,11 @@ struct obj{
     int dirty;
     double x,y,z;
     double a,b,c;
-    double w,h,d;
+    double sx,sy,sz;
     obj()
     {
 	x=y=z=a=b=c=dirty=0;
-	w=h=d=1;
+	sx=sy=sz=1;
     }
     virtual void draw(){};
     virtual int getDirty(){return dirty;}
@@ -204,7 +204,7 @@ struct obj{
 	    glRotated(a,1,0,0);
 	    glRotated(b,0,1,0);
 	    glRotated(c,0,0,1);
-	    glScalef(w,h,d);
+	    glScalef(sx,sy,sz);
 	#endif
 	draw();
 	#ifdef GL
@@ -213,15 +213,6 @@ struct obj{
     }
     virtual void keyp(int key,int uni,int mod)
     {
-	if(mod&KMOD_RCTRL)
-	    if(key==SDLK_RETURN)
-	    {
-		w+=0.1;h+=0.1;d+=0.1;
-	    }
-	    else if(key==SDLK_BACKSPACE)
-	    {
-		w-=0.1;h-=0.1;d-=0.1;
-	    }
     }
     ~obj(){if(active==this)active=0;}
 };
@@ -234,14 +225,12 @@ struct obj{
         {
             nerverot_update(nerv);
             glPushMatrix();
-            glScaled(1/w,1/h,1);
             nerverot_draw(3,nerv);
             glPopMatrix();
         }
 	nerverot()
 	{
-	    nerv=nerverot_init(w=SDL_GetVideoSurface()->w,h=SDL_GetVideoSurface()->h);
-	    d=w;
+	    nerv=nerverot_init(SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h);
 	}
 	~nerverot()
 	{
@@ -315,17 +304,28 @@ struct face:public obj
     int selstartx,selstarty,selendx,selendy;
     int getDirty(){return dirty||t->dirty;}
     void setDirty(int d){t->dirty=d;obj::setDirty(d);}
-    face()
+    void init()
     {
 	scale=1;
-	add_terminal();
 	last_resize=lastxresize=lastyresize=0;
 	scroll=0;
 	oldcrow=oldccol=-1;
 	lastrotor=rotor=0;
 	selstartx=selstarty=selendx=selendy=-1;
-
+	sx=sy=sz=0.002;
+	sy=-sy;
     }
+    face()
+    {
+	init();
+	add_terminal("bash");
+    }
+    face(const char*run)
+    {
+	init();
+	add_terminal(run);
+    }
+    
     ~face()
     {
 	rote_vt_destroy(t);
@@ -372,11 +372,11 @@ struct face:public obj
 	}
     #endif
 
-    void add_term(int c,int r)
+    void add_term(int c,int r,const char *run)
     {
 	logit("adding terminal");
 	t = rote_vt_create(c,r);
-	rote_vt_forkpty((RoteTerm*) t, "bash");
+	rote_vt_forkpty((RoteTerm*) t, run);
 	#ifdef threaded
 	    upd_t_data.lock=SDL_CreateMutex();
 	    upd_t_data.t=t;
@@ -384,9 +384,9 @@ struct face:public obj
 	    upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&upd_t_data);
 	#endif
     }
-    void add_terminal()
+    void add_terminal(const char *run)
     {
-	add_term(SDL_GetVideoSurface()->h/26/scale,SDL_GetVideoSurface()->w/13/scale);
+	add_term(SDL_GetVideoSurface()->h/26/scale,SDL_GetVideoSurface()->w/13/scale,run);
     }
 
     void draw()
@@ -1061,6 +1061,7 @@ void updatelinewidth()
 	int justresized = 0;
 	SDL_Surface* s;
 	double camx,camy,camz;
+	double lukx,luky,lukz;
 int anything_dirty()
 {
     for_each_object
@@ -1107,6 +1108,7 @@ int RunGLTest (void)
     {
 	objects.push_back(new nerverot);
 	objects.push_back(active=new spectrum_analyzer);
+	objects.push_back(new face("cmatrix"));
 	
     }
     while( !done )
@@ -1123,7 +1125,7 @@ int RunGLTest (void)
 		//glPushMatrix();
 		glLoadIdentity();
 		glFrustum(-1,1,-1,1,1,1000);
-		gluLookAt(camx,camy,camz,0,0,0,0,10,0);
+		gluLookAt(camx,camy,camz,lukx,luky,lukz,0,10,0);
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
@@ -1235,7 +1237,7 @@ int RunGLTest (void)
 					o->x=yy;
 					o->y=0;
 					o->z=0;
-					yy+=o->w;
+					yy+=1;
 				    }
 				    break;
 				}
@@ -1246,7 +1248,7 @@ int RunGLTest (void)
 					o->x=0;
 				        o->y=yy;
 				        o->z=0 ;
-				        yy+=o->h;
+				        yy+=1;
 				    }
 				    break;
 				}
@@ -1257,7 +1259,7 @@ int RunGLTest (void)
 					o->x=0;
 				        o->y=0  ;
 				        o->z=yy;
-				        yy+=o->d;
+				        yy+=1;
 				    }
 				    break;
 				}
@@ -1309,10 +1311,10 @@ int RunGLTest (void)
 				    camx-=1;
 				    break;
 				case SDLK_F2:
-				    camx-=100;
+				    lukx-=1;
 				    break;
 				case SDLK_F3:
-				    camx+=100;
+				    lukx+=1;
 				    break;
 				case SDLK_F4:
 				    camx+=1;
@@ -1321,10 +1323,10 @@ int RunGLTest (void)
 				    camy-=1;
 				    break;
 				case SDLK_F6:
-				    camy-=100;
+				    luky-=1;
 				    break;
 				case SDLK_F7:
-				    camy+=100;
+				    luky+=1;
 				    break;
 				case SDLK_F8:
 				    camy+=1;
@@ -1333,10 +1335,10 @@ int RunGLTest (void)
 				    camz-=1;
 				    break;
 				case SDLK_F10:
-				    camz-=100;
+				    lukz-=1;
 				    break;
 				case SDLK_F11:
-				    camz+=100;
+				    lukz+=1;
 				    break;
 				case SDLK_F12:
 				    camz+=1;
