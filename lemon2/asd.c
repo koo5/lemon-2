@@ -297,7 +297,6 @@ struct face:public obj
     int lastxresize;
     int lastyresize;
     moomoo upd_t_data;
-    double scale;
     int scroll;
     int oldcrow, oldccol;
     Uint32 lastrotor;
@@ -307,13 +306,12 @@ struct face:public obj
     void setDirty(int d){t->dirty=d;obj::setDirty(d);}
     void init()
     {
-	scale=1;
 	last_resize=lastxresize=lastyresize=0;
 	scroll=0;
 	oldcrow=oldccol=-1;
 	lastrotor=rotor=0;
 	selstartx=selstarty=selendx=selendy=-1;
-	sx=sy=sz=0.002;
+	sx=sy=sz=0.005;
 	sy=-sy;
     }
     face()
@@ -387,7 +385,7 @@ struct face:public obj
     }
     void add_terminal(const char *run)
     {
-	add_term(SDL_GetVideoSurface()->h/26/scale,SDL_GetVideoSurface()->w/13/scale,run);
+	add_term(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/13,run);
     }
 
     void draw()
@@ -460,12 +458,12 @@ struct face:public obj
 	    for (i=t->logl-scroll;i<t->logl;i++)
 	    {
 	        if(!t->log[i])break;
-	        lok.y=(i-t->logl+scroll)*26*scale;
+	        lok.y=((i-t->rows/2)-t->logl+scroll)*26;
 	        if(t->logstart) lok.y-=100;
 		if(t->logstart) lok.x-=100;
 		for(j=0;j<t->log[i][0].ch;j++)
 	        {
-		    lok.x=j*13*scale;
+		    lok.x=(j-t->cols/2)*13;
 		    do_color(t->log[i][j+1].attr);
 	    	    drawchar(lok,t->log[i][j+1].ch);
 		}	
@@ -474,26 +472,22 @@ struct face:public obj
 	int isundercursor;
 	for (i=0; i<t->rows; i++)
 	{
-	    lok.y=(scroll+i)*26;
-	    if(scale>1)lok.y+=(scale-1)/2*26;
+	    lok.y=(scroll+(i-t->rows/2))*26;
 	    for (j=0; j<t->cols; j++)
 	    {
-		lok.x=j*13*scale;
-		if(scale>1)lok.x+=(scale-1)/2*13;
-		{
-		    if((j>0))
-			if((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    spillit(lok,"aaaz");
-		    if((j<t->cols-1))
-			if((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    spillit(lok,"zazz");
-		    if((i<t->rows-1))
-			if((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    spillit(lok,"azzz");
-		    if((i>0))
-			if((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    spillit(lok,"aaza");
-		}
+		lok.x=(j-t->cols/2)*13;
+		if((j>0))
+		    if((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+		        spillit(lok,"aaaz");
+		if((j<t->cols-1))
+		    if((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+		        spillit(lok,"zazz");
+		if((i<t->rows-1))
+		    if((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+		        spillit(lok,"azzz");
+		if((i>0))
+		    if((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
+		        spillit(lok,"aaza");
 		do_color(t->cells[i][j].attr);
 		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
 		#ifdef GL
