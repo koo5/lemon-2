@@ -139,10 +139,10 @@ int in(int a, int b, int c)
 }
 
 
-void do_color(int attr)
+void do_color(int attr,float a)
 {
-    int c=ROTE_ATTR_XFG(attr);//0-15
-    setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,1);
+    int c=(attr);//0-15
+    setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,a);
 }
 
 float floabs(float x)
@@ -171,6 +171,7 @@ vector<obj *> objects;
 obj * active;
 struct obj{
     int dirty;
+    double alpha;
     double x,y,z;
     double a,b,c;
     double sx,sy,sz;
@@ -178,6 +179,7 @@ struct obj{
     {
 	x=y=z=a=b=c=dirty=0;
 	sx=sy=sz=1;
+	alpha=1;
     }
     virtual void draw(){};
     virtual int getDirty(){return dirty;}
@@ -311,8 +313,9 @@ struct face:public obj
 	oldcrow=oldccol=-1;
 	lastrotor=rotor=0;
 	selstartx=selstarty=selendx=selendy=-1;
-	sx=sy=sz=0.005;
-	sy=-sy;
+	sx=0.001;
+	sy=-0.005;
+	sz=0.002;
     }
     face()
     {
@@ -332,6 +335,7 @@ struct face:public obj
 	    SDL_DestroyMutex(upd_t_data.lock);
 	    SDL_KillThread(upd_t_data.thr);
 	#endif
+	cout << "terminal destroyed"<<endl;
     }
     void resizooo(int xx, int yy, Uint8* duck)
     {
@@ -409,6 +413,7 @@ struct face:public obj
     }
     void keyp(int key,int uni,int mod)
     {
+	cout << key<<endl;
     	if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
 	    clipin(0,1);
 	else if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
@@ -464,7 +469,7 @@ struct face:public obj
 		for(j=0;j<t->log[i][0].ch;j++)
 	        {
 		    lok.x=(j-t->cols/2)*13;
-		    do_color(t->log[i][j+1].attr);
+		    do_color(ROTE_ATTR_FG(t->log[i][j+1].attr),1);
 	    	    drawchar(lok,t->log[i][j+1].ch);
 		}	
 	    }
@@ -472,23 +477,32 @@ struct face:public obj
 	int isundercursor;
 	for (i=0; i<t->rows; i++)
 	{
-	    lok.y=(scroll+(i-t->rows/2))*26;
+	    lok.y=(scroll+(i-t->rows/2.0))*26;
 	    for (j=0; j<t->cols; j++)
 	    {
-		lok.x=(j-t->cols/2)*13;
-		if((j>0))
-		    if((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-		        spillit(lok,"aaaz");
-		if((j<t->cols-1))
-		    if((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-		        spillit(lok,"zazz");
-		if((i<t->rows-1))
-		    if((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-		        spillit(lok,"azzz");
-		if((i>0))
-		    if((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-		        spillit(lok,"aaza");
-		do_color(t->cells[i][j].attr);
+		lok.x=(j-t->cols/2.0)*26;
+		if((j>0)&&((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		{
+			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+		        _spillit(lok,"aaa{",-0.5);
+		}
+		if((j<t->cols-1)&&((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		{
+			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+		        _spillit(lok,"{a{{",-0.5);
+		}
+		if((i<t->rows-1)&&((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		{
+			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+		        _spillit(lok,"a{{{",-0.5);
+		}
+		if((i>0)&&((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		{
+			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+		        _spillit(lok,"aa{a",-0.5);
+		}
+		if(t->cells[i][j].ch!=32)
+		    do_color(ROTE_ATTR_FG(t->cells[i][j].attr),1);
 		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
 		#ifdef GL
 		    if(isundercursor||(selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
@@ -501,7 +515,7 @@ struct face:public obj
 			{
 			    glPushMatrix();
 			    glTranslatef(lok.x+13,lok.y+13,0);
-			    glRotatef(rotor,0,0,1);
+			    glRotatef(SDL_GetTicks()/100,0,0,1);
     	        	    glBegin(GL_LINE_LOOP);
         	    	    int w=13;
             		    glColor4f(1,0,0,1);
@@ -513,7 +527,7 @@ struct face:public obj
 			    glPopMatrix();
 			    glPushMatrix();
                             glTranslatef(lok.x+13,lok.y+13,0);
-			    glRotatef(rotor/10, 0,0,1);
+			    glRotatef(SDL_GetTicks()/42,0,1,0);
 			    int i;
 			    int steps=10;
 			    for (i=0; i<360; i+=steps)
@@ -593,11 +607,15 @@ class facespawner:public obj
 };                                                               
 
 #ifdef GL
-    class spectrum_analyzer:public obj
+    struct spectrum_analyzer:public obj
     {
 	GLfloat heights[16][16], scale;
 	int16_t buf[2][256];
 	int getDirty(){return 1;}
+	spectrum_analyzer()
+	{
+	    alpha=0.1;
+	}
 	void keyp(int key,int uni,int mod)
 	{
         }
@@ -625,15 +643,15 @@ class facespawner:public obj
 	void draw_bar(GLfloat x_offset, GLfloat z_offset, GLfloat height, GLfloat red, GLfloat green, GLfloat blue )
 	{
 	    GLfloat width = 0.1;
-	    glColor3f(red,green,blue);
+	    glColor4f(red,green,blue,alpha);
 	    draw_rectangle(x_offset, height, z_offset, x_offset + width, height, z_offset + 0.1);
 	    draw_rectangle(x_offset, 0, z_offset, x_offset + width, 0, z_offset + 0.1);
 	
-	    glColor3f(0.5 * red, 0.5 * green, 0.5 * blue);
+	    glColor4f(0.5 * red, 0.5 * green, 0.5 * blue,alpha);
 	    draw_rectangle(x_offset, 0.0, z_offset + 0.1, x_offset + width, height, z_offset + 0.1);
 	    draw_rectangle(x_offset, 0.0, z_offset, x_offset + width, height, z_offset );
 
-	    glColor3f(0.25 * red, 0.25 * green, 0.25 * blue);
+	    glColor4f(0.25 * red, 0.25 * green, 0.25 * blue,alpha);
 	    draw_rectangle(x_offset, 0.0, z_offset , x_offset, height, z_offset + 0.1);	
 	    draw_rectangle(x_offset + width, 0.0, z_offset , x_offset + width, height, z_offset + 0.1);
 	}
@@ -1130,8 +1148,8 @@ int RunGLTest (void)
     if(!objects.size())
     {
 	objects.push_back(new nerverot);
-	objects.push_back(active=new spectrum_analyzer);
-	objects.push_back(new face("cmatrix"));
+	objects.push_back(new spectrum_analyzer);
+	objects.push_back(active=new face("bash"));
 	
     }
     while( !done )
@@ -1205,13 +1223,13 @@ int RunGLTest (void)
 			    escaped=0;
 			    active->move(event.motion.xrel,event.motion.yrel,0);
 			}
-			if(SDL_BUTTON(1)&SDL_GetMouseState(0,0))
-			    active=mousefocus(event.motion.x,event.motion.y);
+			//if(SDL_BUTTON(1)&SDL_GetMouseState(0,0))
+			  //  active=mousefocus(event.motion.x,event.motion.y);
 			    
 		        break;
 		    case SDL_KEYDOWN:
 			dirty=1;
-			if(escaped||(mod&&KMOD_RCTRL))
+			if(escaped||(mod&KMOD_RCTRL))
 			{
 			    escaped=0;
 			    switch (key)
@@ -1298,7 +1316,7 @@ int RunGLTest (void)
 				    active=objects.at(objects.size()-1);
 				    break;
 				#ifdef GL
-				    case SDLK_PLUS:
+				    case SDLK_EQUALS:
 				        settingz.line_antialiasing?settingz.lv+=0.1:settingz.lv++;
 				        GLint max;
 				        if(settingz.line_antialiasing)
@@ -1306,6 +1324,7 @@ int RunGLTest (void)
 					else
 					    glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE,&max); 
 					if(settingz.lv>max)settingz.lv=max;
+					cout << "max:" << max <<endl;
 					updatelinewidth();
 					break;
 				    case SDLK_MINUS:
@@ -1371,6 +1390,10 @@ int RunGLTest (void)
 					active->keyp(key,uni,mod);
 			    }
 			}
+			else
+			    if(active)
+				active->keyp(key,uni,mod);
+
 			if(key==SDLK_RCTRL)
 			    escaped=1;
 			break;

@@ -10,40 +10,50 @@ void setcolor(double rr,double gg,double bb,double aa)
     r=rr;g=gg;b=bb;a=aa;
 }
 
-char *prepare(const char*y)
+void tokenize(const string& str, vector<string>& tokens, const string& delimiters = "+")
 {
-    char *add_to=(char*)malloc(1);
-    add_to[0]=0;
-    char *x=strdup(y);
-    char *re=x;
-    while (*x)
+    // Skip delimiters at beginning.
+    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    // Find first "non-delimiter".
+    string::size_type pos     = str.find_first_of(delimiters, lastPos);
+    while (string::npos != pos || string::npos != lastPos)
     {
-    	if(*x<='9'&&*x>='0')
-    	{
-    	    add_to=(char*)realloc(add_to,strlen(add_to)+2);
-    	    add_to[strlen(add_to)]=*x;
-    	    add_to[strlen(add_to)+1]=0;
-    	}
-    	if(*x=='+')
-    	{
-	    int addto=atoi(add_to);
-	    if(font.size()>addto)
-		if(!font.at(addto).empty())
-		{
-		    int originalxlen=strlen(x);
-		    re=x=(char*)realloc(re, strlen(re)+font.at(addto).length());
-		    memmove(font.at(addto).length()+x-strlen(add_to)-1, x+1,originalxlen);
-		    memmove((void*)(x-1-strlen(add_to)), (void*)font.at(addto).c_str(),font.at(addto).length());
-		}
-	}
-    	    x++;
+	// Found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
     }
-    return re;
+}
+string prepare(string y)
+{
+    if(y.find('+')==string::npos)
+	return y;
+    else
+    {
+	string ret;
+	vector<string>tokens;
+	tokenize(y,tokens);
+	for(int i=0;i<tokens.size();i++)
+	{
+	    char* endptr=0;
+	    int b=strtol(tokens.at(i).c_str(),&endptr,10);
+	    if(!endptr)
+    	    {
+    		if(font.size()<b)
+    		    ret.append(font.at(b));
+	    }
+	    else
+		ret.append(tokens.at(i));
+	}
+	return prepare(ret);
+    }
 }
 
 
-
-void _spillit(xy lok, const char*x)
+ 
+void _spillit(xy lok, const char*x, float offset)
 {
     int first=1;
     #ifdef SDLD
@@ -80,15 +90,15 @@ void _spillit(xy lok, const char*x)
     	    {
     		first=0;
     		glColor4d(0,0,0,0);
-                dooooot(lok.x+xdot,lok.y+ydot);
+                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
                 glColor4d(r,g,b,a);
             }
 
             if ((!*x)||(' '==(*x)))/* last dot*/
             {
-                dooooot(lok.x+xdot,lok.y+ydot);
+                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
     		glColor4d(0,0,0,0);
-                dooooot(lok.x+xdot,lok.y+ydot);
+                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
         	if(!*x)
         	{
             	    return;
@@ -96,16 +106,15 @@ void _spillit(xy lok, const char*x)
             }
             else // just ordinary dot
             {
-                dooooot(lok.x+xdot,lok.y+ydot);
+                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
             }
         }
     }
 }
-
 void spillit(xy lok, const char *x)
 {
-    _spillit(lok,x);
-    _spillit(lok,x);
+    _spillit(lok,x,0);
+    _spillit(lok,x,0);
 }
 
 
@@ -218,9 +227,8 @@ void loadfont(char * fln)
     font.push_back(nullglyph);
     string x;
     while(getline(ff,x))
-    {
-	char *p=(prepare(x.c_str()));
-	cout << "|" << p;;
-	font.push_back(p);
-    }
+	font.push_back(x);
+    for(int i=0;i<font.size();i++)
+	font.at(i)=prepare(font.at(i));
+	
 }
