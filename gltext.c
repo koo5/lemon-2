@@ -14,14 +14,15 @@ char *prepare(const char*y)
 {
     char *add_to=(char*)malloc(1);
     add_to[0]=0;
-    int addtosize=0;
     char *x=strdup(y);
-    while ((*x)&&(*(x+1)))
+    char *re=x;
+    while (*x)
     {
     	if(*x<='9'&&*x>='0')
     	{
-    	    add_to=(char*)realloc(add_to,++addtosize+1);
-    	    add_to[addtosize-1]=*x;
+    	    add_to=(char*)realloc(add_to,strlen(add_to)+2);
+    	    add_to[strlen(add_to)]=*x;
+    	    add_to[strlen(add_to)+1]=0;
     	}
     	if(*x=='+')
     	{
@@ -30,14 +31,14 @@ char *prepare(const char*y)
 		if(!font.at(addto).empty())
 		{
 		    int originalxlen=strlen(x);
-		    x=(char*)realloc(x, strlen(x)+font.at(addto).length());
-		    memmove(x+font.at(addto).length()-strlen(add_to)-1, x+1,originalxlen);
+		    re=x=(char*)realloc(re, strlen(re)+font.at(addto).length());
+		    memmove(font.at(addto).length()+x-strlen(add_to)-1, x+1,originalxlen);
 		    memmove((void*)(x-1-strlen(add_to)), (void*)font.at(addto).c_str(),font.at(addto).length());
 		}
 	}
-    	x++;
+    	    x++;
     }
-    return x;
+    return re;
 }
 
 
@@ -114,13 +115,10 @@ xy drawchar(xy lok, unsigned int i)
     nlok=lok;
     nlok.x+=13;
 
-    if (i<font.size())
-        if (font[i].length())
-            {
-                spillit(lok,font[i].c_str());
-                return nlok;
-            }
-
+    if (i<font.size()&&font[i].length())
+        spillit(lok,font[i].c_str());
+    else
+        spillit(lok,"@@@\138\138\138\138@@@");
     return nlok;
 }
 
@@ -211,6 +209,7 @@ void draw_text(char *a)
 void loadfont(char * fln)
 {
     if(!fln)return;
+    cout << fln;
     ifstream ff(fln,std::ios::in);
     if (!ff)
     {
@@ -222,7 +221,8 @@ void loadfont(char * fln)
     string x;
     while(getline(ff,x))
     {
-//	font.push_back(prepare(x.c_str()));
-	cout << "|" << x;
+	char *p=(prepare(x.c_str()));
+	cout << "|" << p;;
+	font.push_back(p);
     }
 }

@@ -1634,7 +1634,7 @@ int main(int argc, char *argv[])
 		logit("path:%s\n", path);
 		path=(char*)realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
-		fnfl=strdup(strcat(path, "l2"));		*n=0;
+		fnfl=strdup(strcat(path, "l1"));		*n=0;
 		clfl=strdup(strcat(path, "colors"));		*n=0;
 		ntfl=strdup(strcat(path, "newtermmsg"));	*n=0;
 		stng=strdup(strcat(path, "settings"));		*n=0;
