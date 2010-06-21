@@ -88,6 +88,7 @@ struct Settingz
     int32_t do_l2;
     double lv;//glLineWidth
 }settingz={0,0,1,0,2};
+using namespace std;
 #include "../gltext.c"
 char *fnfl="l2";//font file
 char *stng;//settingz
@@ -164,7 +165,7 @@ typedef struct
 }
 moomoo;
 struct obj;
-using namespace std;
+
 
 vector<obj *> objects;
 obj * active;
@@ -473,7 +474,7 @@ struct face:public obj
 	int isundercursor;
 	for (i=0; i<t->rows; i++)
 	{
-	    lok.y=(scroll+i)*26*scale;
+	    lok.y=(scroll+i)*26;
 	    if(scale>1)lok.y+=(scale-1)/2*26;
 	    for (j=0; j<t->cols; j++)
 	    {
@@ -482,16 +483,16 @@ struct face:public obj
 		{
 		    if((j>0))
 			if((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"aaaz",scale);
+			    zspillit(lok,"aaaz");
 		    if((j<t->cols-1))
 			if((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"zazz",scale);
+			    zspillit(lok,"zazz");
 		    if((i<t->rows-1))
 			if((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"azzz",scale);
+			    zspillit(lok,"azzz");
 		    if((i>0))
 			if((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"aaza",scale);
+			    zspillit(lok,"aaza");
 		}
 		do_color(t->cells[i][j].attr);
 		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
@@ -510,10 +511,10 @@ struct face:public obj
     	        	    glBegin(GL_LINE_LOOP);
         	    	    int w=13;
             		    glColor4f(1,0,0,1);
-			    glVertex2f(-w*scale,-w*scale);
-			    glVertex2f(+w*scale,-w*scale);
-			    glVertex2f(+w*scale,+w*scale);
-	    		    glVertex2f(-w*scale,+w*scale);
+			    glVertex2f(-w,-w);
+			    glVertex2f(+w,-w);
+			    glVertex2f(+w,+w);
+	    		    glVertex2f(-w,+w);
 			    glEnd();
 			    glPopMatrix();
 			    glPushMatrix();
@@ -540,11 +541,10 @@ struct face:public obj
 		    	glPushMatrix();
 			glTranslatef(lok.x+13,lok.y+13,0);
 			glPushMatrix();
-    			glRotatef(rotor+=((SDL_GetTicks()-lastrotor)/10),0,1,0);
-			lastrotor=SDL_GetTicks();
+    			glRotatef(SDL_GetTicks()/10,0,1,0);
 			glBegin(GL_LINE_STRIP);
 			xy molok;molok.x=-13;molok.y=-13;
-			drawchar(molok,t->cells[i][j].ch,scale,scale);
+			drawchar(molok,t->cells[i][j].ch,scale);
 			glEnd();
 			glPopMatrix();
 			glPopMatrix();
@@ -556,7 +556,7 @@ struct face:public obj
 			// but still cursor square
 			zspillit(lok,nums[0],1.2*scale);
 	        #endif
-		drawchar(lok,t->cells[i][j].ch,scale,scale);
+		drawchar(lok,t->cells[i][j].ch,scale);
 	    }
 	}
 	#ifdef GL
@@ -738,7 +738,34 @@ class mplayer:public obj
 	
     }
 };
-
+#include <map>
+class commander:public obj
+{
+    std::map<string, s>m;
+    bool commanded;
+    string cmd;
+    enum s{grow}
+    commander()
+    {
+	m["grow"]=grow;
+    }
+    void keyp(int key,int uni,int mod)
+    {
+	if(key==SDLK_RETURN)
+	{
+	    if(map::end==m::find(cmd))
+		commanded=1;
+	    switch(m[cmd])
+	    {
+		case grow:
+		    sx=sy=sz*2;
+	    }
+	}
+	else
+	    cmd::append(&(char)uni, 1);
+    }
+}
+    
 RoteTerm *clipout, *clipout2;
 
 void updateterminals()

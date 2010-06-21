@@ -1,7 +1,7 @@
 
 srcdir  = .
 # 
-CC      = g++  -g -ggdb 
+CC      = g++  -g -ggdb -std=c++0x
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -38,7 +38,7 @@ TARGETS = lsdl lgl
 all: lgl
 a: $(TARGETS)
 
-X=$(srcdir)/../gltext.c $(srcdir)/asd.c ../roteterm/* ../linetextdata.c
+X=$(srcdir)/../gltext.c $(srcdir)/asd.c ../roteterm/* 
 
 lgl$(EXE): $(X)
 	$(CC)   -o $@ asd.c  -Dlibpng -lpng $(GLLIBS) $(CFLIBS) -Dnerve -lGLU  -lm -Wno-write-strings -frtti

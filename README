@@ -1,7 +1,11 @@
 sudo aptitude update
-sudo aptitude install make g++ libncurses-dev libsdl-dev  git-core xclip pkg-config
+sudo aptitude install make cmake g++ libncurses-dev libsdl-dev  git-core xclip pkg-config mplayer
 git clone  git://github.com/koo5/lemon.git
-cd lemon/lemon2
+cd lemon/yaml-cpp-0.2.5/build
+cmake ../CMakeList.txt
+cd ..
+make
+cd ../lemon2
 make lgl
 ./l
 
