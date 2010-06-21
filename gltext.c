@@ -117,8 +117,6 @@ xy drawchar(xy lok, unsigned int i)
 
     if (i<font.size()&&font[i].length())
         spillit(lok,font[i].c_str());
-    else
-        spillit(lok,"@@@\138\138\138\138@@@");
     return nlok;
 }
 

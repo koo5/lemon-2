@@ -1121,6 +1121,7 @@ int RunGLTest (void)
 	resetviewport();
         resetmatrices();
         glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         glClearColor( 0.0, 0.0, 0.0, 0.0 );
         updatelinewidth();
 	updatelinesmooth();
