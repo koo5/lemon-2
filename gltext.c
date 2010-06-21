@@ -1,5 +1,7 @@
 #include <string>
 #include <vector>
+#include <fstream>
+#include <iostream>
 vector<string> font;
 char *nullglyph="dzdptuzpznxnxpzp";
 double r,g,b,a;
@@ -8,10 +10,8 @@ void setcolor(double rr,double gg,double bb,double aa)
     r=rr;g=gg;b=bb;a=aa;
 }
 
-char *process(const char*y)
+char *prepare(const char*y)
 {
-    int flip2=0;
-    int flip=0;
     char *add_to=(char*)malloc(1);
     add_to[0]=0;
     int addtosize=0;
@@ -32,7 +32,7 @@ char *process(const char*y)
 		    int originalxlen=strlen(x);
 		    x=(char*)realloc(x, strlen(x)+font.at(addto).length());
 		    memmove(x+font.at(addto).length()-strlen(add_to)-1, x+1,originalxlen);
-		    memmove(x-1-strlen(add_to), font.at(addto).c_str,font.at(addto).length());
+		    memmove((void*)(x-1-strlen(add_to)), (void*)font.at(addto).c_str(),font.at(addto).length());
 		}
 	}
     	x++;
@@ -42,7 +42,7 @@ char *process(const char*y)
 
 
 
-void _spillit(xy lok, unsigned int t)
+void _spillit(xy lok, const char*x)
 {
     int first=1;
     #ifdef SDLD
@@ -101,7 +101,7 @@ void _spillit(xy lok, unsigned int t)
     }
 }
 
-void spillit(xy lok, unsigned int x)
+void spillit(xy lok, const char *x)
 {
     _spillit(lok,x);
     _spillit(lok,x);
@@ -115,17 +115,16 @@ xy drawchar(xy lok, unsigned int i)
     nlok.x+=13;
 
     if (i<font.size())
-        if (font[i])
-            if (strlen(font[i])
+        if (font[i].length())
             {
-                spillit(lok,i);
+                spillit(lok,font[i].c_str());
                 return nlok;
             }
 
     return nlok;
 }
 
-
+/*
 void draw_line(int x,int y,const char *a)
 {
     xy lok;
@@ -164,36 +163,6 @@ void draw_line_z(const char *a, double z)
 
 
 
-void draw_text_az(char *a, double y, double z)
-{
-    if(!a)return;
-  xy lok;
-  lok.x=0;
-  lok.y=0;
-  setcolor(1,1,1,1);
-  glBegin(GL_LINE_STRIP);
-  do 
-  {
-	lok=drawchar(lok,*a,y,z);
-	if (*a==10)
-	{
-	    lok.x=0;
-	    lok.y=lok.y+30*z;
-	    glEnd();
-	    glBegin(GL_LINE_STRIP);
-	}
-	if (!*a)
-	    break;
-	a++;
-  }
-  while(1);
-  glEnd();
-}
-
-void draw_text(char *a)
-{
-    draw_text_az(a,1,1);
-}
 
 
 void lokdraw_line(xy lok,const char *a)
@@ -211,19 +180,49 @@ void lokdraw_line(xy lok,const char *a)
     glEnd();
 }
 
+*/
 
+
+void draw_text(char *a)
+{
+  if(!a)return;
+  xy lok;
+  lok.x=0;
+  lok.y=0;
+  setcolor(0,1,0.2,1);
+  glBegin(GL_LINE_STRIP);
+  do 
+  {
+	lok=drawchar(lok,*a);
+	if (*a==10)
+	{
+	    lok.x=0;
+	    lok.y=lok.y+30;
+	    glEnd();
+	    glBegin(GL_LINE_STRIP);
+	}
+	if (!*a)
+	    break;
+	a++;
+  }
+  while(1);
+  glEnd();
+}
 void loadfont(char * fln)
 {
     if(!fln)return;
-    ifstream ff(fln);
+    ifstream ff(fln,std::ios::in);
     if (!ff)
     {
         printf("cant load font from '%s'\n",fln);
         return;
     }
-    font.clear()
+    font.clear();
     font.push_back(nullglyph);
     string x;
     while(getline(ff,x))
-	font.push_back(prepare(x));
+    {
+//	font.push_back(prepare(x.c_str()));
+	cout << "|" << x;
+    }
 }

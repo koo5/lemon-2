@@ -90,7 +90,7 @@ struct Settingz
 }settingz={0,0,1,0,2};
 using namespace std;
 #include "../gltext.c"
-char *fnfl="l2";//font file
+char *fnfl="l1";//font file
 char *stng;//settingz
 char *mdfl;//modes
 char *fcfl;//faces
@@ -467,7 +467,7 @@ struct face:public obj
 	        {
 		    lok.x=j*13*scale;
 		    do_color(t->log[i][j+1].attr);
-	    	    drawchar(lok,t->log[i][j+1].ch,scale,scale);
+	    	    drawchar(lok,t->log[i][j+1].ch);
 		}	
 	    }
         }
@@ -483,16 +483,16 @@ struct face:public obj
 		{
 		    if((j>0))
 			if((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"aaaz");
+			    spillit(lok,"aaaz");
 		    if((j<t->cols-1))
 			if((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"zazz");
+			    spillit(lok,"zazz");
 		    if((i<t->rows-1))
 			if((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"azzz");
+			    spillit(lok,"azzz");
 		    if((i>0))
 			if((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr)))
-			    zspillit(lok,"aaza");
+			    spillit(lok,"aaza");
 		}
 		do_color(t->cells[i][j].attr);
 		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
@@ -544,7 +544,7 @@ struct face:public obj
     			glRotatef(SDL_GetTicks()/10,0,1,0);
 			glBegin(GL_LINE_STRIP);
 			xy molok;molok.x=-13;molok.y=-13;
-			drawchar(molok,t->cells[i][j].ch,scale);
+			drawchar(molok,t->cells[i][j].ch);
 			glEnd();
 			glPopMatrix();
 			glPopMatrix();
@@ -556,7 +556,7 @@ struct face:public obj
 			// but still cursor square
 			zspillit(lok,nums[0],1.2*scale);
 	        #endif
-		drawchar(lok,t->cells[i][j].ch,scale);
+		drawchar(lok,t->cells[i][j].ch);
 	    }
 	}
 	#ifdef GL
@@ -741,10 +741,11 @@ class mplayer:public obj
 #include <map>
 class commander:public obj
 {
+    enum s{grow};
     std::map<string, s>m;
     bool commanded;
     string cmd;
-    enum s{grow}
+
     commander()
     {
 	m["grow"]=grow;
@@ -753,7 +754,7 @@ class commander:public obj
     {
 	if(key==SDLK_RETURN)
 	{
-	    if(map::end==m::find(cmd))
+	    if(m.end()==m.find(cmd))
 		commanded=1;
 	    switch(m[cmd])
 	    {
@@ -762,9 +763,9 @@ class commander:public obj
 	    }
 	}
 	else
-	    cmd::append(&(char)uni, 1);
+	    cmd.append((char*)&uni, 1);
     }
-}
+};
     
 RoteTerm *clipout, *clipout2;
 
@@ -1120,7 +1121,7 @@ int RunGLTest (void)
     SDL_InitSubSystem( SDL_INIT_TIMER);
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
     if(ntfl)newtermmsg=GetFileIntoCharPointer1(ntfl);
-    loadl2(fnfl);
+    loadfont(fnfl);
     loadcolors();
     #ifdef GL
 	resetviewport();
@@ -1239,7 +1240,7 @@ int RunGLTest (void)
 				    gofullscreen=1;
 				    break;
 				case SDLK_r:
-			    	    loadl2(fnfl);
+			    	    loadfont(fnfl);
 			    	    break;
 /*			    	case SDLK_F9:
 			    	    activeface->scale-=0.1;
@@ -1551,7 +1552,7 @@ int RunGLTest (void)
 
 	}
 	objects.clear();
-	freel2();
+	font.clear();
 	SDL_Quit( );
 	return(0);
 }
