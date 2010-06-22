@@ -168,17 +168,18 @@ struct obj;
 struct v3d
 {
     double x,y,z;
-    void operator >> (const YAML::Node& node)
-    {
-	node[0]>>x;
-	node[1]>>y;
-	node[2]>>z;
-    }
 };
+void operator >> (const YAML::Node& node,v3d&v)
+{
+    node[0]>>v.x;
+    node[1]>>v.y;
+    node[2]>>v.z;
+}
+
 void operator << (YAML::Emitter &out, const v3d& v)
 {
     out << YAML::Flow;
-    out<<YAML::BeginSeq << v.x << v.y << v.z < YAML::EndSeq;
+    out<<YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
 }
 
 v3d cam;
@@ -255,12 +256,25 @@ struct obj{
     }
     ~obj(){if(active==this)active=0;}
 };
-YAML::Emitter& operator << (YAML::Emitter &out, const obj& v)
+
+YAML::Emitter& operator << (YAML::Emitter &out, const obj* v)
 {
     out<<YAML::BeginMap;
-    out<<YAML::Key<<"pos"<<YAML::Value << v.t;
+    out<<YAML::Key<<"pos";
+    out<<YAML::Value << v->t;
+    out<<YAML::Key<<"rot";
+    out<<YAML::Value << v->r;
+    out<<YAML::Key<<"scale";
+    out<<YAML::Value << v->s;
+    out<<YAML::EndMap;
 }
-
+void operator >> (YAML::Node& node, obj& o)
+{
+    node["pos"]>>o.t;
+    node["rot"]>>o.r;
+    node["scale"]>>o.s;
+ }
+    
 #ifdef nerve
     class nerverot:public obj
     {
@@ -670,9 +684,9 @@ struct face:public obj
 	void picked(int  b,vector<int>&v)
 	{
 	    if(b==SDL_BUTTON_LEFT)
-		rx-=0.2;
+		ry-=2;
 	    else if (b==SDL_BUTTON_RIGHT)
-		rx+=0.2;
+		ry+=2;
 	    else if(b==SDL_BUTTON_MIDDLE)
 	    {
 		rx=ry=rz=0;
@@ -775,6 +789,9 @@ struct face:public obj
 	    int x,y;
 	    GLfloat x_offset, z_offset, r_base, b_base;
 	    glPushMatrix();
+	    rotx+=rx;
+	    roty+=ry;
+	    rotz+=rz;
 	    glRotatef(rotx,1,0,0);
 	    glRotatef(roty,0,1,0);
 	    glRotatef(rotz,0,0,1);
@@ -1161,9 +1178,10 @@ void saveobjects(void)
 void saveobjects()
 {
     YAML::Emitter out;
-    out<<objects;
     ofstream s("objects.txt");
-    s<<out.c_str();
+    out << objects;
+    cout << out.c_str();
+    s << out.c_str();
 }
 
 
@@ -1617,73 +1635,73 @@ d(WINDOWS) && !defined(OSX)
 				    if(active&&k[SDLK_RSHIFT])
 					active->r.x-=10;
 				    else
-					cam.x-=1;
+					cam.x-=0.1;
 				    break;
 				case SDLK_F2:
 				    if(active&&k[SDLK_RSHIFT])
 					active->t.x-=0.1;
 				    else
-				        look.x-=1;
+				        look.x-=0.1;
 				    break;
 				case SDLK_F3:
 				    if(active&&k[SDLK_RSHIFT])
 					active->t.x+=0.1;
 				    else
-					look.x+=1;
+					look.x+=0.1;
 				    break;
 				case SDLK_F4:
 				    if(active&&k[SDLK_RSHIFT])
 					active->r.x+=10;
 				    else
-					cam.x+=1;
+					cam.x+=0.1;
 				    break;
 				case SDLK_F5:
 				    if(active&&k[SDLK_RSHIFT])
 					active->r.y-=10;
 				    else
-				        cam.y-=1;
+				        cam.y-=0.1;
 				    break;
 				case SDLK_F6:
 				    if(active&&k[SDLK_RSHIFT])
 					active->t.y-=0.1;
 				    else
-					look.y-=1;
+					look.y-=0.1;
 				    break;
 				case SDLK_F7:
 				    if(active&&k[SDLK_RSHIFT])
 					active->t.y+=0.1;
 				    else
-				        look.y+=1;
+				        look.y+=0.1;
 				    break;
 				case SDLK_F8:
 				    if(active&&k[SDLK_RSHIFT])
 					active->r.y+=10;
 				    else
-					cam.y+=1;
+					cam.y+=0.1;
 				    break;
 				case SDLK_F9:
 				    if(active&&k[SDLK_RSHIFT])
 					active->r.z-=10;
 				    else
-					cam.z-=1;
+					cam.z-=0.1;
 				    break;
 				case SDLK_F10:
 				    if(active&&k[SDLK_RSHIFT])
 					active->t.z-=0.1;
 				    else
-					look.z-=1;
+					look.z-=0.1;
 				    break;
 				case SDLK_F11:
 				    if(active&&k[SDLK_RSHIFT])
 					active->t.z+=0.1;
 				    else
-				        look.z+=1;
+				        look.z+=0.1;
 				    break;
 				case SDLK_F12:
 				    if(active&&k[SDLK_RSHIFT])
 					active->r.z+=10;
 				    else
-					cam.z+=1;
+					cam.z+=0.1;
 				    break;
 				case 44:
 				    znear-=0.2;
