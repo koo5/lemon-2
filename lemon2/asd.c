@@ -432,7 +432,6 @@ struct face:public obj
     }
     void keyp(int key,int uni,int mod)
     {
-	cout << key<<endl;
     	if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
 	    clipin(0,1);
 	else if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
@@ -446,6 +445,7 @@ struct face:public obj
 	    if(key==SDLK_HOME)
 		scroll=t->logl;
 	    if(scroll<0)scroll=0;
+	    cout<<scroll<<endl;
 	}
 	else
 	{
@@ -476,13 +476,13 @@ struct face:public obj
         #ifdef GL
 	    glBegin(GL_LINE_STRIP);
         #endif
-        int scroll=min(scroll,t->logl);
+        int s=min(scroll,t->logl);
 	if(t->log)
 	{
-	    for (i=t->logl-scroll;i<t->logl;i++)
+	    for (i=t->logl-s;i<t->logl;i++)
 	    {
 	        if(!t->log[i])break;
-	        lok.y=((i-t->rows/2)-t->logl+scroll)*26;
+	        lok.y=((i-t->rows/2)-t->logl+s)*26;
 	        if(t->logstart) lok.y-=100;
 		if(t->logstart) lok.x-=100;
 		for(j=0;j<t->log[i][0].ch;j++)
@@ -496,7 +496,7 @@ struct face:public obj
 	int isundercursor;
 	for (i=0; i<t->rows; i++)
 	{
-	    lok.y=(scroll+(i-t->rows/2.0))*26;
+	    lok.y=(s+(i-t->rows/2.0))*26;
 	    for (j=0; j<t->cols; j++)
 	    {
 		lok.x=(j-t->cols/2.0)*26;
