@@ -69,6 +69,7 @@
 #define CODE_DATA 0
 #define CODE_TIMER 0
 #define CODE_QUIT 1
+#define CODE_FNFLCHANGED 2
 #define as dynamic_cast<
 #define is as
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
@@ -234,6 +235,7 @@ struct obj{
 	nerverot()
 	{
 	    nerv=nerverot_init(SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h);
+	    sz=1;
 	}
 	~nerverot()
 	{
@@ -778,7 +780,61 @@ class commander:public obj
 	    cmd.append((char*)&uni, 1);
     }
 };
-    
+#include <sys/inotify.h>
+int fontwatcherthread(void *data);
+
+class fontwatcher:public obj
+{
+    public:
+    SDL_Thread* t;
+    int i,f;
+    float osize;
+    float grow,size;
+    fontwatcher()
+    {
+	size=osize=0;
+	x=0.3;
+	y=-0.3;
+	grow=0;
+	alpha=0.1;
+	if((i=inotify_init())==-1) cout << "no tengo descriptor\n";
+	if((f=inotify_add_watch(i,fnfl,IN_MODIFY))==-1) cout << "no tengo file\n";;
+	cout << f <<endl;
+	t=SDL_CreateThread(&fontwatcherthread, (void*)this);
+    }
+    ~fontwatcher()
+    {
+        SDL_KillThread(t);
+        close(i);
+    }
+    void draw()
+    {
+	size+=grow;
+	if(size>osize)
+	    grow-=0.003;
+	else 
+	    size=osize;
+	glColor4f(1,0,0,alpha);
+	if (size)gluSphere(gluNewQuadric(),size,10,10);
+    }
+};
+int fontwatcherthread(void *data)
+{
+    while(1)
+    {
+	char buf[1000];
+	cout << reinterpret_cast<fontwatcher*>(data)->i << endl;
+	read(reinterpret_cast<fontwatcher*>(data)->i,&buf,1000);
+	reinterpret_cast<fontwatcher*>(data)->grow=0.1;
+        SDL_Event e;
+        e.type=SDL_USEREVENT;
+        e.user.code=CODE_FNFLCHANGED;
+        SDL_PushEvent(&e);
+        cout << "reloading " << endl;
+    }
+}
+
+
 RoteTerm *clipout, *clipout2;
 
 void updateterminals()
@@ -1150,8 +1206,12 @@ int RunGLTest (void)
 	objects.push_back(new nerverot);
 	objects.push_back(new spectrum_analyzer);
 	objects.push_back(active=new face("bash"));
+	objects.push_back(new fontwatcher);
 	
     }
+    float znear=1;
+    float zfar=20;
+
     while( !done )
     {
 	int dirty=1;
@@ -1165,8 +1225,8 @@ int RunGLTest (void)
 		glClear(GL_COLOR_BUFFER_BIT);
 		//glPushMatrix();
 		glLoadIdentity();
-		glFrustum(-1,1,-1,1,1,1000);
-		gluLookAt(camx,camy,camz,lukx,luky,lukz,0,10,0);
+		glFrustum(-1,1,-1,1,znear,zfar);
+		gluLookAt(camx,camy,camz,lukx,luky,lukz,0,1,0);
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
@@ -1385,6 +1445,19 @@ int RunGLTest (void)
 				case SDLK_F12:
 				    camz+=1;
 				    break;
+				case 44:
+				    znear-=0.2;
+				    break;
+				case 107:
+				    znear+=0.2;
+				    break;
+				case 105:
+				    zfar-=2;
+				    break;
+				case 56:
+				    zfar+=2;
+				    break;
+			
 				default:
 				    if(active)
 					active->keyp(key,uni,mod);
@@ -1521,6 +1594,9 @@ int RunGLTest (void)
 					    }}
 					    dirty=1;
 					}
+					else if(event.user.code==CODE_FNFLCHANGED)
+						loadfont(fnfl);
+				
 					break;
 			}
 		    }
