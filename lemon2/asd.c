@@ -57,8 +57,7 @@
 #include <dirent.h>
 #include "getexecname.c"
 #include "../roteterm/demo/sdlkeys.c"
-
-
+#include "../yaml-cpp-0.2.5/include/yaml.h"
 #include <iostream>
 #include <vector>
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
@@ -71,10 +70,6 @@
 #define is as
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
-double camx,camy,camz;
-double lukx=0;
-double luky=0;
-double lukz=1;
 float znear=1;
 float zfar=20;
 
@@ -170,6 +165,24 @@ typedef struct
 moomoo;
 struct obj;
 
+struct v3d
+{
+    double x,y,z;
+    void operator >> (const YAML::Node& node)
+    {
+	node[0]>>x;
+	node[1]>>y;
+	node[2]>>z;
+    }
+};
+void operator << (YAML::Emitter &out, const v3d& v)
+{
+    out << YAML::Flow;
+    out<<YAML::BeginSeq << v.x << v.y << v.z < YAML::EndSeq;
+}
+
+v3d cam;
+v3d look;
 
 vector<obj *> objects;
 obj * active;
@@ -177,14 +190,12 @@ struct obj{
     int dirty;
     int overlay;
     double alpha;
-    double x,y,z;
-    double a,b,c;
+    v3d t,r,s;
     double shakiness;
-    double sx,sy,sz;
     obj()
     {
-	x=y=z=a=b=c=dirty=0;
-	sx=sy=sz=1;
+	t.x=t.y=t.z=r.x=r.y=r.z=dirty=0;
+	s.x=s.y=s.z=1;
 	alpha=1;
 	overlay=0;
 	shakiness=0;
@@ -200,32 +211,25 @@ struct obj{
     virtual void draw(int picking){};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
-    void switchpositions(obj*o)
-    {
-	double t,tt,ttt,tttt,ttttt,tttttt;
-	t-o->x;tt=o->y;ttt=o->z;tttt=o->a;ttttt=o->b;tttttt=o->c;
-	o->a=a;o->b=b;o->c=c;o->x=x;o->y=y;o->z=z;
-	x=t;y=tt;z=ttt;a=tttt;b=ttttt;c=tttttt;
-    }
     
     void move(double xx,double yy,double zz)
     {
-	x+=xx;
-	y+=yy;
-	z+=zz;
+	t.x+=xx;
+	t.y+=yy;
+	t.z+=zz;
 	dirty=1;
     }
-    void translate_and_draw(int picking, double a)
+    void translate_and_draw(int picking, double aa)
     {
 	#ifdef GL
 	    shakiness-=10;
 	    if(shakiness<0)shakiness=0;
 	    glPushMatrix();
-	    glTranslated(x,y,z);
-	    glRotated(a,1,0,0);
-	    glRotated(b,0,1,0);
-	    glRotated(c,0,0,1);
-	    glScalef(sx,sy,sz);
+	    glTranslated(t.x,t.y,t.z);
+	    glRotated(r.x,1,0,0);
+	    glRotated(r.y,0,1,0);
+	    glRotated(r.z,0,0,1);
+	    glScalef(s.x,s.y,s.z);
 	    if(shakiness)
 	    {
 		glPushMatrix();
@@ -236,7 +240,8 @@ struct obj{
 
 	#endif
 	double oldalpha=alpha;
-	alpha = alpha * a;
+	alpha = alpha * aa;
+	glColor4f(0,0,1,alpha);
 	draw(picking);
 	alpha=oldalpha;
 	#ifdef GL
@@ -250,6 +255,12 @@ struct obj{
     }
     ~obj(){if(active==this)active=0;}
 };
+YAML::Emitter& operator << (YAML::Emitter &out, const obj& v)
+{
+    out<<YAML::BeginMap;
+    out<<YAML::Key<<"pos"<<YAML::Value << v.t;
+}
+
 #ifdef nerve
     class nerverot:public obj
     {
@@ -257,8 +268,9 @@ struct obj{
         public:
         void draw(int picking)
         {
+	    
     	    if(picking)
-    		gluSphere(gluNewQuadric(),1,5,5);
+    		gluSphere(gluNewQuadric(),1,10,10);
     	    else
     	    {
         	nerverot_update(nerv);
@@ -362,9 +374,9 @@ struct face:public obj
 	oldcrow=oldccol=-1;
 	lastrotor=rotor=0;
 	selstartx=selstarty=selendx=selendy=-1;
-	sx=0.001;
-	sy=-0.005;
-	sz=0.002;
+	s.x=0.001;
+	s.y=-0.005;
+	s.z=0.002;
     }
     face()
     {
@@ -445,7 +457,7 @@ struct face:public obj
     }
     void add_terminal(const char *run)
     {
-	add_term(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/13,run);
+	add_term(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/26*3,run);
     }
 
     void draw(int picking)
@@ -453,10 +465,10 @@ struct face:public obj
 	if(picking)
 	{
 	    glBegin(GL_QUADS);
-	    glVertex2f(-t->cols/2*13,-t->rows/2*26);
-	    glVertex2f(-t->cols/2*13,+t->rows/2*26);
-	    glVertex2f(+t->cols/2*13,+t->rows/2*26);
-	    glVertex2f(+t->cols/2*13,-t->rows/2*26);
+	    glVertex2f(-t->cols/2*26,-t->rows/2*26);
+	    glVertex2f(-t->cols/2*26,+t->rows/2*26);
+	    glVertex2f(+t->cols/2*26,+t->rows/2*26);
+	    glVertex2f(+t->cols/2*26,-t->rows/2*26);
 	    glEnd();
 	}
 	else
@@ -642,40 +654,6 @@ struct face:public obj
 
 };
 #ifdef GL
-
-class facespawner:public obj
-{
-    int w;
-    int h;
-    facespawner(){w=h=100;}
-
-    void keyp(int key,int uni,int mod)
-    {
-	face*f=new face;
-        objects.push_back(f);
-        f->x=x;
-        f->y=y;
-        f->z=z;
-    }
-    void draw(int picking)
-    {
-	if(picking)
-	{
-	    if(newtermmsg)
-    	    {
-    		glBegin(GL_QUADS);
-    		glVertex3f(0,0,0);
-	        glVertex3f(w,0,0);
-	        glVertex3f(w,h,0);
-	        glVertex3f(0,h,0);
-	        glEnd();
-	    }
-	}
-	else
-            draw_text(newtermmsg);
-    }
-};                                                               
-
     struct spectrum_analyzer:public obj
     {
 	static GLfloat heights[16][16];
@@ -858,34 +836,6 @@ class mplayer:public obj
 	
     }
 };
-#include <map>
-class commander:public obj
-{
-    enum s{grow};
-    std::map<string, s>m;
-    bool commanded;
-    string cmd;
-
-    commander()
-    {
-	m["grow"]=grow;
-    }
-    void keyp(int key,int uni,int mod)
-    {
-	if(key==SDLK_RETURN)
-	{
-	    if(m.end()==m.find(cmd))
-		commanded=1;
-	    switch(m[cmd])
-	    {
-		case grow:
-		    sx=sy=sz*2;
-	    }
-	}
-	else
-	    cmd.append((char*)&uni, 1);
-    }
-};
 #include <sys/inotify.h>
 int fontwatcherthread(void *data);
 
@@ -904,8 +854,8 @@ class fontwatcher:public obj
     fontwatcher()
     {
 	size=osize=0;
-	x=0.3;
-	y=-0.3;
+	obj::t.x=0.3;
+	obj::t.y=-0.3;
 	grow=0;
 	alpha=0.1;
 	if((i=inotify_init())==-1) cout << "no tengo descriptor\n";
@@ -1011,7 +961,7 @@ class buttons:public obj
 	logit("buttons:");
 	listdir(btns, &add_button,this);
 	overlay=1;
-	sx=sy=sz=1/1000;
+	s.x=s.y=s.z=1/1000;
     }
     void show_button(int x, int y, button *b, int picking)
     {
@@ -1208,6 +1158,25 @@ void saveobjects(void)
 }
 */
 
+void saveobjects()
+{
+    YAML::Emitter out;
+    out<<objects;
+    ofstream s("objects.txt");
+    s<<out.c_str();
+}
+
+
+void loadobjects()
+{
+    ifstream s("objects.txt");
+    YAML::Parser parser(s);
+    YAML::Node doc;
+    while(parser.GetNextDocument(doc)) 
+    {
+    }
+}
+
 void gle(void)
 {
     #ifdef GL
@@ -1240,7 +1209,7 @@ void perspmatrix()
 {
     #ifdef GL
 	glFrustum(-1,1,-1,1,znear,zfar);
-	gluLookAt(camx,camy,camz,lukx,luky,lukz,0,1,0);
+	gluLookAt(cam.x,cam.y,cam.z,look.x,look.y,look.z,0,1,0);
     #endif
 }
 
@@ -1359,11 +1328,11 @@ void showfocus()
 	if(active)
 	{
 	    glPushMatrix();
-	    glTranslated(active->x,active->y,active->z);
-	    glRotated(active->a,1,0,0);
-	    glRotated(active->b,0,1,0);
-	    glRotated(active->c,0,0,1);
-	    glScalef(active->sx,active->sy,active->sz);
+	    glTranslated(active->t.x,active->t.y,active->t.z);
+	    glRotated(active->r.x,1,0,0);
+	    glRotated(active->r.y,0,1,0);
+	    glRotated(active->r.z,0,0,1);
+	    glScalef(active->s.x,active->s.y,active->s.z);
 	    glColor3f(1,1,1);
 	    glBegin(GL_LINE_STRIP);
 	    glVertex3f(-1,1,0.2);
@@ -1398,8 +1367,8 @@ void showfocus()
 
 int RunGLTest (void)
 {
-    camz=2;
-    camx=camy=0;
+    cam.z=2;
+    cam.x=cam.y=0;
 
     xy ss;
     ss.x=-1;
@@ -1525,6 +1494,11 @@ int RunGLTest (void)
 			pick(event.button.button,event.button.x,event.button.y);
 			break;
 		    }
+		    case SDL_MOUSEBUTTONUP:
+		    {
+			pick(event.button.button,event.button.x,event.button.y);
+			break;
+		    }
 		    
 /*
 d(WINDOWS) && !defined(OSX)                                                                                              
@@ -1547,12 +1521,12 @@ d(WINDOWS) && !defined(OSX)
 			    	    objects.push_back( bb=new buttons);
 			    	    if(active)
 				    {
-			    		bb->x=active->x;
-			    		bb->y=active->y;
-			    		bb->z=active->z;
-			    		bb->a=active->a;
-			    		bb->b=active->b;
-			    		bb->c=active->c;
+			    		bb->t.x=active->t.x;
+			    		bb->t.y=active->t.y;
+			    		bb->t.z=active->t.z;
+			    		bb->r.x=active->r.x;
+			    		bb->r.y=active->r.y;
+			    		bb->r.z=active->r.z;
 			    	    }
 				    break;
 				}
@@ -1570,6 +1544,12 @@ d(WINDOWS) && !defined(OSX)
 				    break;
 				case SDLK_f:
 				    gofullscreen=1;
+				    break;
+				case SDLK_s:
+				    saveobjects();
+				    break;
+				case SDLK_l:
+				    loadobjects();
 				    break;
 				case SDLK_r:
 			    	    loadfont(fnfl);
@@ -1590,39 +1570,6 @@ d(WINDOWS) && !defined(OSX)
 
 							break;
 					*/
-				case SDLK_t:
-				{
-			    	    int yy=0;
-				    for_each_object
-					o->x=yy;
-					o->y=0;
-					o->z=0;
-					yy+=1;
-				    }
-				    break;
-				}
-				case SDLK_y:
-				{
-				    int yy=0;
-				    for_each_object
-					o->x=0;
-				        o->y=yy;
-				        o->z=0 ;
-				        yy+=1;
-				    }
-				    break;
-				}
-				case SDLK_u:
-				{
-			    	    int yy=0;
-				    for_each_object
-					o->x=0;
-				        o->y=0  ;
-				        o->z=yy;
-				        yy+=1;
-				    }
-				    break;
-				}
 				case SDLK_p:
 				    #ifdef libpng
 				        saveScreenshot();
@@ -1668,75 +1615,75 @@ d(WINDOWS) && !defined(OSX)
 				    break;
 				case SDLK_F1:
 				    if(active&&k[SDLK_RSHIFT])
-					active->a-=1;
+					active->r.x-=10;
 				    else
-					camx-=1;
+					cam.x-=1;
 				    break;
 				case SDLK_F2:
 				    if(active&&k[SDLK_RSHIFT])
-					active->x-=1;
+					active->t.x-=0.1;
 				    else
-				        lukx-=1;
+				        look.x-=1;
 				    break;
 				case SDLK_F3:
 				    if(active&&k[SDLK_RSHIFT])
-					active->x+=1;
+					active->t.x+=0.1;
 				    else
-					lukx+=1;
+					look.x+=1;
 				    break;
 				case SDLK_F4:
 				    if(active&&k[SDLK_RSHIFT])
-					active->a+=1;
+					active->r.x+=10;
 				    else
-					camx+=1;
+					cam.x+=1;
 				    break;
 				case SDLK_F5:
 				    if(active&&k[SDLK_RSHIFT])
-					active->b-=1;
+					active->r.y-=10;
 				    else
-				        camy-=1;
+				        cam.y-=1;
 				    break;
 				case SDLK_F6:
 				    if(active&&k[SDLK_RSHIFT])
-					active->y-=1;
+					active->t.y-=0.1;
 				    else
-					luky-=1;
+					look.y-=1;
 				    break;
 				case SDLK_F7:
 				    if(active&&k[SDLK_RSHIFT])
-					active->y+=1;
+					active->t.y+=0.1;
 				    else
-				        luky+=1;
+				        look.y+=1;
 				    break;
 				case SDLK_F8:
 				    if(active&&k[SDLK_RSHIFT])
-					active->b+=1;
+					active->r.y+=10;
 				    else
-					camy+=1;
+					cam.y+=1;
 				    break;
 				case SDLK_F9:
 				    if(active&&k[SDLK_RSHIFT])
-					active->c-=1;
+					active->r.z-=10;
 				    else
-					camz-=1;
+					cam.z-=1;
 				    break;
 				case SDLK_F10:
 				    if(active&&k[SDLK_RSHIFT])
-					active->z-=1;
+					active->t.z-=0.1;
 				    else
-					lukz-=1;
+					look.z-=1;
 				    break;
 				case SDLK_F11:
 				    if(active&&k[SDLK_RSHIFT])
-					active->z+=1;
+					active->t.z+=0.1;
 				    else
-				        lukz+=1;
+				        look.z+=1;
 				    break;
 				case SDLK_F12:
 				    if(active&&k[SDLK_RSHIFT])
-					active->c+=1;
+					active->r.z+=10;
 				    else
-					camz+=1;
+					cam.z+=1;
 				    break;
 				case 44:
 				    znear-=0.2;
