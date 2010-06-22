@@ -208,7 +208,7 @@ struct obj{
     void translate_and_draw()
     {
 	#ifdef GL
-	    shakiness--;
+	    shakiness-=3;
 	    if(shakiness<0)shakiness=0;
 	    glPushMatrix();
 	    glTranslated(x,y,z);
@@ -219,9 +219,9 @@ struct obj{
 	    if(shakiness)
 	    {
 		glPushMatrix();
-		glRotated(shakiness*random()/RAND_MAX,1,0,0);
-		glRotated(shakiness*random()/RAND_MAX,0,1,0);
-		glRotated(shakiness*random()/RAND_MAX,0,0,1);
+		glRotated(shakiness*(random()-RAND_MAX/2)/RAND_MAX,1,0,0);
+		glRotated(shakiness*(random()-RAND_MAX/2)/RAND_MAX,0,1,0);
+		glRotated(shakiness*(random()-RAND_MAX/2)/RAND_MAX,0,0,1);
 	    }
 
 	#endif
@@ -488,7 +488,7 @@ struct face:public obj
 		for(j=0;j<t->log[i][0].ch;j++)
 	        {
 		    lok.x=(j-t->cols/2)*13;
-		    do_color(ROTE_ATTR_FG(t->log[i][j+1].attr),1);
+		    do_color(ROTE_ATTR_XFG(t->log[i][j+1].attr),1);
 	    	    drawchar(lok,t->log[i][j+1].ch);
 		}	
 	    }
@@ -500,28 +500,28 @@ struct face:public obj
 	    for (j=0; j<t->cols; j++)
 	    {
 		lok.x=(j-t->cols/2.0)*26;
-		if((j>0)&&((ROTE_ATTR_BG(t->cells[i][j-1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		if((j>0)&&((ROTE_ATTR_XBG(t->cells[i][j-1].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
 		        _spillit(lok,"aaa{",-0.5);
 		}
-		if((j<t->cols-1)&&((ROTE_ATTR_BG(t->cells[i][j+1].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		if((j<t->cols-1)&&((ROTE_ATTR_XBG(t->cells[i][j+1].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
 		        _spillit(lok,"{a{{",-0.5);
 		}
-		if((i<t->rows-1)&&((ROTE_ATTR_BG(t->cells[i+1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		if((i<t->rows-1)&&((ROTE_ATTR_XBG(t->cells[i+1][j].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
 		        _spillit(lok,"a{{{",-0.5);
 		}
-		if((i>0)&&((ROTE_ATTR_BG(t->cells[i-1][j].attr))!=(ROTE_ATTR_BG(t->cells[i][j].attr))))
+		if((i>0)&&((ROTE_ATTR_XBG(t->cells[i-1][j].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_BG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
 		        _spillit(lok,"aa{a",-0.5);
 		}
 		if(t->cells[i][j].ch!=32)
-		    do_color(ROTE_ATTR_FG(t->cells[i][j].attr),1);
+		    do_color(ROTE_ATTR_XFG(t->cells[i][j].attr),1);
 		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
 		#ifdef GL
 		    if(isundercursor||(selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
@@ -583,7 +583,8 @@ struct face:public obj
 			// but still cursor square
 			zspillit(lok,nums[0],1.2*scale);
 	        #endif
-		drawchar(lok,t->cells[i][j].ch);
+	        if(ROTE_ATTR_XFG(t->cells[i][j].attr)!=ROTE_ATTR_XBG(t->cells[i][j].attr))
+		    drawchar(lok,t->cells[i][j].ch);
 	    }
 	}
 	#ifdef GL
@@ -1325,12 +1326,11 @@ int RunGLTest (void)
 				        {
 					    if(++i==objects.size())
 					        i=0;
-					    obj*newactive=objects.at(i);
-					    newactive->switchpositions(active);
-					    newactive->activate();
-					    
+					    objects.at(i)->activate();
+					    break;
 					}
 				    }
+				    if(!active&&objects.size())objects.at(0)->activate();
 				    break;
 				case SDLK_f:
 				    gofullscreen=1;
