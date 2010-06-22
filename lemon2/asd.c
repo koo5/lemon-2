@@ -57,9 +57,6 @@
 #include <dirent.h>
 #include "getexecname.c"
 #include "../roteterm/demo/sdlkeys.c"
-#ifdef SDLD
-    #include "../sdldlines.c"
-#endif
 
 
 #include <iostream>
@@ -80,6 +77,10 @@
         glVertex2f(x,y);
     }
 #endif
+SDL_Surface* s;
+#ifdef SDLD
+    #include "../sdldlines.c"
+#endif
 char *tpl_settingz="S(iiis)";
 struct Settingz
 {
@@ -91,7 +92,7 @@ struct Settingz
 }settingz={0,0,1,0,2};
 using namespace std;
 #include "../gltext.c"
-char *fnfl="l1";//font file
+char *fnfl;//font file
 char *stng;//settingz
 char *mdfl;//modes
 char *fcfl;//faces
@@ -581,7 +582,7 @@ struct face:public obj
 		#else
 		    if(isundercursor)
 			// but still cursor square
-			zspillit(lok,nums[0],1.2*scale);
+			spillit(lok, "aaazzazz");
 	        #endif
 	        if(ROTE_ATTR_XFG(t->cells[i][j].attr)!=ROTE_ATTR_XBG(t->cells[i][j].attr))
 		    drawchar(lok,t->cells[i][j].ch);
@@ -595,6 +596,8 @@ struct face:public obj
     }
 
 };
+#ifdef GL
+
 class facespawner:public obj
 {
     int w;
@@ -626,7 +629,6 @@ class facespawner:public obj
     }
 };                                                               
 
-#ifdef GL
     struct spectrum_analyzer:public obj
     {
 	GLfloat heights[16][16], scale;
@@ -832,13 +834,15 @@ class fontwatcher:public obj
     }
     void draw()
     {
-	size+=grow;
-	if(size>osize)
-	    grow-=0.003;
-	else 
-	    size=osize;
-	glColor4f(1,0,0,alpha);
-	if (size)gluSphere(gluNewQuadric(),size,10,10);
+	#ifdef GL
+	    size+=grow;
+	    if(size>osize)
+		grow-=0.003;
+	    else 
+		size=osize;
+	    glColor4f(1,0,0,alpha);
+	    if (size)gluSphere(gluNewQuadric(),size,10,10);
+	#endif
     }
 };
 int fontwatcherthread(void *data)
@@ -876,8 +880,10 @@ void updateterminals()
 }
 void setmatrix()
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    #ifdef GL
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+    #endif
 
 }
 void resetmatrices(void)
@@ -1155,14 +1161,18 @@ Uint32 TimerCallback(Uint32 interval, void *param)
 
 void updatelinesmooth()
 {
-    if(settingz.line_antialiasing)
-        glEnable(GL_LINE_SMOOTH);
-    else
-        glDisable(GL_LINE_SMOOTH);
+    #ifdef GL
+	if(settingz.line_antialiasing)
+	    glEnable(GL_LINE_SMOOTH);
+	else
+    	    glDisable(GL_LINE_SMOOTH);
+    #endif
 }
 void updatelinewidth()
 {
-    glLineWidth(settingz.lv);
+    #ifdef GL
+	glLineWidth(settingz.lv);
+    #endif
 }							    
 
 //int RunGLTest (void)
@@ -1178,7 +1188,7 @@ void updatelinewidth()
 
 	int mustresize = 1;
 	int justresized = 0;
-	SDL_Surface* s;
+	
 	double camx,camy,camz;
 	double lukx,luky,lukz;
 int anything_dirty()
@@ -1226,8 +1236,10 @@ int RunGLTest (void)
 //    loadobjects();
     if(!objects.size())
     {
-	objects.push_back(new nerverot);
-	objects.push_back(new spectrum_analyzer);
+	#ifdef GL
+	    objects.push_back(new nerverot);
+	    objects.push_back(new spectrum_analyzer);
+	#endif
 	objects.push_back(active=new face("bash"));
 	objects.push_back(new fontwatcher);
 	

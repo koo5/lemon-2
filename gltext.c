@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 vector<string> font;
-char *nullglyph="dzdptuzpznxnxpzp";
+const char *nullglyph="dzdptuzpznxnxpzp";
 double r,g,b,a;
 void setcolor(double rr,double gg,double bb,double aa)
 {
@@ -57,7 +57,7 @@ void _spillit(xy lok, const char*x, float offset)
 {
     int first=1;
     #ifdef SDLD
-	have_first=0
+	have_first=0;
     #endif
     int xdot,ydot;
     float fxdot;
