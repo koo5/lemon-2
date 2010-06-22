@@ -1369,7 +1369,13 @@ void showfocus()
 int RunGLTest (void)
 {
     camz=2;
-    xy ss = parsemodeline(GetFileIntoCharPointer1("mode"));
+    xy ss;
+    ss.x=-1;
+    {
+	char *x=GetFileIntoCharPointer1("mode");
+	if(x)
+	    ss = parsemodeline(x);
+    }
     if (ss.x!=-1){w=ss.x;h=ss.y;};
     #ifdef GL
 	s=initsdl(w,h,&bpp,SDL_OPENGL
