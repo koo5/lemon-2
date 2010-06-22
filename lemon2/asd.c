@@ -72,7 +72,9 @@
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
 double camx,camy,camz;
-double lukx,luky,lukz;
+double lukx=0;
+double luky=0;
+double lukz=1;
 float znear=1;
 float zfar=20;
 
@@ -213,10 +215,10 @@ struct obj{
 	z+=zz;
 	dirty=1;
     }
-    void translate_and_draw(int picking)
+    void translate_and_draw(int picking, double a)
     {
 	#ifdef GL
-	    shakiness-=3;
+	    shakiness-=10;
 	    if(shakiness<0)shakiness=0;
 	    glPushMatrix();
 	    glTranslated(x,y,z);
@@ -233,7 +235,10 @@ struct obj{
 	    }
 
 	#endif
+	double oldalpha=alpha;
+	alpha = alpha * a;
 	draw(picking);
+	alpha=oldalpha;
 	#ifdef GL
 	    glPopMatrix();
 	    if(shakiness)
@@ -528,7 +533,7 @@ struct face:public obj
 		if(t->logstart) lok.x-=100;
 		for(j=0;j<t->log[i][0].ch;j++)
 	        {
-		    lok.x=(j-t->cols/2)*13;
+		    lok.x=(j-t->cols/2)*26;
 		    do_color(ROTE_ATTR_XFG(t->log[i][j+1].attr),1);
 	    	    drawchar(lok,t->log[i][j+1].ch);
 		}	
@@ -975,6 +980,19 @@ void listdir(char *path, void func(char *, char *, void* ), void *data)
 	}
 }
 
+void erase(obj * o)
+{
+    if(active==o)active=0;
+    for(int i=0;i<objects.size();i++)
+	if(objects.at(i)==o)
+	    objects.erase(objects.begin()+i);
+}
+void erase(int i)
+{
+    if(active==objects.at(i))active=0;
+    objects.erase(objects.begin()+i);
+}
+
 #ifdef GL
 struct button
 {
@@ -993,10 +1011,11 @@ class buttons:public obj
 	logit("buttons:");
 	listdir(btns, &add_button,this);
 	overlay=1;
-	sx=sy=sz=2/200;
+	sx=sy=sz=1/1000;
     }
     void show_button(int x, int y, button *b, int picking)
     {
+	cout << b->content << endl;
 	glPushMatrix();
 	glTranslatef(x,y,0);
 	if(picking)
@@ -1021,6 +1040,7 @@ class buttons:public obj
     {
 	int n=buttonz.size();
 	int y=0;
+	cout <<"+++"<<endl;
 	while(n)
 	{
 		if(picking)glLoadName(n-1);
@@ -1031,7 +1051,10 @@ class buttons:public obj
     void picked(int b, vector<int> &v)
     {
 	if(is face*>(active))
+	{
 	    as face*>(active)->type(buttonz.at(v.at(0)).content.c_str());
+	    erase(this);
+	}
     }
 };
 void add_button(char *path, char *justname, void *data)
@@ -1240,7 +1263,7 @@ obj* pick(int button, int x, int y)
     glPushName(-1);
     for_each_object
         glLoadName(i);
-	o->translate_and_draw(1);
+	o->translate_and_draw(1,1);
     }
     glPopMatrix();
     int i,j, k;
@@ -1265,7 +1288,13 @@ obj* pick(int button, int x, int y)
     }
     return active;
 }
-
+void vispick()
+{
+    for_each_object
+	o->translate_and_draw(1,0.1);
+    }
+}
+                          
 #endif
 
 Uint32 TimerCallback(Uint32 interval, void *param)
@@ -1370,6 +1399,8 @@ void showfocus()
 int RunGLTest (void)
 {
     camz=2;
+    camx=camy=0;
+
     xy ss;
     ss.x=-1;
     {
@@ -1405,12 +1436,13 @@ int RunGLTest (void)
 	#ifdef GL
 	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
+	    objects.push_back(new buttons);
 	#endif
 	objects.push_back(active=new face("bash"));
 	objects.push_back(new fontwatcher);
 	
     }
-    perspmatrix();
+
     while( !done )
     {
 	int dirty=1;
@@ -1422,14 +1454,17 @@ int RunGLTest (void)
 	    nothing_dirty();
 	    #ifdef GL
 		glClear(GL_COLOR_BUFFER_BIT);
-
+        	glLoadIdentity();
+	        perspmatrix();
+	        if(SDL_GetMouseState(0,0))
+	    	vispick();
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
 	    for_each_object
-		if(!o->overlay)o->translate_and_draw(0);}
+		if(!o->overlay)o->translate_and_draw(0,1);}
 	    for_each_object
-		if( o->overlay)o->translate_and_draw(0);}
+		if( o->overlay)o->translate_and_draw(0,1);}
 	    if((escaped||k[SDLK_RCTRL]))
 	    	showfocus();
 
@@ -1848,7 +1883,7 @@ d(WINDOWS) && !defined(OSX)
 					{
 					    for_each_face
 						if (f->t == event.user.data1)
-						    objects.erase(objects.begin()+i);
+						    erase(i);
 					    }}
 					    dirty=1;
 					}

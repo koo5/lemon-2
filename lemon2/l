@@ -1,7 +1,8 @@
 #!/bin/bash
 export SDL_VIDEO_ALLOW_SCREENSAVER=1
-SCRIPT=$(readlink -f $0)
-SCRIPT="${SCRIPT}gl"
+SCRIPT=$(dirname  $0)
+export LD_PRELOAD="${SCRIPT}/../yaml-cpp-0.2.5/libyaml-cpp.so"
+SCRIPT="${SCRIPT}/lgl"
 if [ $1 ]
 then
 cd "$1"

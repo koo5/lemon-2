@@ -12,7 +12,8 @@ CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
         -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib \
           ../roteterm/inject_csi.c ../roteterm/inject.c\
            ../roteterm/rote_keymap.c ../roteterm/rote.c \
-           ../roteterm/wtf.c -lncurses  ../tpl/tpl.c
+           ../roteterm/wtf.c -lncurses  ../tpl/tpl.c \
+           -L../yaml-cpp-0.2.5/ -lyaml-cpp
 
 pl=$(shell uname)
 
@@ -44,7 +45,7 @@ lgl$(EXE): $(X)
 	$(CC)   -o $@ asd.c  -Dlibpng -lpng $(GLLIBS) $(CFLIBS) -Dnerve -lGLU  -lm -Wno-write-strings -frtti
 
 test :test.cpp 
-	g++ -o test test.cpp
+	g++ -o test test.cpp -L./ -lyaml-cpp
 
 lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c  ../roteterm/*
 	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
