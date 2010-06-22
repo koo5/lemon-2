@@ -304,10 +304,10 @@ struct obj{
 	while(1)
     	{
 	    moomoo * d = (moomoo *)data;
-	    char buf[512];
+	    char buf[512512];
 	    int br=-1;
 	    //logit("UNLOCKED SELECT\n");
-	    rote_vt_update_thready(buf, 512, &br, d->t);
+	    rote_vt_update_thready(buf, 512512, &br, d->t);
 	    //logit("*end SELECT, locking %i*\n", d->lock);
 	    _mutexP(d->lock);
 	    //logit("LOCKED\n");
@@ -1039,6 +1039,7 @@ void add_button(char *path, char *justname, void *data)
 	char *b=GetFileIntoCharPointer1(path);
 	if(b)
 	{
+		logit(justname);
 		reinterpret_cast<buttons*>(data)->buttonz.push_back(button(justname, b));
 	}
 }

@@ -315,7 +315,7 @@ void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) {
        return; /* nothing to read, or select() failed */
       /* read what we can. This is guaranteed not to block, since
        * select() told us there was something to read. */
-      bytesread = read(rt->pd->pty, buf, 512);
+      bytesread = read(rt->pd->pty, buf, 512512);
       if((bytesread < 0) && (errno != EAGAIN))
       {
              errno=0;
@@ -427,10 +427,10 @@ char * rotoclipin(int sel)
     else
         rote_vt_forkpty(t, "xclip -o");
     int br=0;
-    buf=(char*)malloc(512);
+    buf=(char*)malloc(512513);
     rote_vt_update_thready(buf, 6, &br,t);
     //?
-    buf[br]=0;
+    if(br)buf[br]=0;
     rote_vt_forsake_child(t);
     rote_vt_destroy(t);
     if(br>0)return buf;
