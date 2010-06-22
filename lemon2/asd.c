@@ -175,12 +175,17 @@ struct obj{
     double alpha;
     double x,y,z;
     double a,b,c;
+    double shakiness;
     double sx,sy,sz;
     obj()
     {
 	x=y=z=a=b=c=dirty=0;
 	sx=sy=sz=1;
 	alpha=1;
+    }
+    virtual void activate(){
+	active=this;
+	shakiness=30;
     }
     virtual void draw(){};
     virtual int getDirty(){return dirty;}
@@ -203,16 +208,28 @@ struct obj{
     void translate_and_draw()
     {
 	#ifdef GL
+	    shakiness--;
+	    if(shakiness<0)shakiness=0;
 	    glPushMatrix();
 	    glTranslated(x,y,z);
 	    glRotated(a,1,0,0);
 	    glRotated(b,0,1,0);
 	    glRotated(c,0,0,1);
 	    glScalef(sx,sy,sz);
+	    if(shakiness)
+	    {
+		glPushMatrix();
+		glRotated(shakiness*random()/RAND_MAX,1,0,0);
+		glRotated(shakiness*random()/RAND_MAX,0,1,0);
+		glRotated(shakiness*random()/RAND_MAX,0,0,1);
+	    }
+
 	#endif
 	draw();
 	#ifdef GL
 	    glPopMatrix();
+	    if(shakiness)
+		glPopMatrix();
 	#endif
     }
     virtual void keyp(int key,int uni,int mod)
@@ -235,7 +252,7 @@ struct obj{
 	nerverot()
 	{
 	    nerv=nerverot_init(SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h);
-	    sz=1;
+	
 	}
 	~nerverot()
 	{
@@ -790,6 +807,11 @@ class fontwatcher:public obj
     int i,f;
     float osize;
     float grow,size;
+    void activate()
+    {
+	grow=0.1;
+	obj::activate();
+    }
     fontwatcher()
     {
 	size=osize=0;
@@ -1305,7 +1327,8 @@ int RunGLTest (void)
 					        i=0;
 					    obj*newactive=objects.at(i);
 					    newactive->switchpositions(active);
-					    active=newactive;
+					    newactive->activate();
+					    
 					}
 				    }
 				    break;
