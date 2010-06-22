@@ -71,6 +71,11 @@
 #define is as
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
+double camx,camy,camz;
+double lukx,luky,lukz;
+float znear=1;
+float zfar=20;
+
 #ifdef GL
     inline void dooooot(float x,float y)
     {
@@ -81,15 +86,13 @@ SDL_Surface* s;
 #ifdef SDLD
     #include "../sdldlines.c"
 #endif
-char *tpl_settingz="S(iiis)";
+char *tpl_settingz="S(iii)";
 struct Settingz
 {
     int32_t line_antialiasing;
-    int32_t showbuttons;
     int32_t givehelp;
-    int32_t do_l2;
     double lv;//glLineWidth
-}settingz={0,0,1,0,2};
+}settingz={1,1,1};
 using namespace std;
 #include "../gltext.c"
 char *fnfl;//font file
@@ -100,9 +103,6 @@ char *clfl;//colors
 char *ntfl;//newtermmsg
 char *newtermmsg;
 char *btns;//buttons/
-char **buttons;
-char **buttonnames;
-int numbuttons;
 typedef 
 struct 
 {
@@ -173,6 +173,7 @@ vector<obj *> objects;
 obj * active;
 struct obj{
     int dirty;
+    int overlay;
     double alpha;
     double x,y,z;
     double a,b,c;
@@ -183,12 +184,18 @@ struct obj{
 	x=y=z=a=b=c=dirty=0;
 	sx=sy=sz=1;
 	alpha=1;
+	overlay=0;
+	shakiness=0;
     }
     virtual void activate(){
 	active=this;
-	shakiness=30;
+	shakiness=60;
     }
-    virtual void draw(){};
+    virtual void picked(int b,vector<int>&v)
+    {
+	activate();
+    }
+    virtual void draw(int picking){};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
     void switchpositions(obj*o)
@@ -206,7 +213,7 @@ struct obj{
 	z+=zz;
 	dirty=1;
     }
-    void translate_and_draw()
+    void translate_and_draw(int picking)
     {
 	#ifdef GL
 	    shakiness-=3;
@@ -226,7 +233,7 @@ struct obj{
 	    }
 
 	#endif
-	draw();
+	draw(picking);
 	#ifdef GL
 	    glPopMatrix();
 	    if(shakiness)
@@ -243,12 +250,15 @@ struct obj{
     {
         struct nerverotstate *nerv;
         public:
-        void draw()
+        void draw(int picking)
         {
-            nerverot_update(nerv);
-            glPushMatrix();
-            nerverot_draw(3,nerv);
-            glPopMatrix();
+    	    if(picking)
+    		gluSphere(gluNewQuadric(),1,5,5);
+    	    else
+    	    {
+        	nerverot_update(nerv);
+        	nerverot_draw(3,nerv);
+    	    }
         }
 	nerverot()
 	{
@@ -269,6 +279,20 @@ struct obj{
 		case SDLK_RIGHT:
 		    nerverot_cycleup(nerv);
 		    break;
+	    }
+	}
+	void picked(int b,vector<int>&v)
+	{
+	    switch(b)
+	    {
+		case SDL_BUTTON_LEFT:
+		    nerverot_cycleup(nerv);
+		    break;
+		case SDL_BUTTON_RIGHT:
+		    nerverot_cycledown(nerv);
+		    break;
+		case SDL_BUTTON_MIDDLE:
+		    activate();
 	    }
 	}
 	int getDirty(){return 1;}
@@ -347,7 +371,14 @@ struct face:public obj
 	init();
 	add_terminal(run);
     }
-    
+    void type(const char * x)
+    {
+	while(*x)
+	{
+	    rote_vt_keypress(t,*x);
+	    x++;
+	}
+    }
     ~face()
     {
 	rote_vt_destroy(t);
@@ -412,10 +443,19 @@ struct face:public obj
 	add_term(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/13,run);
     }
 
-    void draw()
+    void draw(int picking)
     {
-    	draw_terminal();
-    	
+	if(picking)
+	{
+	    glBegin(GL_QUADS);
+	    glVertex2f(-t->cols/2*13,-t->rows/2*26);
+	    glVertex2f(-t->cols/2*13,+t->rows/2*26);
+	    glVertex2f(+t->cols/2*13,+t->rows/2*26);
+	    glVertex2f(+t->cols/2*13,-t->rows/2*26);
+	    glEnd();
+	}
+	else
+    	    draw_terminal();
     }
     void clipin(int noes, int sel)
     {
@@ -603,18 +643,7 @@ class facespawner:public obj
     int w;
     int h;
     facespawner(){w=h=100;}
-    void pick()
-    {
-        if(newtermmsg)
-        {
-    	    glBegin(GL_QUADS);
-    	    glVertex3f(0,0,0);
-	    glVertex3f(w,0,0);
-	    glVertex3f(w,h,0);
-	    glVertex3f(0,h,0);
-	    glEnd();
-	}
-    }
+
     void keyp(int key,int uni,int mod)
     {
 	face*f=new face;
@@ -623,23 +652,73 @@ class facespawner:public obj
         f->y=y;
         f->z=z;
     }
-    void draw()
+    void draw(int picking)
     {
-        draw_text(newtermmsg);
+	if(picking)
+	{
+	    if(newtermmsg)
+    	    {
+    		glBegin(GL_QUADS);
+    		glVertex3f(0,0,0);
+	        glVertex3f(w,0,0);
+	        glVertex3f(w,h,0);
+	        glVertex3f(0,h,0);
+	        glEnd();
+	    }
+	}
+	else
+            draw_text(newtermmsg);
     }
 };                                                               
 
     struct spectrum_analyzer:public obj
     {
-	GLfloat heights[16][16], scale;
-	int16_t buf[2][256];
+	static GLfloat heights[16][16];
+	GLfloat  scale;
+	float rx,ry,rz;
+	float rotx,roty,rotz;
 	int getDirty(){return 1;}
 	spectrum_analyzer()
 	{
+	    scale = 1.0 / log(256.0);
 	    alpha=0.1;
+	    rz=ry=rz=rotx=roty=rotz=0;
+	}
+	void picked(int  b,vector<int>&v)
+	{
+	    if(b==SDL_BUTTON_LEFT)
+		rx-=0.2;
+	    else if (b==SDL_BUTTON_RIGHT)
+		rx+=0.2;
+	    else if(b==SDL_BUTTON_MIDDLE)
+	    {
+		rx=ry=rz=0;
+		rotx=roty=rotz=0;
+	    }
 	}
 	void keyp(int key,int uni,int mod)
 	{
+	    switch(key)
+	    {
+		case SDLK_LEFT:
+		    rx-=0.2;
+		    break;
+		case SDLK_RIGHT:
+		    rx+=0.2;
+		    break;
+		case SDLK_UP:
+		    ry-=0.2;
+		    break;
+		case SDLK_DOWN:
+		    ry+=0.2;
+		    break;
+		case SDLK_a:
+		    rz-=0.2;
+		    break;
+		case SDLK_z:
+		    rz+=0.2;
+		    break;
+	    }
         }
 	void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
 	{
@@ -683,15 +762,13 @@ class facespawner:public obj
 	    int i,c;
 	    int y;
 	    GLfloat val;
-	    static GLfloat scale=0;
-	    if(!scale)
-	        scale = 1.0 / log(256.0);
+
 	    int xscale[] = {0, 1, 2, 3, 5, 7, 10, 14, 20, 28, 40, 54, 74, 101, 137, 187, 255};
     	    for(y = 15; y > 0; y--)
 	    {
 	        for(i = 0; i < 16; i++)
 	        {
-		    heights[y][i] = heights[y - 1][i];
+		    spectrum_analyzer::heights[y][i] = heights[y - 1][i];
 		}
 	    }
 	    for(i = 0; i < 16; i++)
@@ -706,14 +783,18 @@ class facespawner:public obj
 		    val = (log(y) * scale);
 		else
 		    val = 0;
-		heights[0][i] = val;
+		spectrum_analyzer::heights[0][i] = val;
 	    }
 	}
 	
-	void draw()
+	void draw(int picking)
 	{
 	    int x,y;
 	    GLfloat x_offset, z_offset, r_base, b_base;
+	    glPushMatrix();
+	    glRotatef(rotx,1,0,0);
+	    glRotatef(roty,0,1,0);
+	    glRotatef(rotz,0,0,1);
     	    glBegin(GL_TRIANGLES);
 	    for(y = 0; y < 16; y++)
 	    {
@@ -723,23 +804,23 @@ class facespawner:public obj
 		for(x = 0; x < 16; x++)
 		{
 		    x_offset = -1.6 + (x * 0.2);			
-		    draw_bar(x_offset, z_offset, heights[y][x], r_base - (x * (r_base / 15.0)), x * (1.0 / 15), b_base);
+		    draw_bar(x_offset, z_offset, spectrum_analyzer::heights[y][x], r_base - (x * (r_base / 15.0)), x * (1.0 / 15), b_base);
 		}
 	    }
 	    glEnd();
+	    glPopMatrix();
 	    FILE *f;
 	    if(f=fopen("/tmp/somefunnyname", "r"))
 	    {
+	    	int16_t buf[2][256];
 		fread(buf,512,2,f);
     		fclose(f);
 		remove("/tmp/somefunnyname");
 		oglspectrum_gen_heights(buf);
 	    }
 	}
-
-
-	
 };
+GLfloat spectrum_analyzer::heights[16][16];
 #endif
 
 #include <string>
@@ -832,7 +913,7 @@ class fontwatcher:public obj
         SDL_KillThread(t);
         close(i);
     }
-    void draw()
+    void draw( int picking)
     {
 	#ifdef GL
 	    size+=grow;
@@ -843,6 +924,10 @@ class fontwatcher:public obj
 	    glColor4f(1,0,0,alpha);
 	    if (size)gluSphere(gluNewQuadric(),size,10,10);
 	#endif
+    }
+    void picked(int b,vector<int>&v)
+    {
+	loadfont(fnfl);
     }
 };
 int fontwatcherthread(void *data)
@@ -860,7 +945,105 @@ int fontwatcherthread(void *data)
         cout << "reloading " << endl;
     }
 }
+void add_button(char *path, char *justname, void *data);
 
+
+void listdir(char *path, void func(char *, char *, void* ), void *data)
+{
+	DIR *dir = opendir(path);
+	if(dir)
+	{	
+		path=strdup(path);
+		int maxsize = 50;
+		path=(char*)realloc(path, strlen(path)+maxsize+1);
+		char* n=strrchr(path, 0);
+		struct dirent *ent;
+		while((ent = readdir(dir)) != NULL)
+		{
+			if(strlen(ent->d_name) < maxsize)
+			{
+				strcat(path,ent->d_name);
+				func(path,ent->d_name,data);
+				*n=0;
+			}
+		}
+		free(path);
+	}
+	else
+	{
+		logit("Error opening directory\n");
+	}
+}
+
+#ifdef GL
+struct button
+{
+    string name,content;
+    button(string n, string c)
+    {
+	name=n;content=c;
+    }
+};
+class buttons:public obj
+{
+    public:
+    vector<button> buttonz;
+    buttons()
+    {
+	logit("buttons:");
+	listdir(btns, &add_button,this);
+	overlay=1;
+	sx=sy=sz=2/200;
+    }
+    void show_button(int x, int y, button *b, int picking)
+    {
+	glPushMatrix();
+	glTranslatef(x,y,0);
+	if(picking)
+		glBegin(GL_QUADS);
+	else
+		glBegin(GL_LINE_LOOP);
+	glColor3f(1,1,0);
+	int w=b->content.length()*13+13;
+	glVertex2f(0,0);
+	glVertex2f(w,0);
+	glVertex2f(w,26);
+	glVertex2f(0,26);
+	glEnd();
+	if(!picking)
+	{
+	    setcolor(1,1,0,1);
+	    draw_text(b->content.c_str());
+	}
+	glPopMatrix();
+    }
+    void show(int picking)
+    {
+	int n=buttonz.size();
+	int y=0;
+	while(n)
+	{
+		if(picking)glLoadName(n-1);
+		show_button(-100,y+=100, &buttonz.at(--n),picking);
+	}
+//	glLoadName(-1);
+    }
+    void picked(int b, vector<int> &v)
+    {
+	if(is face*>(active))
+	    as face*>(active)->type(buttonz.at(v.at(0)).content.c_str());
+    }
+};
+void add_button(char *path, char *justname, void *data)
+{
+	char *b=GetFileIntoCharPointer1(path);
+	if(b)
+	{
+		reinterpret_cast<buttons*>(data)->buttonz.push_back(button(justname, b));
+	}
+}
+
+#endif 
 
 RoteTerm *clipout, *clipout2;
 
@@ -878,20 +1061,12 @@ void updateterminals()
 	}
     #endif
 }
-void setmatrix()
-{
-    #ifdef GL
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-    #endif
 
-}
 void resetmatrices(void)
 {
     #ifdef GL
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
-	setmatrix();
         glMatrixMode( GL_MODELVIEW );
         glLoadIdentity();
     #endif
@@ -1037,96 +1212,35 @@ void sdle(void)
 		SDL_ClearError();
 	}
 }
+void perspmatrix()
+{
+    #ifdef GL
+	glFrustum(-1,1,-1,1,znear,zfar);
+	gluLookAt(camx,camy,camz,lukx,luky,lukz,0,1,0);
+    #endif
+}
+
 
 #ifdef GL
-void show_button(int x, int y, char * n, int picking)
-{
-	glPushMatrix();
-	glTranslatef(x,y,0);
-	if(picking)
-		glBegin(GL_QUADS);
-	else
-		glBegin(GL_LINE_LOOP);
-	glColor3f(1,1,0);
-	int w=strlen(n)*13+13;
-	glVertex2f(0,0);	glVertex2f(w,0);	glVertex2f(w,26);	glVertex2f(0,26);
-	glEnd();
-	setcolor(1,1,0,1);
-	draw_text(n);
-	glPopMatrix();
 
-}
-void show_buttons(int picking)
-{
-	int n=numbuttons;
-	int y=0;
-	glInitNames();
-	glPushName(-1);
-	while(n)
-	{
-		glLoadName(n-1);
-		show_button(100,y+=100, buttonnames[--n],picking);
-	}
-//	glLoadName(-1);
-}
-
-
-int testbuttonpress(int x, int y)
+obj* pick(int button, int x, int y)
 {
     GLuint fuf[500];
     GLint viewport[4];
     glGetIntegerv (GL_VIEWPORT, viewport);
     glSelectBuffer(500, fuf);
-    glMatrixMode (GL_PROJECTION);
     glRenderMode (GL_SELECT);
-    glPushMatrix ();
-    glLoadIdentity ();
-
-    gluPickMatrix (x,y,10,10, viewport);
-    glOrtho(0,SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h,0,100,-100);
     glMatrixMode (GL_MODELVIEW);
-    glMatrixMode (GL_PROJECTION);
-    
-    show_buttons(1);
-    glPopMatrix();
-    resetmatrices();
-    int i,j, k;
-    int numhits = glRenderMode(GL_RENDER);
-//    logit("%i\n", numhits);
-    for(i=0,k=0;i<numhits;i++)
-    {
-	GLuint numnames=fuf[k++];
-	k++;k++;
-	for(j=0;j<numnames;j++)
-	{
-	    GLuint n=fuf[k];
-//	    logit("%i\n", n);
-	    return n;
-	    k++;
-	}
-    }
-    return -1;
-}
-obj* mousefocus(int x, int y)
-{
-    GLuint fuf[500];
-    GLint viewport[4];
-    glGetIntegerv (GL_VIEWPORT, viewport);
-    glSelectBuffer(500, fuf);
-    glMatrixMode (GL_PROJECTION);
-    glRenderMode (GL_SELECT);
     glPushMatrix ();
     glLoadIdentity ();
     gluPickMatrix (x,y,10,10, viewport);
-    setmatrix();
-    glMatrixMode (GL_MODELVIEW);
+    perspmatrix();
     glInitNames();
     glPushName(-1);
     for_each_object
         glLoadName(i);
-	o->translate_and_draw();
+	o->translate_and_draw(1);
     }
-    glMatrixMode (GL_PROJECTION);
     glPopMatrix();
     int i,j, k;
     int numhits = glRenderMode(GL_RENDER);
@@ -1135,20 +1249,23 @@ obj* mousefocus(int x, int y)
     {
 	GLuint numnames=fuf[k++];
 	k++;k++;
-	for(j=0;j<numnames;j++)
+	int obj=fuf[k];
+	int j = 1;
+	k++;
+	vector<int> v;
+	for(;j<numnames;j++)
 	{
-	    GLuint n=fuf[k];
-	    logit("%i\n", n);
-	    return objects.at(n);
+	    v.push_back(fuf[k]);
+	    //logit("%i\n", n);
 	    k++;
 	}
+	objects.at(obj)->picked(button,v);
+	v.clear();
     }
     return active;
 }
 
 #endif
-
-void reloadbuttons(void);
 
 Uint32 TimerCallback(Uint32 interval, void *param)
 {
@@ -1189,8 +1306,7 @@ void updatelinewidth()
 	int mustresize = 1;
 	int justresized = 0;
 	
-	double camx,camy,camz;
-	double lukx,luky,lukz;
+
 int anything_dirty()
 {
     for_each_object
@@ -1205,6 +1321,49 @@ int nothing_dirty()
 	o->setDirty(0);
     }
 }
+
+
+void showfocus()
+{
+    #ifdef GL
+	if(active)
+	{
+	    glPushMatrix();
+	    glTranslated(active->x,active->y,active->z);
+	    glRotated(active->a,1,0,0);
+	    glRotated(active->b,0,1,0);
+	    glRotated(active->c,0,0,1);
+	    glScalef(active->sx,active->sy,active->sz);
+	    glColor3f(1,1,1);
+	    glBegin(GL_LINE_STRIP);
+	    glVertex3f(-1,1,0.2);
+	    glVertex3f(-1,1,1);
+	    glVertex3f(-1,-1,1);
+	    glVertex3f(-1,-1,0.2);
+	    glEnd();
+	    glBegin(GL_LINE_STRIP);
+	    glVertex3f(1,1,0.2);
+	    glVertex3f(1,1,1);
+	    glVertex3f(1,-1,1);
+	    glVertex3f(1,-1,0.2);
+	    glEnd();
+	    glBegin(GL_LINE_STRIP);
+	    glVertex3f(-1,1,-0.2);
+	    glVertex3f(-1,1,-1);
+	    glVertex3f(-1,-1,-1);
+	    glVertex3f(-1,-1,-0.2);
+	    glEnd();
+	    glBegin(GL_LINE_STRIP);
+	    glVertex3f(1,1,-0.2);
+	    glVertex3f(1,1,-1);
+	    glVertex3f(1,-1,-1);
+	    glVertex3f(1,-1,-0.2);
+	    glEnd();
+	    glPopMatrix();
+	}
+    }
+#endif
+
 
 
 int RunGLTest (void)
@@ -1244,9 +1403,7 @@ int RunGLTest (void)
 	objects.push_back(new fontwatcher);
 	
     }
-    float znear=1;
-    float zfar=20;
-
+    perspmatrix();
     while( !done )
     {
 	int dirty=1;
@@ -1258,16 +1415,17 @@ int RunGLTest (void)
 	    nothing_dirty();
 	    #ifdef GL
 		glClear(GL_COLOR_BUFFER_BIT);
-		//glPushMatrix();
-		glLoadIdentity();
-		glFrustum(-1,1,-1,1,znear,zfar);
-		gluLookAt(camx,camy,camz,lukx,luky,lukz,0,1,0);
+
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
 	    for_each_object
-		o->translate_and_draw();
-	    }
+		if(!o->overlay)o->translate_and_draw(0);}
+	    for_each_object
+		if( o->overlay)o->translate_and_draw(0);}
+	    if((escaped||k[SDLK_RCTRL]))
+	    	showfocus();
+
 	    #ifdef GL
 		if(settingz.givehelp)
 		{	
@@ -1275,14 +1433,12 @@ int RunGLTest (void)
 		    glRotatef(90,0,0,1);
 		    glTranslatef(0,-w,0);
 		    if(!(escaped||k[SDLK_RCTRL]))
+		    
 			draw_text("\npress right ctrl for more fun...");
 		    else
 			draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons\nt to tile faces");
 		    glPopMatrix();
 		}
-		if(settingz.showbuttons)
-		    show_buttons(0);
-		//glPopMatrix();
 		SDL_GL_SwapBuffers( );
 	    #else
 		SDL_UpdateRect(s,0,0,0,0);
@@ -1316,12 +1472,26 @@ int RunGLTest (void)
 			if(active&&(escaped||k[SDLK_RCTRL])&&(SDL_BUTTON(1)&SDL_GetMouseState(0,0)))
 			{
 			    escaped=0;
-			    active->move(event.motion.xrel,event.motion.yrel,0);
+			    active->move(event.motion.xrel/10,event.motion.yrel/10,0);
 			}
 			//if(SDL_BUTTON(1)&SDL_GetMouseState(0,0))
 			  //  active=mousefocus(event.motion.x,event.motion.y);
 			    
 		        break;
+		    case SDL_MOUSEBUTTONDOWN:
+		    {
+			pick(event.button.button,event.button.x,event.button.y);
+			break;
+		    }
+		    
+/*
+d(WINDOWS) && !defined(OSX)                                                                                              
+   framebuffer.h       72                  case SDL_SYSWMEVENT:                                                                                                
+      frustum.c           73                                                                                                                                      
+         gamewin.c           74                          if(event->syswm.msg->event.xevent.type == SelectionNotify)                                                  
+            gamewin.h           75                                  finishpaste(event->syswm.msg->event.xevent.xselection);                                             
+               gl_init.c           76                          break;   
+    */
 		    case SDL_KEYDOWN:
 			dirty=1;
 			if(escaped||(mod&KMOD_RCTRL))
@@ -1330,8 +1500,20 @@ int RunGLTest (void)
 			    switch (key)
 			    {
 			        case SDLK_SLASH:
-				    settingz.showbuttons=!settingz.showbuttons;
+			        {
+			    	    buttons *bb;
+			    	    objects.push_back( bb=new buttons);
+			    	    if(active)
+				    {
+			    		bb->x=active->x;
+			    		bb->y=active->y;
+			    		bb->z=active->z;
+			    		bb->a=active->a;
+			    		bb->b=active->b;
+			    		bb->c=active->c;
+			    	    }
 				    break;
+				}
 				case SDLK_TAB:
 				    for_each_object
 					if(active==o)
@@ -1404,8 +1586,6 @@ int RunGLTest (void)
 				        saveScreenshot();
 				    #endif
 				    break;
-				case SDLK_l:
-			    	    settingz.do_l2=!settingz.do_l2;
 				case SDLK_n:
 				    objects.push_back(new face);
 				    active=objects.at(objects.size()-1);
@@ -1445,40 +1625,76 @@ int RunGLTest (void)
 				    if(active&&is face*>(active))as face*>(active)->resizooo(1,0,k);
 				    break;
 				case SDLK_F1:
-				    camx-=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->a-=1;
+				    else
+					camx-=1;
 				    break;
 				case SDLK_F2:
-				    lukx-=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->x-=1;
+				    else
+				        lukx-=1;
 				    break;
 				case SDLK_F3:
-				    lukx+=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->x+=1;
+				    else
+					lukx+=1;
 				    break;
 				case SDLK_F4:
-				    camx+=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->a+=1;
+				    else
+					camx+=1;
 				    break;
 				case SDLK_F5:
-				    camy-=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->b-=1;
+				    else
+				        camy-=1;
 				    break;
 				case SDLK_F6:
-				    luky-=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->y-=1;
+				    else
+					luky-=1;
 				    break;
 				case SDLK_F7:
-				    luky+=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->y+=1;
+				    else
+				        luky+=1;
 				    break;
 				case SDLK_F8:
-				    camy+=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->b+=1;
+				    else
+					camy+=1;
 				    break;
 				case SDLK_F9:
-				    camz-=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->c-=1;
+				    else
+					camz-=1;
 				    break;
 				case SDLK_F10:
-				    lukz-=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->z-=1;
+				    else
+					lukz-=1;
 				    break;
 				case SDLK_F11:
-				    lukz+=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->z+=1;
+				    else
+				        lukz+=1;
 				    break;
 				case SDLK_F12:
-				    camz+=1;
+				    if(active&&k[SDLK_RSHIFT])
+					active->c+=1;
+				    else
+					camz+=1;
 				    break;
 				case 44:
 				    znear-=0.2;
@@ -1684,72 +1900,7 @@ int RunGLTest (void)
 	font.clear();
 	SDL_Quit( );
 	return(0);
-}
-void add_button(char *path, char *justname)
-{
-	char *b=GetFileIntoCharPointer1(path);
-	if(b)
-	{
-		logit("%s\n", justname);
-		numbuttons++;
-		buttons=(char**)realloc(buttons,sizeof(char*)* numbuttons);
-		buttons[numbuttons-1]=b;
-		buttonnames=(char**)realloc(buttonnames, sizeof(char*)*numbuttons);
-		buttonnames[numbuttons-1]=strdup(justname);
-	}
-}
-
-void listdir(char *path, void func(char *, char *))
-{
-	DIR *dir = opendir(path);
-	if(dir)
-	{	
-		path=strdup(path);
-		int maxsize = 50;
-		path=(char*)realloc(path, strlen(path)+maxsize+1);
-		char* n=strrchr(path, 0);
-		struct dirent *ent;
-		while((ent = readdir(dir)) != NULL)
-		{
-			if(strlen(ent->d_name) < maxsize)
-			{
-				strcat(path,ent->d_name);
-				func(path,ent->d_name);
-				*n=0;
-			}
-		}
-		free(path);
-	}
-	else
-	{
-		logit("Error opening directory\n");
-	}
-}
-                      
-void initbuttons(void)
-{
-	logit("buttons:\n");
-	listdir(btns, &add_button);
-}
-
-void freebuttons(void)
-{
-	int x=numbuttons;
-	while(x)
-	{
-	    free(buttons[--x]);
-	    free(buttonnames[x]);
-	}
-	buttonnames=0;
-	buttons=0;
-	numbuttons=0;
-}
-
-void reloadbuttons(void)
-{
-    freebuttons();
-    initbuttons();
-}
+}                      
 
 int main(int argc, char *argv[])
 {
@@ -1781,9 +1932,7 @@ int main(int argc, char *argv[])
 
 	clipout=rote_vt_create(10,10);
 	clipout2=rote_vt_create(10,10);
-	initbuttons();
 	RunGLTest();
-	freebuttons();
 	savesettings();
 	rote_vt_destroy(clipout);
 	rote_vt_destroy(clipout2);

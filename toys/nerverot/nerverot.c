@@ -1051,7 +1051,6 @@ static void threed_draw (struct nerverotstate *st)
 	in[1]=b->y2;
 	in[2]=b->z2;
 	in[3]=1.0;
-
 	__gluMultMatrixVecd(mvmatrix, in, b->ip);
     }
     glPushMatrix();

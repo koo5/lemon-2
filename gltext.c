@@ -188,7 +188,7 @@ void lokdraw_line(xy lok,const char *a)
 */
 
 
-void draw_text(char *a)
+void draw_text(const char *a)
 {
   if(!a)return;
   xy lok;
