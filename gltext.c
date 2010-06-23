@@ -28,12 +28,17 @@ void tokenize(const string& str, vector<string>& tokens, const string& delimiter
 }
 string prepare(string y)
 {
+    vector<string>tokens;
+    tokenize(y,tokens,"#");
+    string ret;
+    if(!tokens.size())
+	return ret;
+    y=tokens.at(0);
     if(y.find('+')==string::npos)
 	return y;
     else
     {
-	string ret;
-	vector<string>tokens;
+        tokens.clear();
 	tokenize(y,tokens);
 	for(int i=0;i<tokens.size();i++)
 	{

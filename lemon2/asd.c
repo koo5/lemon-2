@@ -108,16 +108,10 @@ struct
     unsigned char r,g,b;
 }
 color;
-color colors[16];
+color colors[2][16];
 void loadcolors(void)
 {
     int i,useless;
-    for (i=0;i<16;i++)
-    {
-	colors[i].r=255/16*i;
-	colors[i].g=255/16*i;
-	colors[i].b=255/16*i;
-    }
     if(!clfl)return;
     FILE * fp = fopen(clfl,"r");
     if (fp == NULL)
@@ -127,6 +121,13 @@ void loadcolors(void)
     }
     useless=fread(&colors,3,16,fp);
     fclose(fp);
+    for (i=0;i<16;i++)
+    {
+	colors[1][i].r=0;
+	colors[1][i].g=0;
+	colors[1][i].b=colors[0][i].r+colors[0][i].b+colors[0][i].g/3;
+    }
+
 }
 
 int min(int a, int b)
@@ -140,10 +141,10 @@ int in(int a, int b, int c)
 }
 
 
-void do_color(int attr,float a)
+void do_color(int theme,int attr,float a)
 {
     int c=(attr);//0-15
-    setcolor(colors[c].r/255.0,colors[c].g/255.0,colors[c].b/255.0,a);
+    setcolor(colors[theme][c].r/255.0,colors[theme][c].g/255.0,colors[theme][c].b/255.0,a);
 }
 
 float floabs(float x)
@@ -195,7 +196,6 @@ struct obj:public YAML::Serializable{
     int overlay;
     double alpha;
     v3d t,r,s;
-    double shakiness;
     YAML_SERIALIZABLE_AUTO(obj)
     obj()
     {
@@ -203,17 +203,15 @@ struct obj:public YAML::Serializable{
 	s.x=s.y=s.z=1;
 	alpha=1;
 	overlay=0;
-	shakiness=0;
     }
     virtual void activate(){
 	active=this;
-	shakiness=10;
     }
     virtual void picked(int b,vector<int>&v)
     {
 	activate();
     }
-    virtual void draw(int picking){};
+    virtual void draw(int picking,double alpha){};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
     
@@ -224,35 +222,20 @@ struct obj:public YAML::Serializable{
 	t.z+=zz;
 	dirty=1;
     }
-    void translate_and_draw(int picking, double aa)
+    void translate_and_draw(int picking, double aa,int ghost=0)
     {
 	#ifdef GL
-	    shakiness-=10;
-	    if(shakiness<0)shakiness=0;
 	    glPushMatrix();
 	    glTranslated(t.x,t.y,t.z);
 	    glRotated(r.x,1,0,0);
 	    glRotated(r.y,0,1,0);
 	    glRotated(r.z,0,0,1);
 	    glScalef(s.x,s.y,s.z);
-	    if(shakiness)
-	    {
-		glPushMatrix();
-		glRotated(shakiness*(random()-RAND_MAX/2)/RAND_MAX,1,0,0);
-		glRotated(shakiness*(random()-RAND_MAX/2)/RAND_MAX,0,1,0);
-		glRotated(shakiness*(random()-RAND_MAX/2)/RAND_MAX,0,0,1);
-	    }
-
 	#endif
-	double oldalpha=alpha;
-	alpha = alpha * aa;
-	glColor4f(0,0,1,alpha);
-	draw(picking);
-	alpha=oldalpha;
+	glColor4f(0,0,1,alpha*aa);
+	draw(picking,alpha);
 	#ifdef GL
 	    glPopMatrix();
-	    if(shakiness)
-		glPopMatrix();
 	#endif
     }
     virtual void keyp(int key,int uni,int mod)
@@ -260,14 +243,14 @@ struct obj:public YAML::Serializable{
     }
     ~obj(){if(active==this)active=0;}
     protected:
-        void emit_members(YAML::Emitter&out)
+        void emit_members(YAML::Emitter&out) const
     {
 	YAML_EMIT_MEMBER(out, t);
 	YAML_EMIT_MEMBER(out, r);
 	YAML_EMIT_MEMBER(out, s);
 	YAML_EMIT_MEMBER(out, alpha);
     }
-    void load_members(YAML::Node& doc)
+    void load_members(const YAML::Node& doc)
     {
 	YAML_LOAD_MEMBER(doc, t);
 	YAML_LOAD_MEMBER(doc, r);
@@ -276,43 +259,25 @@ struct obj:public YAML::Serializable{
     }
 
 };
-/*
+
 YAML::Emitter& operator << (YAML::Emitter &out, const obj* v)
 {
-    out<<YAML::BeginMap;
-    out<<YAML::Key<<"pos";
-    out<<YAML::Value << v->t;
-    out<<YAML::Key<<"rot";
-    out<<YAML::Value << v->r;
-    out<<YAML::Key<<"scale";
-    out<<YAML::Value << v->s;
-    out<<YAML::EndMap;
+    out<<*v;
 }
+/*
 void operator >> (YAML::Node& node, obj& o)
 {
     node["pos"]>>o.t;
     node["rot"]>>o.r;
     node["scale"]>>o.s;
  }
- */   
+*/   
 #ifdef nerve
     class nerverot:public obj
     {
-	protected:
-        void emit_members(YAML::Emitter &out)
-        {
-    	    YAML_EMIT_PARENT_MEMBERS(out, obj)
-    	    YAML_EMIT_MEMBER(out,nerv->please_num);
-    	}
-    	void load_members(YAML::Node&doc)
-    	{
-    	    YAML_LOAD_MEMBER(doc,nerv->please_num);
-    	}
-
-        struct nerverotstate *nerv;
         public:
         YAML_SERIALIZABLE_AUTO(nerverot)
-        void draw(int picking)
+        void draw(int picking,double alpha)
         {
 	    
     	    if(picking)
@@ -359,6 +324,19 @@ void operator >> (YAML::Node& node, obj& o)
 	    }
 	}
 	int getDirty(){return 1;}
+	protected:
+        void emit_members(YAML::Emitter &out) const
+        {
+    	    YAML_EMIT_PARENT_MEMBERS(out, obj)
+    	    YAML_EMIT_MEMBER(out,nerv->please_num);
+    	}
+    	void load_members(const YAML::Node&doc)
+    	{
+    	    YAML_LOAD_MEMBER(doc,nerv->please_num);
+    	}
+
+        struct nerverotstate *nerv;
+
     };
 #endif
 #ifdef threaded
@@ -506,8 +484,23 @@ struct face:public obj
     {
 	add_term(SDL_GetVideoSurface()->w/26*3,SDL_GetVideoSurface()->h/26,run);
     }
+    
+    void ghost()
+    {
+	glPushMatrix();
+	glTranslated(obj::t.x,obj::t.y,obj::t.z);
+	glRotated(r.x,1,0,0);
+	glRotated(r.y,0,1,0);
+	glRotated(r.z,0,0,1);
+	glScalef(s.x,s.y,s.z);
+        glTranslatef((t->cols-t->ccol)*26,(t->rows-t->crow)*26,0);
+	glScalef(30,30,1);
+	draw_terminal(1,0.2);
+	glPopMatrix();
+    }
+	
 
-    void draw(int picking)
+    void draw(int picking,double alpha)
     {
 	if(picking)
 	{
@@ -519,7 +512,7 @@ struct face:public obj
 	    glEnd();
 	}
 	else
-    	    draw_terminal();
+    	    draw_terminal(0,alpha);
     }
     void clipin(int noes, int sel)
     {
@@ -571,7 +564,7 @@ struct face:public obj
 	    if(t)_mutexV(upd_t_data.lock);
 	#endif
     }
-    void draw_terminal()
+    void draw_terminal(int theme=0,double alpha=1)
     {
         xy lok;
         lok.x=0;
@@ -587,13 +580,13 @@ struct face:public obj
 	    for (i=t->logl-s;i<t->logl;i++)
 	    {
 	        if(!t->log[i])break;
-	        lok.y=((i-t->rows/2)-t->logl+s)*26;
+	        lok.y=((i-t->rows/2.0)-t->logl+s)*26;
 	        if(t->logstart) lok.y-=100;
 		if(t->logstart) lok.x-=100;
 		for(j=0;j<t->log[i][0].ch;j++)
 	        {
-		    lok.x=(j-t->cols/2)*26;
-		    do_color(ROTE_ATTR_XFG(t->log[i][j+1].attr),alpha);
+		    lok.x=(j-t->cols/2.0)*26;
+		    do_color(theme,ROTE_ATTR_XFG(t->log[i][j+1].attr),alpha);
 	    	    drawchar(lok,t->log[i][j+1].ch);
 		}	
 	    }
@@ -607,26 +600,26 @@ struct face:public obj
 		lok.x=(j-t->cols/2.0)*26;
 		if((j>0)&&((ROTE_ATTR_XBG(t->cells[i][j-1].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
+			do_color(theme,ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"aaa{",-0.5);
 		}
 		if((j<t->cols-1)&&((ROTE_ATTR_XBG(t->cells[i][j+1].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
+			do_color(theme,ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"{a{{",-0.5);
 		}
 		if((i<t->rows-1)&&((ROTE_ATTR_XBG(t->cells[i+1][j].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
+			do_color(theme,ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"a{{{",-0.5);
 		}
 		if((i>0)&&((ROTE_ATTR_XBG(t->cells[i-1][j].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
+			do_color(theme,ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"aa{a",-0.5);
 		}
 		if(t->cells[i][j].ch!=32)
-		    do_color(ROTE_ATTR_XFG(t->cells[i][j].attr),alpha);
+		    do_color(theme,ROTE_ATTR_XFG(t->cells[i][j].attr),alpha);
 		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
 		#ifdef GL
 		    if(isundercursor||(selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
@@ -817,7 +810,7 @@ struct face:public obj
 	    }
 	}
 	
-	void draw(int picking)
+	void draw(int picking,double alpha)
 	{
 	    int x,y;
 	    GLfloat x_offset, z_offset, r_base, b_base;
@@ -918,7 +911,7 @@ class fontwatcher:public obj
         SDL_KillThread(t);
         close(i);
     }
-    void draw( int picking)
+    void draw( int picking,double alpha)
     {
 	#ifdef GL
 	    size+=grow;
@@ -1013,7 +1006,7 @@ class buttons:public obj
 	overlay=1;
 	s.x=s.y=s.z=1/1000;
     }
-    void show_button(int x, int y, button *b, int picking)
+    void show_button(int x, int y, button *b, int picking,double alpha)
     {
 	cout << b->content << endl;
 	glPushMatrix();
@@ -1022,7 +1015,7 @@ class buttons:public obj
 		glBegin(GL_QUADS);
 	else
 		glBegin(GL_LINE_LOOP);
-	glColor3f(1,1,0);
+	glColor4f(1,1,0,alpha);
 	int w=b->content.length()*13+13;
 	glVertex2f(0,0);
 	glVertex2f(w,0);
@@ -1031,12 +1024,12 @@ class buttons:public obj
 	glEnd();
 	if(!picking)
 	{
-	    setcolor(1,1,0,1);
+	    setcolor(1,1,0,alpha);
 	    draw_text(b->content.c_str());
 	}
 	glPopMatrix();
     }
-    void show(int picking)
+    void show(int picking,double alpha)
     {
 	int n=buttonz.size();
 	int y=0;
@@ -1044,7 +1037,7 @@ class buttons:public obj
 	while(n)
 	{
 		if(picking)glLoadName(n-1);
-		show_button(-100,y+=100, &buttonz.at(--n),picking);
+		show_button(-100,y+=100, &buttonz.at(--n),picking,alpha);
 	}
 //	glLoadName(-1);
     }
@@ -1490,6 +1483,9 @@ int RunGLTest (void)
 		if(!o->overlay)o->translate_and_draw(0,1);}
 	    for_each_object
 		if( o->overlay)o->translate_and_draw(0,1);}
+	    for_each_face
+		if(active==f)
+		    f->ghost();}}
 	    if((escaped||k[SDLK_RCTRL]))
 	    	showfocus();
 
