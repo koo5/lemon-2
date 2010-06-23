@@ -58,6 +58,8 @@
 #include "getexecname.c"
 #include "../roteterm/demo/sdlkeys.c"
 #include "../yaml-cpp-0.2.5/include/yaml.h"
+using namespace YAML;
+#include "serializable.h"
 #include <iostream>
 #include <vector>
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
@@ -188,12 +190,13 @@ v3d cr;
 
 vector<obj *> objects;
 obj * active;
-struct obj{
+struct obj:public YAML::Serializable{
     int dirty;
     int overlay;
     double alpha;
     v3d t,r,s;
     double shakiness;
+    YAML_SERIALIZABLE_AUTO(obj)
     obj()
     {
 	t.x=t.y=t.z=r.x=r.y=r.z=dirty=0;
@@ -204,7 +207,7 @@ struct obj{
     }
     virtual void activate(){
 	active=this;
-	shakiness=60;
+	shakiness=10;
     }
     virtual void picked(int b,vector<int>&v)
     {
@@ -256,8 +259,24 @@ struct obj{
     {
     }
     ~obj(){if(active==this)active=0;}
-};
+    protected:
+        void emit_members(YAML::Emitter&out)
+    {
+	YAML_EMIT_MEMBER(out, t);
+	YAML_EMIT_MEMBER(out, r);
+	YAML_EMIT_MEMBER(out, s);
+	YAML_EMIT_MEMBER(out, alpha);
+    }
+    void load_members(YAML::Node& doc)
+    {
+	YAML_LOAD_MEMBER(doc, t);
+	YAML_LOAD_MEMBER(doc, r);
+	YAML_LOAD_MEMBER(doc, s);
+	YAML_LOAD_MEMBER(doc, alpha);
+    }
 
+};
+/*
 YAML::Emitter& operator << (YAML::Emitter &out, const obj* v)
 {
     out<<YAML::BeginMap;
@@ -275,12 +294,24 @@ void operator >> (YAML::Node& node, obj& o)
     node["rot"]>>o.r;
     node["scale"]>>o.s;
  }
-    
+ */   
 #ifdef nerve
     class nerverot:public obj
     {
+	protected:
+        void emit_members(YAML::Emitter &out)
+        {
+    	    YAML_EMIT_PARENT_MEMBERS(out, obj)
+    	    YAML_EMIT_MEMBER(out,nerv->please_num);
+    	}
+    	void load_members(YAML::Node&doc)
+    	{
+    	    YAML_LOAD_MEMBER(doc,nerv->please_num);
+    	}
+
         struct nerverotstate *nerv;
         public:
+        YAML_SERIALIZABLE_AUTO(nerverot)
         void draw(int picking)
         {
 	    
@@ -393,10 +424,11 @@ struct face:public obj
 	s.y=-0.005;
 	s.z=0.002;
     }
-    face()
+    face(double x=0, double y=0, int w=80, int h=28)
     {
 	init();
-	add_terminal("bash");
+	obj::t.x=x;obj::t.y=y;
+	add_term(w,h,"bash");
     }
     face(const char*run)
     {
@@ -461,7 +493,7 @@ struct face:public obj
     void add_term(int c,int r,const char *run)
     {
 	logit("adding terminal");
-	t = rote_vt_create(c,r);
+	t = rote_vt_create(r,c);
 	rote_vt_forkpty((RoteTerm*) t, run);
 	#ifdef threaded
 	    upd_t_data.lock=SDL_CreateMutex();
@@ -472,7 +504,7 @@ struct face:public obj
     }
     void add_terminal(const char *run)
     {
-	add_term(SDL_GetVideoSurface()->h/26,SDL_GetVideoSurface()->w/26*3,run);
+	add_term(SDL_GetVideoSurface()->w/26*3,SDL_GetVideoSurface()->h/26,run);
     }
 
     void draw(int picking)
@@ -814,7 +846,7 @@ struct face:public obj
 	    if(f=fopen("/tmp/somefunnyname", "r"))
 	    {
 	    	int16_t buf[2][256];
-		fread(buf,512,2,f);
+		fread(buf,256,2,f);
     		fclose(f);
 		remove("/tmp/somefunnyname");
 		oglspectrum_gen_heights(buf);
@@ -1282,7 +1314,7 @@ obj* pick(int button, int x, int y)
 void vispick()
 {
     for_each_object
-	o->translate_and_draw(1,0.1);
+	o->translate_and_draw(1,0.04);
     }
 }
                           
@@ -1433,10 +1465,12 @@ int RunGLTest (void)
 	objects.push_back(new fontwatcher);
 	
     }
-
+    int mousemoved=1;
+    int lastmousemoved=SDL_GetTicks();
     while( !done )
     {
 	int dirty=1;
+
 	lockterms();
 	Uint8 * k=SDL_GetKeyState(NULL);
 	if(dirty|=anything_dirty())
@@ -1447,7 +1481,7 @@ int RunGLTest (void)
 		glClear(GL_COLOR_BUFFER_BIT);
         	glLoadIdentity();
 	        perspmatrix();
-	        if(SDL_GetMouseState(0,0))
+	        if(SDL_GetMouseState(0,0)||mousemoved)
 	    	vispick();
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
@@ -1490,6 +1524,7 @@ int RunGLTest (void)
 	//logit("---------unlocked wating\n");
 	if(SDL_WaitEvent( &event ))
 	{
+	    if(SDL_GetTicks()-lastmousemoved>300)mousemoved=0;
 	    lockterms();
 	    //logit("---------locked goooin %i\n", event.type);
 	    if(x)SDL_RemoveTimer(x);
@@ -1509,9 +1544,7 @@ int RunGLTest (void)
 			    escaped=0;
 			    active->move(event.motion.xrel/10,event.motion.yrel/10,0);
 			}
-			//if(SDL_BUTTON(1)&SDL_GetMouseState(0,0))
-			  //  active=mousefocus(event.motion.x,event.motion.y);
-			    
+			mousemoved=1;
 		        break;
 		    case SDL_MOUSEBUTTONDOWN:
 		    {
@@ -1567,7 +1600,16 @@ d(WINDOWS) && !defined(OSX)
 				    if(!active&&objects.size())objects.at(0)->activate();
 				    break;
 				case SDLK_f:
-				    gofullscreen=1;
+				    if(mod&KMOD_RSHIFT)
+				    {
+				        if(as face*>(active))
+				        {
+					    face *f = as face*>(active);
+					    rote_vt_resize(f->t,28,160);
+					}
+				    }
+				    else
+					gofullscreen=1;
 				    break;
 				case SDLK_s:
 				    saveobjects();
@@ -1604,6 +1646,17 @@ d(WINDOWS) && !defined(OSX)
 				    active=objects.at(objects.size()-1);
 				    break;
 				#ifdef GL
+				    case SDLK_t:
+					if(is face*>(active))
+					{
+					    face *f = as face*>(active);
+					    int step=1;
+					    int c=70;
+					    f->obj::t.x=-step;
+					    rote_vt_resize(f->t,28,c);
+					    objects.push_back(new face(step,0,c,28));
+					}
+					break;
 				    case SDLK_v:
 					cr.y+=3.4;
 					break;
@@ -1887,6 +1940,13 @@ d(WINDOWS) && !defined(OSX)
 			}
 		    }
 		    while (SDL_PollEvent(&event));
+		    if(mousemoved)
+		    {
+			lastmousemoved=SDL_GetTicks();
+			int x,y;
+			SDL_GetMouseState(&x,&y);
+			pick(0,x,y);
+		    }
 		    if (mustresize)
 		    {
 			mustresize=0;

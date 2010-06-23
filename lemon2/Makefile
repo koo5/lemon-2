@@ -44,8 +44,8 @@ X=$(srcdir)/../gltext.c $(srcdir)/asd.c ../roteterm/*
 lgl$(EXE): $(X)
 	$(CC)   -o $@ asd.c  -Dlibpng -lpng $(GLLIBS) $(CFLIBS) -Dnerve -lGLU  -lm -Wno-write-strings -frtti
 
-test :test.cpp 
-	g++ -o test test.cpp -L./ -lyaml-cpp
+test :serializabletests.cpp 
+	g++ -o test serializabletests.cpp  -std=c++0x  -L../yaml-cpp-0.2.5/ -lyaml-cpp
 
 lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c  ../roteterm/*
 	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
