@@ -184,6 +184,7 @@ void operator << (YAML::Emitter &out, const v3d& v)
 
 v3d cam;
 v3d look;
+v3d cr;
 
 vector<obj *> objects;
 obj * active;
@@ -288,13 +289,13 @@ void operator >> (YAML::Node& node, obj& o)
     	    else
     	    {
         	nerverot_update(nerv);
-        	nerverot_draw(3,nerv);
+        	nerverot_draw(3,nerv,alpha);
     	    }
         }
 	nerverot()
 	{
 	    nerv=nerverot_init(SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h);
-	
+	    alpha=0.5;
 	}
 	~nerverot()
 	{
@@ -560,7 +561,7 @@ struct face:public obj
 		for(j=0;j<t->log[i][0].ch;j++)
 	        {
 		    lok.x=(j-t->cols/2)*26;
-		    do_color(ROTE_ATTR_XFG(t->log[i][j+1].attr),1);
+		    do_color(ROTE_ATTR_XFG(t->log[i][j+1].attr),alpha);
 	    	    drawchar(lok,t->log[i][j+1].ch);
 		}	
 	    }
@@ -574,26 +575,26 @@ struct face:public obj
 		lok.x=(j-t->cols/2.0)*26;
 		if((j>0)&&((ROTE_ATTR_XBG(t->cells[i][j-1].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"aaa{",-0.5);
 		}
 		if((j<t->cols-1)&&((ROTE_ATTR_XBG(t->cells[i][j+1].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"{a{{",-0.5);
 		}
 		if((i<t->rows-1)&&((ROTE_ATTR_XBG(t->cells[i+1][j].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"a{{{",-0.5);
 		}
 		if((i>0)&&((ROTE_ATTR_XBG(t->cells[i-1][j].attr))!=(ROTE_ATTR_XBG(t->cells[i][j].attr))))
 		{
-			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2);
+			do_color(ROTE_ATTR_XBG(t->cells[i][j].attr),0.2*alpha);
 		        _spillit(lok,"aa{a",-0.5);
 		}
 		if(t->cells[i][j].ch!=32)
-		    do_color(ROTE_ATTR_XFG(t->cells[i][j].attr),1);
+		    do_color(ROTE_ATTR_XFG(t->cells[i][j].attr),alpha);
 		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
 		#ifdef GL
 		    if(isundercursor||(selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
@@ -609,7 +610,7 @@ struct face:public obj
 			    glRotatef(SDL_GetTicks()/100,0,0,1);
     	        	    glBegin(GL_LINE_LOOP);
         	    	    int w=13;
-            		    glColor4f(1,0,0,1);
+            		    glColor4f(1,0,0,alpha);
 			    glVertex2f(-w,-w);
 			    glVertex2f(+w,-w);
 			    glVertex2f(+w,+w);
@@ -627,7 +628,7 @@ struct face:public obj
 				glPushMatrix();
 				glTranslatef(0,100,0);
 				glBegin(GL_QUADS);
-				glColor4f(1,1,0,0.2);
+				glColor4f(1,1,0,0.2*alpha);
 				glVertex2f(-1,0);
 				glVertex2f(1,0);
 				glVertex2f(2,10);
@@ -678,7 +679,7 @@ struct face:public obj
 	spectrum_analyzer()
 	{
 	    scale = 1.0 / log(256.0);
-	    alpha=0.1;
+	    alpha=0.05;
 	    rz=ry=rz=rotx=roty=rotz=0;
 	}
 	void picked(int  b,vector<int>&v)
@@ -1228,6 +1229,9 @@ void perspmatrix()
     #ifdef GL
 	glFrustum(-1,1,-1,1,znear,zfar);
 	gluLookAt(cam.x,cam.y,cam.z,look.x,look.y,look.z,0,1,0);
+	glRotated(cr.x,1,0,0);
+	glRotated(cr.y,0,1,0);
+	glRotated(cr.z,0,0,1);
     #endif
 }
 
@@ -1492,6 +1496,8 @@ int RunGLTest (void)
 	    x=0;
 	    do
 	    {
+		if(event.type!=SDL_MOUSEMOTION||!SDL_GetMouseState(0,0))
+		    dirty=1;
 		int key=event.key.keysym.sym;
 		int uni=event.key.keysym.unicode;
 		int mod=event.key.keysym.mod;
@@ -1598,9 +1604,23 @@ d(WINDOWS) && !defined(OSX)
 				    active=objects.at(objects.size()-1);
 				    break;
 				#ifdef GL
+				    case SDLK_v:
+					cr.y+=3.4;
+					break;
+				    case SDLK_c:
+					cr.y-=3.4;
+					break;
 				    case SDLK_EQUALS:
+					{
+					if(mod&KMOD_RSHIFT)
+					    if(active)
+					    {
+						active->alpha+=0.05;
+						if(active->alpha>1) active->alpha=1;
+						break;
+					    }
 				        settingz.line_antialiasing?settingz.lv+=0.1:settingz.lv++;
-				        GLint max;
+				        GLint max=10;
 				        if(settingz.line_antialiasing)
 					    glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE,&max);
 					else
@@ -1609,7 +1629,15 @@ d(WINDOWS) && !defined(OSX)
 					cout << "max:" << max <<endl;
 					updatelinewidth();
 					break;
+					}
 				    case SDLK_MINUS:
+					if(mod&KMOD_RSHIFT)
+					    if(active)
+					    {
+						active->alpha-=0.05;
+						if(active->alpha<0) active->alpha=0;
+						break;
+					    }
 				        settingz.line_antialiasing?settingz.lv-=0.1:settingz.lv--;
 				        if(settingz.lv<=0)settingz.lv=settingz.line_antialiasing?0.1:1;
 					updatelinewidth();
@@ -1866,7 +1894,6 @@ d(WINDOWS) && !defined(OSX)
 		    }
 		    if(gofullscreen)
 		    {
-			dirty=1;
 			if(s->flags & SDL_FULLSCREEN )
 			{
 

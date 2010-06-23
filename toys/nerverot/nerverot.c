@@ -1029,7 +1029,7 @@ static void twonhalfd_draw (struct nerverotstate *st)
 
 //#include "stolenfromglu"
 
-static void threed_draw (struct nerverotstate *st)
+static void threed_draw (struct nerverotstate *st, double alpha)
 {
     int n;
     int m = 0;
@@ -1058,24 +1058,17 @@ static void threed_draw (struct nerverotstate *st)
     for (n = 0; n < st->blotCount; n++)
     {
 	Blot *b = &st->blots[n];
-	glBegin(GL_POINTS);
-	glColor3f(fun,fun,fun);
-	glVertex3f(b->ip[0], b->ip[1], b->ip[2]);
-	glEnd();
 	fun=(float)st->segsToDraw[m].c/(float)st->colorCount;
-	glBegin(GL_LINES);
-	glColor3f(fun/2,0.1,0);
+	glBegin(GL_LINE_STRIP);
+	glColor4f(0.1,fun/2,0,alpha);
         if (gluProject(b->x2, b->y2, b->z2, mvmatrix, projmatrix, viewport, &winx, &winy, &winz))
 	{
 	    int i;
-	    for (i = 1; i < blotShapeCount; i++)
+	    for (i = 0; i < blotShapeCount; i++)
 	    {
 		FLOAT rx=(st->minRadius + (1-winz)*(st->maxRadius - st->minRadius))/st->windowWidth*2.0;
 		FLOAT ry=(st->minRadius + (1-winz)*(st->maxRadius - st->minRadius))/st->windowHeight*2.0;
 
-	        glVertex3f(
-		    b->ip[0]+(blotShape[i-1].x+ b->xoff[1+blotShape[i-1].x][1+blotShape[i-1].y] * st->maxNerveRadius)*rx,
-		    b->ip[1]+(blotShape[i-1].y+ b->yoff[1+blotShape[i-1].x][1+blotShape[i-1].y] * st->maxNerveRadius)*ry,b->ip[2]);
 		glVertex3f(
 		    b->ip[0]+(blotShape[i].x+ b->xoff[1+blotShape[i].x][1+blotShape[i].y]* st->maxNerveRadius) *rx,
 		    b->ip[1]+(blotShape[i].y+ b->yoff[1+blotShape[i].x][1+blotShape[i].y]* st->maxNerveRadius) *ry,b->ip[2]);
@@ -1104,12 +1097,12 @@ static void nerverot_update (struct nerverotstate *closure)
 }
     /* erase old segments and draw new ones */
  
-static void nerverot_draw(float d, struct nerverotstate *st)
+static void nerverot_draw(float d, struct nerverotstate *st, double alpha)
 { 
   if(d==2)
     eraseAndDraw (st);
   if(d==3)
-    threed_draw(st);
+    threed_draw(st,alpha);
   if((d>2)&&(d<3))
     twonhalfd_draw(st);
 
