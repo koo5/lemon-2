@@ -57,9 +57,6 @@
 #include <dirent.h>
 #include "getexecname.c"
 #include "../roteterm/demo/sdlkeys.c"
-#include "../yaml-cpp-0.2.5/include/yaml.h"
-using namespace YAML;
-#include "serializable.h"
 #include <iostream>
 #include <vector>
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
@@ -172,18 +169,6 @@ struct v3d
 {
     double x,y,z;
 };
-void operator >> (const YAML::Node& node,v3d&v)
-{
-    node[0]>>v.x;
-    node[1]>>v.y;
-    node[2]>>v.z;
-}
-
-void operator << (YAML::Emitter &out, const v3d& v)
-{
-    out << YAML::Flow;
-    out<<YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
-}
 
 v3d cam;
 v3d look;
@@ -191,12 +176,11 @@ v3d cr;
 
 vector<obj *> objects;
 obj * active;
-struct obj:public YAML::Serializable{
+struct obj{
     int dirty;
     int overlay;
     double alpha;
     v3d t,r,s;
-    YAML_SERIALIZABLE_AUTO(obj)
     obj()
     {
 	t.x=t.y=t.z=r.x=r.y=r.z=dirty=0;
@@ -242,41 +226,13 @@ struct obj:public YAML::Serializable{
     {
     }
     ~obj(){if(active==this)active=0;}
-    protected:
-        void emit_members(YAML::Emitter&out) const
-    {
-	YAML_EMIT_MEMBER(out, t);
-	YAML_EMIT_MEMBER(out, r);
-	YAML_EMIT_MEMBER(out, s);
-	YAML_EMIT_MEMBER(out, alpha);
-    }
-    void load_members(const YAML::Node& doc)
-    {
-	YAML_LOAD_MEMBER(doc, t);
-	YAML_LOAD_MEMBER(doc, r);
-	YAML_LOAD_MEMBER(doc, s);
-	YAML_LOAD_MEMBER(doc, alpha);
-    }
 
 };
 
-YAML::Emitter& operator << (YAML::Emitter &out, const obj* v)
-{
-    out<<*v;
-}
-/*
-void operator >> (YAML::Node& node, obj& o)
-{
-    node["pos"]>>o.t;
-    node["rot"]>>o.r;
-    node["scale"]>>o.s;
- }
-*/   
 #ifdef nerve
     class nerverot:public obj
     {
         public:
-        YAML_SERIALIZABLE_AUTO(nerverot)
         void draw(int picking,double alpha)
         {
 	    
@@ -325,16 +281,6 @@ void operator >> (YAML::Node& node, obj& o)
 	}
 	int getDirty(){return 1;}
 	protected:
-        void emit_members(YAML::Emitter &out) const
-        {
-    	    YAML_EMIT_PARENT_MEMBERS(out, obj)
-    	    YAML_EMIT_MEMBER(out,nerv->please_num);
-    	}
-    	void load_members(const YAML::Node&doc)
-    	{
-    	    YAML_LOAD_MEMBER(doc,nerv->please_num);
-    	}
-
         struct nerverotstate *nerv;
 
     };
@@ -1201,25 +1147,6 @@ void saveobjects(void)
 }
 */
 
-void saveobjects()
-{
-    YAML::Emitter out;
-    ofstream s("objects.txt");
-    out << objects;
-    cout << out.c_str();
-    s << out.c_str();
-}
-
-
-void loadobjects()
-{
-    ifstream s("objects.txt");
-    YAML::Parser parser(s);
-    YAML::Node doc;
-    while(parser.GetNextDocument(doc)) 
-    {
-    }
-}
 
 void gle(void)
 {
@@ -1608,10 +1535,8 @@ d(WINDOWS) && !defined(OSX)
 					gofullscreen=1;
 				    break;
 				case SDLK_s:
-				    saveobjects();
 				    break;
 				case SDLK_l:
-				    loadobjects();
 				    break;
 				case SDLK_r:
 			    	    loadfont(fnfl);
