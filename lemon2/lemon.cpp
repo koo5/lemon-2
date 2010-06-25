@@ -172,11 +172,11 @@ moomoo;
 struct obj;
 
 #define SAVE(class) 	YAML_SERIALIZABLE_AUTO(class)\
-			void emit_members(Emitter &o)const
+			void emit_members(Emitter &out)const
 
-#define LOAD	void load_members(const Node& d)
-#define save(x) YAML_EMIT_MEMBER(o, x);
-#define load(x) YAML_LOAD_MEMBER(d, x);
+#define LOAD	void load_members(const Node& doc)
+#define save(x) YAML_EMIT_MEMBER(out, x);
+#define load(x) YAML_LOAD_MEMBER(doc, x);
 struct v3d:public Serializable
 {
     SAVE(v3d)
@@ -204,7 +204,20 @@ v3d cr;
 
 vector<obj *> objects;
 obj * active;
-struct obj{
+struct obj:public Serializable
+{
+    SAVE(obj)
+    {
+	save(t)
+	save(r)
+	save(s)
+    }
+    LOAD
+    {
+	load(t)
+	load(r)
+	load(s)
+    }
     int dirty;
     int overlay;
     double alpha;
@@ -261,6 +274,16 @@ struct obj{
     class nerverot:public obj
     {
         public:
+	SAVE(nerverot)
+	{
+	    YAML_EMIT_PARENT_MEMBERS(out,obj)
+	    save(nerv->please_num)
+	}
+	LOAD
+	{
+	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
+	    load(nerv->please_num)
+	}
         void draw(int picking,double alpha)
         {
 	    
@@ -365,6 +388,14 @@ struct face:public obj
     int selstartx,selstarty,selendx,selendy;
     int getDirty(){return dirty||t->dirty;}
     void setDirty(int d){t->dirty=d;obj::setDirty(d);}
+    SAVE(face)
+    {
+	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD
+    {
+    	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    }
     void init()
     {
 	last_resize=lastxresize=lastyresize=0;
@@ -382,6 +413,14 @@ struct face:public obj
 	obj::t.x=x;obj::t.y=y;
 	add_term(w,h,"bash");
     }
+    face(char* run, double x, double y, double z, double a, double b, double c)
+    {
+	init();
+	obj::t.x=x;obj::t.y=y;obj::t.z=z;
+	r.x=a;r.y=b;r.z=c;
+	add_terminal(run);
+    }
+        
     face(const char*run)
     {
 	init();
@@ -670,6 +709,16 @@ struct face:public obj
 #ifdef GL
     struct spectrum_analyzer:public obj
     {
+	SAVE(spectrum_analyzer)
+	{
+	    YAML_EMIT_PARENT_MEMBERS(out,obj)
+	    save(roty)
+	}
+	LOAD
+	{
+	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
+	    load(roty)
+	}
 	static GLfloat heights[16][16];
 	GLfloat  scale;
 	float rx,ry,rz;
@@ -826,6 +875,13 @@ GLfloat spectrum_analyzer::heights[16][16];
 #include <string>
 class mplayer:public obj
 {
+    public:
+    SAVE(mplayer){
+    	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD{
+    	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    }
     int pos;
     int twist;
     vector<string>list;    
@@ -859,6 +915,14 @@ int fontwatcherthread(void *data);
 class fontwatcher:public obj
 {
     public:
+    SAVE(fontwatcher)
+    {
+	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD
+    {
+	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    }
     SDL_Thread* t;
     int i,f;
     float osize;
@@ -972,6 +1036,11 @@ struct button
 class buttons:public obj
 {
     public:
+    SAVE(buttons)
+    {
+	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD{YAML_LOAD_PARENT_MEMBERS(doc,obj)}
     vector<button> buttonz;
     buttons()
     {
@@ -1408,9 +1477,12 @@ int RunGLTest (void)
 	#ifdef GL
 	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
-	    objects.push_back(new buttons);
+	    //objects.push_back(new buttons);
 	#endif
 	objects.push_back(active=new face("bash"));
+	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
+	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
+	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));
 	objects.push_back(new fontwatcher);
 	
     }
