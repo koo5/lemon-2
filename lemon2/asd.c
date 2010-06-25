@@ -1020,11 +1020,7 @@ class cube:public obj
     }
     void draw(int picking,double alpha)
     {
-	glPushMatrix();
-	glRotated(SDL_GetTicks(), 0,1,0);
-	glColor4f(1,1,1,1);
-	gluSphere(gluNewQuadric(), 0.1, 10,10);
-	glPopMatrix();
+	
     }
 };
 
