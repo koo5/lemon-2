@@ -1,7 +1,5 @@
 
-srcdir  = .
-# 
-CC      = g++  -g -ggdb -std=c++0x
+DEPS  =  ../roteterm/* lemon.cpp
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -13,12 +11,11 @@ CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
           ../roteterm/inject_csi.c ../roteterm/inject.c\
            ../roteterm/rote_keymap.c ../roteterm/rote.c \
            ../roteterm/wtf.c -lncurses  ../tpl/tpl.c \
-           
+           ../yaml-cpp-0.2.5/libyaml-cpp.so
 
 pl=$(shell uname)
 
 ifeq ($(pl),Linux)
-CC      = g++  -g -ggdb 
 PYLIBS = -Dpython `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
 CFLIBS += -DLINUX -pthread `pkg-config --libs sdl` `pkg-config --cflags sdl` 
 GLLIBS += -lGL
@@ -34,21 +31,19 @@ CFLIBS += -DWINDOWS -I/usr/include/ncurses -I/usr/local/include/SDL -I/usr/inclu
 endif
 
 
+CC      =g++ -o $@ lemon.cpp -g -ggdb  $(GLLIBS) $(CFLIBS) -std=c++0x
 
 TARGETS = lsdl lgl
 all: lgl
 a: $(TARGETS)
-
-X=$(srcdir)/../gltext.c $(srcdir)/asd.c ../roteterm/* 
-
-lgl$(EXE): $(X)
-	$(CC)   -o $@ asd.c  -Dlibpng -lpng $(GLLIBS) $(CFLIBS) -Dnerve -lGLU  -lm -Wno-write-strings -frtti
+lgl$(EXE): $(DEPS)
+	$(CC) -Dlibpng -lpng -Dnerve -lGLU  -lm -Wno-write-strings
 
 test :serializabletests.cpp 
 	g++ -o test serializabletests.cpp  
 
-lsdl$(EXE): $(srcdir)/asd.c $(srcdir)/../gltext.c  ../roteterm/*
-	$(CC)  -o $@ asd.c -DSDLD  $(CFLIBS)   -lpng   -Xlinker   \
+lsdl$(EXE):  $(DEPS)
+	$(CC)  -DSDLD  -lpng   -Xlinker   \
 	    -g  /usr/local/lib/libSDL_draw.a
 
 clean:

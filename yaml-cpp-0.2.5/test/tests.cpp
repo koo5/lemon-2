@@ -2,7 +2,6 @@
 #include "emittertests.h"
 #include "parsertests.h"
 #include "spectests.h"
-#include "serializabletests.h"
 #include "yaml.h"
 #include <fstream>
 #include <sstream>
@@ -21,9 +20,6 @@ namespace Test
 			passed = false;
 
 		if(!RunSpecTests())
-			passed = false;
-
-		if(!RunSerializableTests())
 			passed = false;
 		
 		if(passed)

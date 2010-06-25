@@ -62,6 +62,8 @@
 #include "../roteterm/demo/sdlkeys.c"
 #include <iostream>
 #include <vector>
+#include "../yaml-cpp-0.2.5/include/yaml.h"
+#include "serializable.h"
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
 #define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!");}}
 #define CODE_DATA 0
@@ -93,6 +95,7 @@ struct Settingz
     double lv;//glLineWidth
 }settingz={1,1,1};
 using namespace std;
+using namespace YAML;
 #include "../gltext.c"
 char *fnfl;//font file
 char *stng;//settingz
@@ -168,9 +171,31 @@ typedef struct
 moomoo;
 struct obj;
 
-struct v3d
+#define SAVE(class) 	YAML_SERIALIZABLE_AUTO(class)\
+			void emit_members(Emitter &o)const
+
+#define LOAD	void load_members(const Node& d)
+#define save(x) YAML_EMIT_MEMBER(o, x);
+#define load(x) YAML_LOAD_MEMBER(d, x);
+struct v3d:public Serializable
 {
+    SAVE(v3d)
+    {
+	save(x)
+	save(y)
+	save(z)
+    }
+    LOAD
+    {
+	load(x)
+	load(y)
+	load(z)
+    }
     double x,y,z;
+    v3d()
+    {
+    
+    }
 };
 
 v3d cam;
@@ -823,7 +848,7 @@ class mplayer:public obj
 	    break;
 	}
     }
-    void load()
+    void loadlist()
     {
 	
     }
@@ -953,7 +978,7 @@ class buttons:public obj
 	logit("buttons:");
 	listdir(btns, &add_button,this);
 	overlay=1;
-	s.x=s.y=s.z=1/1000;
+	s.x=s.y=s.z=1/300;
     }
     void show_button(int x, int y, button *b, int picking,double alpha)
     {
@@ -994,6 +1019,7 @@ class buttons:public obj
     {
 	if(is face*>(active))
 	{
+	    cout << v.at(0)<<endl;
 	    as face*>(active)->type(buttonz.at(v.at(0)).content.c_str());
 	    erase(this);
 	}
@@ -1010,20 +1036,6 @@ void add_button(char *path, char *justname, void *data)
 }
 
 #endif 
-
-class cube:public obj
-{
-    public:
-    cube()
-    {
-	logit("hypercube detected.");
-    }
-    void draw(int picking,double alpha)
-    {
-	
-    }
-};
-
 
 RoteTerm *clipout, *clipout2;
 
@@ -1397,7 +1409,6 @@ int RunGLTest (void)
 	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
 	    objects.push_back(new buttons);
-	    objects.push_back(new cube);
 	#endif
 	objects.push_back(active=new face("bash"));
 	objects.push_back(new fontwatcher);
