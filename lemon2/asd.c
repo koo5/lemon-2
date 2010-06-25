@@ -1,3 +1,4 @@
+
 /*******************************************************************
 * Description:
 * Author: koom,,, <>
@@ -40,6 +41,8 @@
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
 #include "../tpl/tpl.h"
+#include "SDL_syswm.h"
+#include "makemessage.c"
 #ifdef GL
     #include "SDL_opengl.h"
     #include <GL/glu.h>
@@ -954,7 +957,7 @@ class buttons:public obj
     }
     void show_button(int x, int y, button *b, int picking,double alpha)
     {
-	cout << b->content << endl;
+//	cout << b->content << endl;
 	glPushMatrix();
 	glTranslatef(x,y,0);
 	if(picking)
@@ -975,11 +978,11 @@ class buttons:public obj
 	}
 	glPopMatrix();
     }
-    void show(int picking,double alpha)
+    void draw(int picking,double alpha)
     {
 	int n=buttonz.size();
 	int y=0;
-	cout <<"+++"<<endl;
+///	cout <<"+++"<<endl;
 	while(n)
 	{
 		if(picking)glLoadName(n-1);
@@ -1007,6 +1010,24 @@ void add_button(char *path, char *justname, void *data)
 }
 
 #endif 
+
+class cube:public obj
+{
+    public:
+    cube()
+    {
+	logit("hypercube detected.");
+    }
+    void draw(int picking,double alpha)
+    {
+	glPushMatrix();
+	glRotated(SDL_GetTicks(), 0,1,0);
+	glColor4f(1,1,1,1);
+	gluSphere(gluNewQuadric(), 0.1, 10,10);
+	glPopMatrix();
+    }
+};
+
 
 RoteTerm *clipout, *clipout2;
 
@@ -1343,7 +1364,7 @@ int RunGLTest (void)
 {
     cam.z=2;
     cam.x=cam.y=0;
-
+    int normalize;
     xy ss;
     ss.x=-1;
     {
@@ -1380,11 +1401,13 @@ int RunGLTest (void)
 	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
 	    objects.push_back(new buttons);
+	    objects.push_back(new cube);
 	#endif
 	objects.push_back(active=new face("bash"));
 	objects.push_back(new fontwatcher);
 	
     }
+    int norm=0;
     int mousemoved=1;
     int lastmousemoved=SDL_GetTicks();
     while( !done )
@@ -1411,7 +1434,7 @@ int RunGLTest (void)
 	    for_each_object
 		if( o->overlay)o->translate_and_draw(0,1);}
 	    for_each_face
-		if(active==f)
+		if((active==f)&&(!f->t->cursorhidden))
 		    f->ghost();}}
 	    if((escaped||k[SDLK_RCTRL]))
 	    	showfocus();
@@ -1480,7 +1503,10 @@ int RunGLTest (void)
 			break;
 		    }
 		    
-/*
+/*todo:
+draw vs show
+dbus freezescrollback;
+
 d(WINDOWS) && !defined(OSX)                                                                                              
    framebuffer.h       72                  case SDL_SYSWMEVENT:                                                                                                
       frustum.c           73                                                                                                                                      
@@ -1877,12 +1903,30 @@ d(WINDOWS) && !defined(OSX)
 		    {
 			if(s->flags & SDL_FULLSCREEN )
 			{
-
 			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
-			    logit("gooin !fuulin");
+			    #ifdef linux
+			    if(norm&1)
+				system("wmctrl -r :ACTIVE: -b remove,maximized_horz");
+			    if(norm&2)
+				system("wmctrl -r :ACTIVE: -b remove,maximized_vert");
+			    #endif
 			}
 			else
 			{
+			    #ifdef linux
+			    SDL_SysWMinfo i;
+			    SDL_VERSION(&i.version)
+			    if(SDL_GetWMInfo(&i))
+			    {
+				char *c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_VERT", i.info.x11.window);
+				norm=!system(c);
+				free(c);
+				c==make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_HORZ", i.info.x11.window);
+				norm&=(!system(c))<1;
+				free(c);
+			    }
+			    system("wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz");
+			    #endif
 			    SDL_Surface *ns;
 			    ns=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
 			    if(ns)s=ns;
@@ -1921,9 +1965,9 @@ int main(int argc, char *argv[])
 {
 	logit("hi\n");
 	logit("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
-
+	cout << argv[0] << endl;
 	char *path;
-	path=getexepath();
+	path=getexepath(argv[0]);
 	if(path)
 	{
 		logit("path:%s\n", path);

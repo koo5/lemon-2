@@ -170,7 +170,7 @@ char *reallygetexename(void)
 	return buf;
 }
 	
-char *getexepath(void)
+/*char *getexepath(void)
 {
     char *x,*y=0;
     if((x=reallygetexename()))
@@ -180,4 +180,17 @@ char *getexepath(void)
 	    return x;
 	}
     return 0;
+} */
+
+char *getexepath(const char * argv0)
+{
+    char *x,*y=0;
+    if((x=strdup(argv0)))
+	if((y=strrchr(x, '/')));
+	{
+	    *(y+1)=0;
+	    return x;
+	}
+    return 0;
 }
+
