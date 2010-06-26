@@ -982,8 +982,6 @@ class composite:public obj
 			{
 			    if(XFixesQueryExtension(dpy, &fixes_event, &fixes_error))
 			    {
-			        for ( int i = 0; i < ScreenCount( dpy ); i++ )
-				    XCompositeRedirectSubwindows( dpy, RootWindow( dpy, i ), CompositeRedirectAutomatic);
   //                      	pa.subwindow_mode=IncludeInferiors;
                         	root_width = DisplayWidth(dpy,scr);
 				root_height= DisplayHeight(dpy,scr);
@@ -991,6 +989,15 @@ class composite:public obj
 				XCompositeRedirectSubwindows (dpy, root, CompositeRedirectAutomatic);
 				XUngrabServer (dpy);
 				logit("HAPPY");
+				XWindowAttributes attr;
+				XGetWindowAttributes( dpy, root, &attr );
+				XImage *xim;
+				xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
+				GLuint texture;
+				glGenTextures(1, &texture);
+				glBindTexture(GL_TEXTURE_2D, texture);
+				glTexImage2D(GL_TEXTURE_2D,0,4,root_width,root_height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+				
 			    }
 			}
 		    }
@@ -998,6 +1005,17 @@ class composite:public obj
 	    }
     	}
     }
+    void draw(int picking,double alpha)
+    {
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,0);	glVertex2f(-1,-1);
+	glTexCoord2f(1,0);	glVertex2f(1,-1);
+	glTexCoord2f(1,1);	glVertex2f(1,1);
+	glTexCoord2f(0,1);	glVertex2f(-1,1);
+	glEnd();
+    }
+	
+
 };
 
 
