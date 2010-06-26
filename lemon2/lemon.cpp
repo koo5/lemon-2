@@ -1,4 +1,20 @@
+/*
+todo
+editor
+draw everywhere
+client server copying
+s3d
 
+
+
+
+
+
+
+
+
+
+*/
 /*******************************************************************
 * Description:
 * Author: koom,,, <>
@@ -544,7 +560,10 @@ struct face:public obj
     void keyp(int key,int uni,int mod)
     {
     	if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
-	    clipin(0,1);
+    	    if(mod&KMOD_RCTRL)
+    		clipin(0,0);
+    	    else
+		clipin(0,1);
 	else if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 	{
 	    if(key==SDLK_PAGEUP)
@@ -909,6 +928,79 @@ class mplayer:public obj
 	
     }
 };
+#include "X11/extensions/Xcomposite.h"
+#include "X11/extensions/Xdamage.h"
+#include "X11/extensions/Xrender.h"
+class composite:public obj
+{
+    public:
+    SAVE(composite)
+    {
+	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD
+    {
+	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    }
+    int event_base, error_base;
+    int render_event, render_error;
+    int damage_event, damage_error;
+    int fixes_event, fixes_error;
+    int composite_opcode, composite_event, composite_error;
+    bool hasNamePixmap;
+    int root_width, root_height;
+    int scr;
+    Window root;
+//    XRenderPictureAttributes<pa;
+    Display *dpy;
+    composite()
+    {
+        SDL_SysWMinfo i;
+        SDL_VERSION(&i.version)
+        if(SDL_GetWMInfo(&i))
+        {
+    	    cout << "d:"<<i.info.x11.display<<endl;
+    	    cout << "gfxd:"<<i.info.x11.gfxdisplay<<endl;
+    	    dpy=i.info.x11.gfxdisplay;
+    	    SDL_EventState(SDL_SYSWMEVENT,SDL_ENABLE);
+    	    scr=DefaultScreen(dpy);
+    	    root=RootWindow(dpy,scr);
+    	    if(XRenderQueryExtension(dpy,&render_event,&render_error))
+    	    {
+    		if(XQueryExtension(dpy, COMPOSITE_NAME, &composite_opcode, &composite_event,&composite_error))
+    		{
+    		    if ( XCompositeQueryExtension( dpy, &event_base, &error_base ) )
+    		    {
+		        int major = 0, minor = 2; // The highest version we support
+		        XCompositeQueryVersion( dpy, &major, &minor );
+    	    	        // major and minor will now contain the highest version the server supports.
+		        // The protocol specifies that the returned version will never be higher
+    		        // then the one requested. Version 0.2 is the first version to have the
+		        // XCompositeNameWindowPixmap() request.
+	    	        hasNamePixmap = ( major > 0 || minor >= 2 );
+			if(XDamageQueryExtension(dpy,&damage_event,&damage_error))
+			{
+			    if(XFixesQueryExtension(dpy, &fixes_event, &fixes_error))
+			    {
+			        for ( int i = 0; i < ScreenCount( dpy ); i++ )
+				    XCompositeRedirectSubwindows( dpy, RootWindow( dpy, i ), CompositeRedirectAutomatic);
+  //                      	pa.subwindow_mode=IncludeInferiors;
+                        	root_width = DisplayWidth(dpy,scr);
+				root_height= DisplayHeight(dpy,scr);
+				XGrabServer (dpy);
+				XCompositeRedirectSubwindows (dpy, root, CompositeRedirectAutomatic);
+				XUngrabServer (dpy);
+				logit("HAPPY");
+			    }
+			}
+		    }
+		}
+	    }
+    	}
+    }
+};
+
+
 #include <sys/inotify.h>
 int fontwatcherthread(void *data);
 
@@ -1435,8 +1527,69 @@ void showfocus()
     }
 #endif
 
-
-
+void moveit(Uint8*k)
+{
+	if(k[SDLK_F1])
+	    if(active&&k[SDLK_RSHIFT])
+		active->r.x-=10;
+	    else
+		cam.x-=0.1;
+	if(k[SDLK_F2])
+	    if(active&&k[SDLK_RSHIFT])
+		active->t.x-=0.1;
+	    else
+	        look.x-=0.1;
+	if(k[SDLK_F3])
+	    if(active&&k[SDLK_RSHIFT])
+		active->t.x+=0.1;
+	    else
+		look.x+=0.1;
+	if(k[SDLK_F4])
+	    if(active&&k[SDLK_RSHIFT])
+		active->r.x+=10;
+	    else
+		cam.x+=0.1;
+	if(k[SDLK_F5])
+	    if(active&&k[SDLK_RSHIFT])
+		active->r.y-=10;
+	    else
+	        cam.y-=0.1;
+	if(k[SDLK_F6])
+	    if(active&&k[SDLK_RSHIFT])
+		active->t.y-=0.1;
+	    else
+		look.y-=0.1;
+	if(k[SDLK_F7])
+	    if(active&&k[SDLK_RSHIFT])
+		active->t.y+=0.1;
+	    else
+	        look.y+=0.1;
+	if(k[SDLK_F8])
+	    if(active&&k[SDLK_RSHIFT])
+		active->r.y+=10;
+	    else
+		cam.y+=0.1;
+	if(k[SDLK_F9])
+	    if(active&&k[SDLK_RSHIFT])
+		active->r.z-=10;
+	    else
+		cam.z-=0.1;
+	if(k[SDLK_F10])
+	    if(active&&k[SDLK_RSHIFT])
+		active->t.z-=0.1;
+	    else
+		look.z-=0.1;
+	if(k[SDLK_F11])
+	    if(active&&k[SDLK_RSHIFT])
+		active->t.z+=0.1;
+	    else
+	        look.z+=0.1;
+	if(k[SDLK_F12])
+	    if(active&&k[SDLK_RSHIFT])
+		active->r.z+=10;
+	    else
+		cam.z+=0.1;
+}
 int RunGLTest (void)
 {
     cam.z=2;
@@ -1477,7 +1630,7 @@ int RunGLTest (void)
 	#ifdef GL
 	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
-	    //objects.push_back(new buttons);
+	    objects.push_back(new composite);
 	#endif
 	objects.push_back(active=new face("bash"));
 	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
@@ -1495,6 +1648,7 @@ int RunGLTest (void)
 
 	lockterms();
 	Uint8 * k=SDL_GetKeyState(NULL);
+	moveit(k);
 	if(dirty|=anything_dirty())
 	{
 
@@ -1737,78 +1891,6 @@ d(WINDOWS) && !defined(OSX)
 				    break;
 				case SDLK_PAGEDOWN:
 				    if(active&&is face*>(active))as face*>(active)->resizooo(1,0,k);
-				    break;
-				case SDLK_F1:
-				    if(active&&k[SDLK_RSHIFT])
-					active->r.x-=10;
-				    else
-					cam.x-=0.1;
-				    break;
-				case SDLK_F2:
-				    if(active&&k[SDLK_RSHIFT])
-					active->t.x-=0.1;
-				    else
-				        look.x-=0.1;
-				    break;
-				case SDLK_F3:
-				    if(active&&k[SDLK_RSHIFT])
-					active->t.x+=0.1;
-				    else
-					look.x+=0.1;
-				    break;
-				case SDLK_F4:
-				    if(active&&k[SDLK_RSHIFT])
-					active->r.x+=10;
-				    else
-					cam.x+=0.1;
-				    break;
-				case SDLK_F5:
-				    if(active&&k[SDLK_RSHIFT])
-					active->r.y-=10;
-				    else
-				        cam.y-=0.1;
-				    break;
-				case SDLK_F6:
-				    if(active&&k[SDLK_RSHIFT])
-					active->t.y-=0.1;
-				    else
-					look.y-=0.1;
-				    break;
-				case SDLK_F7:
-				    if(active&&k[SDLK_RSHIFT])
-					active->t.y+=0.1;
-				    else
-				        look.y+=0.1;
-				    break;
-				case SDLK_F8:
-				    if(active&&k[SDLK_RSHIFT])
-					active->r.y+=10;
-				    else
-					cam.y+=0.1;
-				    break;
-				case SDLK_F9:
-				    if(active&&k[SDLK_RSHIFT])
-					active->r.z-=10;
-				    else
-					cam.z-=0.1;
-				    break;
-				case SDLK_F10:
-				    if(active&&k[SDLK_RSHIFT])
-					active->t.z-=0.1;
-				    else
-					look.z-=0.1;
-				    break;
-				case SDLK_F11:
-				    if(active&&k[SDLK_RSHIFT])
-					active->t.z+=0.1;
-				    else
-				        look.z+=0.1;
-				    break;
-				case SDLK_F12:
-				    if(active&&k[SDLK_RSHIFT])
-					active->r.z+=10;
-				    else
-					cam.z+=0.1;
 				    break;
 				case 44:
 				    znear-=0.2;
