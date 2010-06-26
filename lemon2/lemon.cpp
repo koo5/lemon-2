@@ -1,4 +1,5 @@
 /*
+dbus freezescrollback
 todo
 editor
 draw everywhere
@@ -997,7 +998,8 @@ class composite:public obj
 				glGenTextures(1, &texture);
 				glBindTexture(GL_TEXTURE_2D, texture);
 				glTexImage2D(GL_TEXTURE_2D,0,4,root_width,root_height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
-				
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	// Linear Filtering
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	// Linear Filtering
 			    }
 			}
 		    }
@@ -1007,6 +1009,7 @@ class composite:public obj
     }
     void draw(int picking,double alpha)
     {
+    glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0,0);	glVertex2f(-1,-1);
 	glTexCoord2f(1,0);	glVertex2f(1,-1);
