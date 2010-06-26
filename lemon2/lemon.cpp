@@ -1,4 +1,5 @@
 /*
+atlantis
 dbus freezescrollback
 todo
 editor
@@ -932,6 +933,22 @@ class mplayer:public obj
 #include "X11/extensions/Xcomposite.h"
 #include "X11/extensions/Xdamage.h"
 #include "X11/extensions/Xrender.h"
+class composite_window:public obj
+{
+    public:
+    SAVE(composite_window)
+    {
+	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD
+    {
+	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    }
+    composite_window(Window id)
+    {
+	
+    }
+};
 class composite:public obj
 {
     public:
@@ -951,6 +968,7 @@ class composite:public obj
     bool hasNamePixmap;
     int root_width, root_height;
     int scr;
+    char * data;
     Window root;
 //    XRenderPictureAttributes<pa;
     Display *dpy;
@@ -992,14 +1010,13 @@ class composite:public obj
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-				XImage *xim;
-				xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
 				GLuint texture;
 				glGenTextures(1, &texture);
 				glBindTexture(GL_TEXTURE_2D, texture);
-				glTexImage2D(GL_TEXTURE_2D,0,4,root_width,root_height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	// Linear Filtering
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	// Linear Filtering
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
+//				XQueryTree(dpy, window, &root_win, &parent_win, &child_list,
+//				<------><------>  &num_children))
 			    }
 			}
 		    }
@@ -1007,15 +1024,22 @@ class composite:public obj
 	    }
     	}
     }
+    
     void draw(int picking,double alpha)
     {
-    glEnable(GL_TEXTURE_2D);
+	XImage *xim;
+	xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
+
+	glEnable(GL_TEXTURE_2D);
+	glTexImage2D(GL_TEXTURE_2D,0,4,root_width,root_height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
 	glBegin(GL_QUADS);
-	glTexCoord2f(0,0);	glVertex2f(-1,-1);
-	glTexCoord2f(1,0);	glVertex2f(1,-1);
-	glTexCoord2f(1,1);	glVertex2f(1,1);
-	glTexCoord2f(0,1);	glVertex2f(-1,1);
+	glColor3f(1,1,1);
+	glTexCoord2f(0,0);	glVertex2f(-1,1);
+	glTexCoord2f(1,0);	glVertex2f(1,1);
+	glTexCoord2f(1,1);	glVertex2f(1,-1);
+	glTexCoord2f(0,1);	glVertex2f(-1,-1);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
     }
 	
 
