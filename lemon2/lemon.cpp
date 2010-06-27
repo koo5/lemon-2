@@ -524,7 +524,7 @@ struct face:public obj
 	glRotated(r.y,0,1,0);
 	glRotated(r.z,0,0,1);
 	glScalef(s.x,s.y,s.z);
-        glTranslatef((t->cols-t->ccol)*26,(t->rows-t->crow)*26,0);
+        glTranslatef((t->cols-t->ccol)*26/s.x,(t->rows-t->crow)*26/s.y,0);
 	glScalef(30,30,1);
 	draw_terminal(1,0.2);
 	glPopMatrix();
@@ -949,10 +949,57 @@ class composite_window:public obj
     {
 	YAML_LOAD_PARENT_MEMBERS(doc,obj)
     }
-    composite_window(Window id)
+    GLuint texture;
+    Display *dpy;
+    Window window;
+    composite_window(Display *dpy,Window id)
     {
-	
+	damaged=1;
+	xim=0;
+	window=id;
+	this->dpy=dpy;
+	unsigned int X;
+	Window programming;
+	int sucks;
+	//real
+	//BAD
+	XGetGeometry(dpy, id, &programming,&sucks,&sucks,&width,&height,&X,&X);
+	cout << width << "x" << height << endl;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
+	damage=XDamageCreate(dpy,window,XDamageReportRawRectangles);
     }
+    XImage *xim;
+    Damage damage;
+    int damaged;
+    unsigned int width, height;
+    ~composite_window()
+    {
+	XDamageDestroy(dpy, damage);
+    }
+    void draw(int picking,double alpha)
+    {
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	if(damaged)
+	{
+	    if(xim)XDestroyImage(xim);
+	    xim = XGetImage(dpy, window, 0,0,width, height,AllPlanes,ZPixmap);
+	    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+	    damaged=0;
+	}
+	glBegin(GL_QUADS);
+	glColor4f(1,1,1,alpha);
+	glTexCoord2f(0,0);	glVertex2f(-1,1);
+	glTexCoord2f(1,0);	glVertex2f(1,1);
+	glTexCoord2f(1,1);	glVertex2f(1,-1);
+	glTexCoord2f(0,1);	glVertex2f(-1,-1);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+    }
+    
 };
 #define MAX_SUB_TEX 2048
 #define SHM_SIZE MAX_SUB_TEX * MAX_SUB_TEX * 4
@@ -973,7 +1020,7 @@ class composite:public obj
     int fixes_event, fixes_error;
     int composite_opcode, composite_event, composite_error;
     bool hasNamePixmap;
-    int root_width, root_height;
+
     int scr;
     char * data;
     Window root;
@@ -981,17 +1028,8 @@ class composite:public obj
 //    XRenderPictureAttributes<pa;
     Display *dpy;
     XShmSegmentInfo shm;	
-    XImage *xim;
-    Damage damage;
-    void rootdamaged()
-    {
-	if(xim)XDestroyImage(xim);
-	xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
-	glTexImage2D(GL_TEXTURE_2D,0,4,root_width,root_height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
-    }
     composite()
     {
-	xim=0;
         SDL_SysWMinfo i;
         SDL_VERSION(&i.version)
         if(SDL_GetWMInfo(&i))
@@ -1020,20 +1058,13 @@ class composite:public obj
 			    if(XFixesQueryExtension(dpy, &fixes_event, &fixes_error))
 			    {
   //                      	pa.subwindow_mode=IncludeInferiors;
-                        	root_width = DisplayWidth(dpy,scr);
-				root_height= DisplayHeight(dpy,scr);
 				XGrabServer (dpy);
 				XCompositeRedirectSubwindows (dpy, root, CompositeRedirectAutomatic);
 				XUngrabServer (dpy);
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-				GLuint texture;
-				glGenTextures(1, &texture);
-				glBindTexture(GL_TEXTURE_2D, texture);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
-				damage=XDamageCreate(dpy,root,XDamageReportRawRectangles);
+
 				/*if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
@@ -1057,39 +1088,18 @@ class composite:public obj
 				windowPix = XCompositeNameWindowPixmap(dpy, root);
 				*/
 					
-				rootdamaged();
   //				XShmGetImage(dpy, root,xim,0,0,AllPlanes);
 //				XQueryTree(dpy, window, &root_win, &parent_win, &child_list,
 //				<------><------>  &num_children))
 				//if(hasNamePixmap)
 				  //  windowPix = XCompositeNameWindowPixmap( dpy, root );
-					
+				objects.push_back(new composite_window(dpy, root));
 			    }
 			}
 		    }
 		}
 	    }
     	}
-    }
-    ~composite()
-    {
-	XDamageDestroy(dpy, damage);
-    }
-    void draw(int picking,double alpha)
-    {
-//	XImage *xim;
-//	xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
-
-	glEnable(GL_TEXTURE_2D);
-//	XFree(xim);
-	glBegin(GL_QUADS);
-	glColor3f(1,1,1);
-	glTexCoord2f(0,0);	glVertex2f(-1,1);
-	glTexCoord2f(1,0);	glVertex2f(1,1);
-	glTexCoord2f(1,1);	glVertex2f(1,-1);
-	glTexCoord2f(0,1);	glVertex2f(-1,-1);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
     }
 	
 
@@ -1814,16 +1824,28 @@ int RunGLTest (void)
 		switch( event.type )
 		{
 		    case SDL_SYSWMEVENT:
+
 			if(comp)
+			{
+			
 			    if(event.syswm.msg->event.xevent.type==comp->damage_event)
 			    {
+				
 				XEvent ee = event.syswm.msg->event.xevent;
 				XDamageNotifyEvent* eee = (XDamageNotifyEvent*)&ee;
-				if((!eee->more)&&(eee->drawable==comp->root))
+				for(int i=0;i<objects.size();i++)
 				{
-				    rootdamaged=1;
+//				cout <<"damaged"<<endl;
+				    if(is composite_window*>(objects[i])&&(as composite_window*>(objects[i])->window==(eee->drawable)))
+				    {
+					as composite_window*>(objects[i])->damaged=1;
+
+					break;
+				    }
+
 				}
 			    }
+			}
 			break;
 			
 		    case SDL_MOUSEMOTION:
@@ -2157,10 +2179,6 @@ d(WINDOWS) && !defined(OSX)
 			}
 		    }
 		    while (SDL_PollEvent(&event));
-		    if(rootdamaged)
-		    {
-			comp->rootdamaged();
-		    }
 		    if(mousemoved)
 		    {
 			lastmousemoved=SDL_GetTicks();
