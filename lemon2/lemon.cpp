@@ -566,6 +566,7 @@ struct face:public obj
     		clipin(0,0);
     	    else
 		clipin(0,1);
+	if(mod&KMOD_RCTRL)return;
 	else if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 	{
 	    if(key==SDLK_PAGEUP)
@@ -1742,7 +1743,7 @@ int RunGLTest (void)
 
 	lockterms();
 	Uint8 * k=SDL_GetKeyState(NULL);
-	moveit(k);
+	if(k[SDLK_RCTRL])moveit(k);
 	if(dirty|=anything_dirty())
 	{
 
@@ -1802,6 +1803,7 @@ int RunGLTest (void)
 	    //logit("---------locked goooin %i\n", event.type);
 	    if(x)SDL_RemoveTimer(x);
 	    x=0;
+	    int rootdamaged=1;
 	    do
 	    {
 		if(event.type!=SDL_MOUSEMOTION||!SDL_GetMouseState(0,0))
@@ -1812,7 +1814,6 @@ int RunGLTest (void)
 		switch( event.type )
 		{
 		    case SDL_SYSWMEVENT:
-			logit("SDL_SYSWMEVENT");
 			if(comp)
 			    if(event.syswm.msg->event.xevent.type==comp->damage_event)
 			    {
@@ -1820,8 +1821,7 @@ int RunGLTest (void)
 				XDamageNotifyEvent* eee = (XDamageNotifyEvent*)&ee;
 				if((!eee->more)&&(eee->drawable==comp->root))
 				{
-				    
-				    comp->rootdamaged();
+				    rootdamaged=1;
 				}
 			    }
 			break;
@@ -2157,6 +2157,10 @@ d(WINDOWS) && !defined(OSX)
 			}
 		    }
 		    while (SDL_PollEvent(&event));
+		    if(rootdamaged)
+		    {
+			comp->rootdamaged();
+		    }
 		    if(mousemoved)
 		    {
 			lastmousemoved=SDL_GetTicks();
