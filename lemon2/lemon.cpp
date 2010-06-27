@@ -933,6 +933,10 @@ class mplayer:public obj
 #include "X11/extensions/Xcomposite.h"
 #include "X11/extensions/Xdamage.h"
 #include "X11/extensions/Xrender.h"
+#include <X11/Xlib.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <X11/extensions/XShm.h>
 class composite_window:public obj
 {
     public:
@@ -949,6 +953,8 @@ class composite_window:public obj
 	
     }
 };
+#define MAX_SUB_TEX 2048
+#define SHM_SIZE MAX_SUB_TEX * MAX_SUB_TEX * 4
 class composite:public obj
 {
     public:
@@ -970,17 +976,28 @@ class composite:public obj
     int scr;
     char * data;
     Window root;
+    Pixmap windowPix;
 //    XRenderPictureAttributes<pa;
     Display *dpy;
+    XShmSegmentInfo shm;	
+    XImage *xim;
+    Damage damage;
+    void rootdamaged()
+    {
+	if(xim)XDestroyImage(xim);
+	xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
+	glTexImage2D(GL_TEXTURE_2D,0,4,root_width,root_height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+    }
     composite()
     {
+	xim=0;
         SDL_SysWMinfo i;
         SDL_VERSION(&i.version)
         if(SDL_GetWMInfo(&i))
         {
     	    cout << "d:"<<i.info.x11.display<<endl;
     	    cout << "gfxd:"<<i.info.x11.gfxdisplay<<endl;
-    	    dpy=i.info.x11.gfxdisplay;
+    	    dpy=i.info.x11.display;
     	    SDL_EventState(SDL_SYSWMEVENT,SDL_ENABLE);
     	    scr=DefaultScreen(dpy);
     	    root=RootWindow(dpy,scr);
@@ -1015,8 +1032,37 @@ class composite:public obj
 				glBindTexture(GL_TEXTURE_2D, texture);
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
+				damage=XDamageCreate(dpy,root,XDamageReportRawRectangles);
+				/*if(XShmQueryExtension(dpy))
+				{
+				    int shm_pixmaps;
+				    int shm_major;
+				    int shm_minor;
+				    if(XShmQueryVersion(dpy,&shm_major,&shm_minor,&shm_pixmaps))
+				    {
+				        logit("HAPPY");
+					if(shm_pixmaps)
+					{
+					    logit("HAPPY");
+					    if((shm.shmid = shmget (IPC_PRIVATE, SHM_SIZE, IPC_CREAT | 0600))>=0)
+					    {
+						logit("HAPPY");
+						shm.shmaddr = (char *) shmat (shm.shmid, 0, 0);
+					    }
+					}
+				    }
+				} 
+				XFlush(dpy);
+				windowPix = XCompositeNameWindowPixmap(dpy, root);
+				*/
+					
+				rootdamaged();
+  //				XShmGetImage(dpy, root,xim,0,0,AllPlanes);
 //				XQueryTree(dpy, window, &root_win, &parent_win, &child_list,
 //				<------><------>  &num_children))
+				//if(hasNamePixmap)
+				  //  windowPix = XCompositeNameWindowPixmap( dpy, root );
+					
 			    }
 			}
 		    }
@@ -1024,14 +1070,17 @@ class composite:public obj
 	    }
     	}
     }
-    
+    ~composite()
+    {
+	XDamageDestroy(dpy, damage);
+    }
     void draw(int picking,double alpha)
     {
-	XImage *xim;
-	xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
+//	XImage *xim;
+//	xim = XGetImage(dpy, root, 0,0,root_width, root_height,AllPlanes,ZPixmap);
 
 	glEnable(GL_TEXTURE_2D);
-	glTexImage2D(GL_TEXTURE_2D,0,4,root_width,root_height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+//	XFree(xim);
 	glBegin(GL_QUADS);
 	glColor3f(1,1,1);
 	glTexCoord2f(0,0);	glVertex2f(-1,1);
@@ -1044,7 +1093,7 @@ class composite:public obj
 	
 
 };
-
+composite *comp;
 
 #include <sys/inotify.h>
 int fontwatcherthread(void *data);
@@ -1675,7 +1724,7 @@ int RunGLTest (void)
 	#ifdef GL
 	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
-	    objects.push_back(new composite);
+	    objects.push_back(comp = new composite);
 	#endif
 	objects.push_back(active=new face("bash"));
 	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
@@ -1762,6 +1811,21 @@ int RunGLTest (void)
 		int mod=event.key.keysym.mod;
 		switch( event.type )
 		{
+		    case SDL_SYSWMEVENT:
+			logit("SDL_SYSWMEVENT");
+			if(comp)
+			    if(event.syswm.msg->event.xevent.type==comp->damage_event)
+			    {
+				XEvent ee = event.syswm.msg->event.xevent;
+				XDamageNotifyEvent* eee = (XDamageNotifyEvent*)&ee;
+				if((!eee->more)&&(eee->drawable==comp->root))
+				{
+				    
+				    comp->rootdamaged();
+				}
+			    }
+			break;
+			
 		    case SDL_MOUSEMOTION:
 			if(active&&(escaped||k[SDLK_RCTRL])&&(SDL_BUTTON(1)&SDL_GetMouseState(0,0)))
 			{
