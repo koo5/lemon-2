@@ -957,8 +957,10 @@ class composite_window:public obj
     Display *dpy;
     Window window;
     int X,Y;
-    composite_window(Display *dpy,Window id)
+    composite_window(double x,double sc, Display *dpy,Window id)
     {
+	t.x=x;
+	s.x=sc;
 	damaged=1;
 	xim=0;
 	window=id;
@@ -991,10 +993,10 @@ class composite_window:public obj
 	if(damaged)
 	{
 	    if(xim)XDestroyImage(xim);
-	    //if((X>0)&&(Y>0))
-	    //{xim = XGetImage(dpy, window, 0,0,X+width>rw?width-(X+width-rw):width,Y+height>rh?height-(Y+height-rh):height,AllPlanes,ZPixmap);
-	    //glTexImage2D(GL_TEXTURE_2D,0,4,X+width>rw?width-(X+width-rw):width,Y+height>rh?height-(Y+height-rh):height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
-	    //}damaged=0;
+	    if((X>=0)&&(Y>=0)&&(X+width<rw)&&(Y+height<rh))
+	    {xim = XGetImage(dpy, window, 0,0,width,height,AllPlanes,ZPixmap);
+	    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+	    }damaged=0;
 	}
 	glBegin(GL_QUADS);
 	glColor4f(1,1,1,alpha);
@@ -1102,7 +1104,7 @@ class composite:public obj
 				//if(hasNamePixmap)
 				  //  windowPix = XCompositeNameWindowPixmap( dpy, root );
 				//objects.push_back(new composite_window(dpy, root));
-				XSelectInput(dpy, root, SubstructureNotifyMask);
+				//XSelectInput(dpy, root, SubstructureNotifyMask);
 				Atom a = XInternAtom(dpy,"_NET_CLIENT_LIST",1);
 				unsigned long nitems;
 				unsigned long bytes_after;
@@ -1112,10 +1114,11 @@ class composite:public obj
 				int max_len = 10000;
 				if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
 				{
+				    double x=-10.5;
 				    for(int j=0;j<nitems;j++)
 				    {
 					cout <<prop[j]<<"::";
-					objects.push_back(new composite_window(dpy, prop[j]));
+					objects.push_back(new composite_window(x+=2,1, dpy, prop[j]));
 				    }
 				}
 				
@@ -1755,7 +1758,7 @@ void moveit(Uint8*k)
 }
 void lemon (void)
 {
-    cam.z=2;
+    cam.z=15;
     cam.x=cam.y=0;
     int normalize;
     xy ss;
