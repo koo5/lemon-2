@@ -971,7 +971,7 @@ class composite_window:public obj
 	//real
 	//BAD
 	XGetGeometry(dpy, id, &programming,&X,&Y,&width,&height,&Z,&Z);
-	cout << width << "x" << height << endl;
+	cout << width << "x" << height << "at"<<X<<","<<Y<<endl;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
@@ -993,7 +993,7 @@ class composite_window:public obj
 	if(damaged)
 	{
 	    if(xim)XDestroyImage(xim);
-	    if((X>=0)&&(Y>=0)&&(X+width<rw)&&(Y+height<rh))
+	    if(((!X)&&(!Y)&&(width==1280)&&(height==800))||((X>=0)&&(Y>=0)&&(X+width<rw)&&(Y+height<rh)))
 	    {xim = XGetImage(dpy, window, 0,0,width,height,AllPlanes,ZPixmap);
 	    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
 	    }damaged=0;
@@ -1112,16 +1112,18 @@ class composite:public obj
 				Atom aa;
 				int af;
 				int max_len = 10000;
+				double x=-12.5;
+				objects.push_back(new composite_window(x+=2.5,0.8, dpy, root));				
 				if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
 				{
-				    double x=-10.5;
+
 				    for(int j=0;j<nitems;j++)
 				    {
 					cout <<prop[j]<<"::";
-					objects.push_back(new composite_window(x+=2,1, dpy, prop[j]));
+					objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j]));
 				    }
 				}
-				
+
 				/*unsigned int nchildren;
 				Window*children;
 				Window parent;
@@ -1662,7 +1664,7 @@ void showfocus()
 	    glRotated(active->r.x,1,0,0);
 	    glRotated(active->r.y,0,1,0);
 	    glRotated(active->r.z,0,0,1);
-	    glScalef(active->s.x,active->s.y,active->s.z);
+//	    glScalef(active->s.x,active->s.y,active->s.z);
 	    glColor3f(1,1,1);
 	    glBegin(GL_LINE_STRIP);
 	    glVertex3f(-1,1,0.2);
@@ -2316,7 +2318,11 @@ int main(int argc, char *argv[])
 	
 	if(argc==3)
 	    if(!strcmp(argv[1],"-originalldpreload"))
+	    
+	    {
+		cout << "LD_P:"<<argv[2]<<endl;
 		originalldpreload=argv[2];
+	    }
 	    
 	char *path;
 	path=getexepath(argv[0]);

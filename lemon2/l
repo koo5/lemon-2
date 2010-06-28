@@ -7,4 +7,5 @@ then
 cd "$1"
 fi
 SCRIPT="${DIR}/lgl"
-LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so "$SCRIPT"
+ORIGINALLDPRELOAD="${LD_PRELOAD}"
+LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so $SCRIPT -originalldpreload ${ORIGINALLDPRELOAD}
