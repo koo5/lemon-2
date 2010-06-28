@@ -113,7 +113,7 @@ struct Settingz
     int32_t line_antialiasing;
     int32_t givehelp;
     double lv;//glLineWidth
-}settingz={1,1,1};
+}settingz={0,1,1};//WTF
 using namespace std;
 using namespace YAML;
 #include "../gltext.c"
@@ -960,9 +960,9 @@ class composite_window:public obj
     Window window;
     int X,Y;
     int needsreconf;
+    XShmSegmentInfo shminfo;
     void reconfigure()
     {
-    	damaged=1;
 	unsigned int Z;
 	Window programming;
 	int sucks;
@@ -972,7 +972,7 @@ class composite_window:public obj
 //	cout << width << "x" << height << "at"<<X<<","<<Y<<endl;
 	needsreconf=0;
     }
-    composite_window(double x,double sc, Display *dpy,Window id)
+    composite_window(double x,double sc, Display *dpy,Window id,int scr)
     {
 	gc=0;
 	t.x=x;
@@ -986,6 +986,19 @@ class composite_window:public obj
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
 	damage=XDamageCreate(dpy,window,XDamageReportRawRectangles);
+	reconfigure();
+	Visual* visual = DefaultVisual(dpy, scr);
+
+	xim=XShmCreateImage(dpy, visual, DefaultDepth(dpy,scr), ZPixmap, NULL, &shminfo, width, height);
+	shminfo.shmid = shmget(IPC_PRIVATE, xim->bytes_per_line * xim->height, IPC_CREAT | 0777);
+	shminfo.shmaddr = xim->data = (char*)shmat(shminfo.shmid, NULL, 0);
+	shmctl(shminfo.shmid, IPC_RMID, NULL);
+	shminfo.readOnly = False;
+	if (!XShmAttach(dpy, &shminfo))
+	    printf("cannot use the shared memory segment .. :( \n");
+	else
+	    printf("can use share segment :D\n");
+	XSync(dpy, False);
     }
     XImage *xim;
     Damage damage;
@@ -1002,9 +1015,10 @@ class composite_window:public obj
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
 //        if(needsreconf)
-            reconfigure();
     	if(damaged)
 	{
+            reconfigure();
+
 	    int XX,YY;
 	    XX=YY=0;
 	    if(X<0)XX=0-X;
@@ -1019,8 +1033,9 @@ class composite_window:public obj
 	        {
 	    	    if((attr.c_class==InputOutput)&&(attr.map_state==IsViewable))
 		    {
-			if(xim)XDestroyImage(xim);
-			if((xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap)))
+//			if(xim)XDestroyImage(xim);
+//			if((xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap)))
+			    XShmGetImage(dpy, window, xim, 0, 0, 0xffffffff);
 			    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
 		    }
 		}
@@ -1076,7 +1091,7 @@ class composite:public obj
 	int af;
 	int max_len = 10000;
 	double x=-12.5;
-	objects.push_back(new composite_window(x+=2.5,0.8, dpy, root));				
+	objects.push_back(new composite_window(x+=2.5,0.8, dpy, root,scr));	
 	if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
 	{
             for(int j=0;j<nitems;j++)
@@ -1090,7 +1105,7 @@ class composite:public obj
 			    found=1;
 		    endfor endfor
 		    if(!found)
-			objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j]));
+			objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j],scr));
 		}
 	    }
 	}
@@ -1134,7 +1149,7 @@ class composite:public obj
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
 
-				/*if(XShmQueryExtension(dpy))
+				if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
 				    int shm_major;
@@ -1142,20 +1157,20 @@ class composite:public obj
 				    if(XShmQueryVersion(dpy,&shm_major,&shm_minor,&shm_pixmaps))
 				    {
 				        logit("HAPPY");
-					if(shm_pixmaps)
-					{
-					    logit("HAPPY");
-					    if((shm.shmid = shmget (IPC_PRIVATE, SHM_SIZE, IPC_CREAT | 0600))>=0)
-					    {
-						logit("HAPPY");
-						shm.shmaddr = (char *) shmat (shm.shmid, 0, 0);
-					    }
-					}
+//					if(shm_pixmaps)
+//					{
+//					    logit("HAPPY");
+//					    if((shm.shmid = shmget (IPC_PRIVATE, SHM_SIZE, IPC_CREAT | 0600))>=0)
+//					    {
+//						logit("HAPPY");
+//						shm.shmaddr = (char *) shmat (shm.shmid, 0, 0);
+//					    }
+//					}
 				    }
 				} 
-				XFlush(dpy);
-				windowPix = XCompositeNameWindowPixmap(dpy, root);
-				*/
+				//XFlush(dpy);
+				//windowPix = XCompositeNameWindowPixmap(dpy, root);
+				
 					
   //				XShmGetImage(dpy, root,xim,0,0,AllPlanes);
 //				XQueryTree(dpy, window, &root_win, &parent_win, &child_list,
@@ -1163,6 +1178,10 @@ class composite:public obj
 				//if(hasNamePixmap)
 				  //  windowPix = XCompositeNameWindowPixmap( dpy, root );
 				//objects.push_back(new composite_window(dpy, root));
+				
+				
+				
+				
 				XSelectInput(dpy, root, SubstructureNotifyMask);
 				a = XInternAtom(dpy,"_NET_CLIENT_LIST",1);
 				regetwindows();
