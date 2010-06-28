@@ -959,6 +959,7 @@ class composite_window:public obj
     int X,Y;
     composite_window(double x,double sc, Display *dpy,Window id)
     {
+	gc=0;
 	t.x=x;
 	s.x=sc;
 	damaged=1;
@@ -981,6 +982,8 @@ class composite_window:public obj
     XImage *xim;
     Damage damage;
     int damaged;
+    GC gc;
+    Pixmap pix;
     unsigned int width, height;
     ~composite_window()
     {
@@ -992,11 +995,24 @@ class composite_window:public obj
 	glBindTexture(GL_TEXTURE_2D, texture);
 	if(damaged)
 	{
-	    if(xim)XDestroyImage(xim);
-	    if(((!X)&&(!Y)&&(width==1280)&&(height==800))||((X>=0)&&(Y>=0)&&(X+width<rw)&&(Y+height<rh)))
-	    {xim = XGetImage(dpy, window, 0,0,width,height,AllPlanes,ZPixmap);
-	    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
-	    }damaged=0;
+	    int XX,YY;
+	    XX=YY=0;
+	    if(X<0)XX=0-X;
+	    if(Y<0)YY=0-Y;
+	    if(XX+width>rw)width=rw-XX;
+	    if(YY+height>rh)height=rh-YY;
+//	    cout<< window << ":"  << XX << "," << YY << ":" << width << "x" << height << endl;
+	    XWindowAttributes attr;
+	    if(XGetWindowAttributes(dpy,window,&attr))
+	    {
+		if((attr.c_class==InputOutput)&&(attr.map_state==IsViewable))
+		{
+		    if(xim)XDestroyImage(xim);
+		    xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap);
+		    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+		}
+	    }
+	    damaged=0;
 	}
 	glBegin(GL_QUADS);
 	glColor4f(1,1,1,alpha);
@@ -2320,7 +2336,7 @@ int main(int argc, char *argv[])
 	    if(!strcmp(argv[1],"-originalldpreload"))
 	    
 	    {
-		cout << "LD_P:"<<argv[2]<<endl;
+		cout << "LD_PRELOAD:"<<argv[2]<<endl;
 		originalldpreload=argv[2];
 	    }
 	    
