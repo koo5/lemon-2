@@ -127,7 +127,7 @@ xy drawchar(xy lok, unsigned int i)
 {
     xy nlok;
     nlok=lok;
-    nlok.x+=13;
+    nlok.x+=26;
 
     if (i<font.size()&&font[i].length())
         spillit(lok,font[i].c_str());

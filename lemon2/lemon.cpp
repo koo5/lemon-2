@@ -1125,7 +1125,7 @@ class composite:public obj
 				//objects.push_back(new composite_window(dpy, root));
 				//XSelectInput(dpy, root, SubstructureNotifyMask);
 				Atom a = XInternAtom(dpy,"_NET_CLIENT_LIST",1);
-				unsigned long nitems;
+				unsigned long nitems=0;
 				unsigned long bytes_after;
 				unsigned int *prop;
 				Atom aa;
@@ -1138,8 +1138,9 @@ class composite:public obj
 
 				    for(int j=0;j<nitems;j++)
 				    {
-					cout <<prop[j]<<"::";
-					objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j]));
+					cout <<prop[j]<<"::"<<endl;
+					if(prop[j])
+					    objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j]));
 				    }
 				}
 
@@ -1862,15 +1863,20 @@ void lemon (void)
 	    #ifdef GL
 		if(settingz.givehelp)
 		{	
+		    glLoadIdentity();
+	    	    glOrtho(0,1200,1200,0,0,1);
 		    glPushMatrix();
-		    glRotatef(90,0,0,1);
-		    glTranslatef(0,-w,0);
+//		    glRotatef(90,0,0,1);
+//		    glTranslatef(0,-w,0);
 		    if(!(escaped||k[SDLK_RCTRL]))
 		    
 			draw_text("\npress right ctrl for more fun...");
 		    else
-			draw_text("\nnow press tab to cycle thru terminals\nf12 to quit\nl to get readable font\nf9, 10, +. -, del end home and pgdn to resize terminal...\nmove terminal with left and middle, camera with right and middle mouse\nmove camera with arrows\ndo something weird with a s d f\nf1 to switch off that NERVEROT!\n/ to show buttons\nt to tile faces");
+			draw_text("\nnow press fkeys to move camera,\nright shift + fkeys to move objects, \ndel end home and pgdn to resize terminal...\n/ to show buttons\nh to hide help");
 		    glPopMatrix();
+		    glLoadIdentity();
+	    	    perspmatrix();
+
 		}
 		SDL_GL_SwapBuffers( );
 	    #else
@@ -2114,7 +2120,9 @@ d(WINDOWS) && !defined(OSX)
 				case 56:
 				    zfar+=2;
 				    break;
-			
+				case SDLK_h:
+				    settingz.givehelp=!settingz.givehelp;
+				    break;
 				default:
 				    if(active)
 					active->keyp(key,uni,mod);
