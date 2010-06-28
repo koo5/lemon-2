@@ -12,3 +12,10 @@ make lgl
 ./l
 
 
+#optional
+#sudo aptitude install <xmms/audacious>-dev
+#cd ../spectrum-analyzer/<xmms/audacious>plugin
+#./configure
+#make 
+#sudo make install
+#go to xmms settings, visualizations, enable cat freq
