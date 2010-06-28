@@ -1123,7 +1123,7 @@ class composite:public obj
 				//if(hasNamePixmap)
 				  //  windowPix = XCompositeNameWindowPixmap( dpy, root );
 				//objects.push_back(new composite_window(dpy, root));
-				//XSelectInput(dpy, root, SubstructureNotifyMask);
+				XSelectInput(dpy, root, SubstructureNotifyMask);
 				Atom a = XInternAtom(dpy,"_NET_CLIENT_LIST",1);
 				unsigned long nitems=0;
 				unsigned long bytes_after;
@@ -1654,10 +1654,6 @@ void updatelinewidth()
 	int gofullscreen=0;
 	int escaped = 0;
 
-	int mustresize = 1;
-	int justresized = 0;
-	
-
 int anything_dirty()
 {
     for_each_object
@@ -1872,7 +1868,7 @@ void lemon (void)
 		    
 			draw_text("\npress right ctrl for more fun...");
 		    else
-			draw_text("\nnow press fkeys to move camera,\nright shift + fkeys to move objects, \ndel end home and pgdn to resize terminal...\n/ to show buttons\nh to hide help");
+			draw_text("\nnow press fkeys to move camera,\nright shift + fkeys to move objects, \ndel end home and pgdn to resize terminal...\nh to hide help");
 		    glPopMatrix();
 		    glLoadIdentity();
 	    	    perspmatrix();
@@ -2236,15 +2232,11 @@ d(WINDOWS) && !defined(OSX)
 					break;
 				case SDL_VIDEORESIZE:
 				    {
-					if(!s)exit(1);
 					w=event.resize.w;h=event.resize.h;
                                         logit("videoresize %ix%i bpp %i", w,h,bpp);
 					dirty=1;
 					s=SDL_SetVideoMode( w,h, bpp, s->flags);
 					resetviewport();
-					if(!justresized)
-					    mustresize=1;
-					justresized=0;
 				    }
 				    //if(is face>active)
 				//	rote_vt_resize(as face>active, h/26/activeface->scale,w/13/activeface->scale);
@@ -2273,11 +2265,6 @@ d(WINDOWS) && !defined(OSX)
 			SDL_GetMouseState(&x,&y);
 			pick(0,x,y);
 			mousemoved=0;
-		    }
-		    if (mustresize)
-		    {
-			mustresize=0;
-			justresized=1;
 		    }
 		    if(gofullscreen)
 		    {

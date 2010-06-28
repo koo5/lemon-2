@@ -8,4 +8,5 @@ cd "$1"
 fi
 SCRIPT="${DIR}/lgl"
 ORIGINALLDPRELOAD="${LD_PRELOAD}"
-LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so $SCRIPT -originalldpreload ${ORIGINALLDPRELOAD}
+echo X${DIR}X
+LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so:${DIR}/../SDL-1.2.14/build/.libs/libSDL.so $SCRIPT -originalldpreload ${ORIGINALLDPRELOAD}
