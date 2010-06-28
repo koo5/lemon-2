@@ -92,6 +92,8 @@ s3d
 #define is as
 #define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
+#define for_each_composite_window for_each_object if (as composite_window*>(o)){composite_window*c=as composite_window*>(o);
+#define endfor }
 float znear=1;
 float zfar=20;
 char * originalldpreload=0;
@@ -967,7 +969,7 @@ class composite_window:public obj
 	//real
 	//BAD
 	XGetGeometry(dpy, window, &programming,&X,&Y,&width,&height,&Z,&Z);
-	cout << width << "x" << height << "at"<<X<<","<<Y<<endl;
+//	cout << width << "x" << height << "at"<<X<<","<<Y<<endl;
 	needsreconf=0;
     }
     composite_window(double x,double sc, Display *dpy,Window id)
@@ -999,7 +1001,7 @@ class composite_window:public obj
     {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
-        if(needsreconf)
+//        if(needsreconf)
             reconfigure();
     	if(damaged)
 	{
@@ -1027,10 +1029,11 @@ class composite_window:public obj
 	}
 	glBegin(GL_QUADS);
 	glColor4f(1,1,1,alpha);
-	glTexCoord2f(0,0);	glVertex2f(-1,1);
-	glTexCoord2f(1,0);	glVertex2f(1,1);
-	glTexCoord2f(1,1);	glVertex2f(1,-1);
-	glTexCoord2f(0,1);	glVertex2f(-1,-1);
+//	cout << width/rw << "x"<<height/rh << endl;
+	glTexCoord2f(0,0);	glVertex2f(-(float)width/(float)rw,(float)height/(float)rh);
+	glTexCoord2f(1,0);	glVertex2f((float)width/(float)rw,(float)height/(float)rh);
+	glTexCoord2f(1,1);	glVertex2f((float)width/(float)rw,-(float)height/(float)rh);
+	glTexCoord2f(0,1);	glVertex2f(-(float)width/(float)rw,-(float)height/(float)rh);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
     }
@@ -1062,7 +1065,36 @@ class composite:public obj
     Pixmap windowPix;
 //    XRenderPictureAttributes<pa;
     Display *dpy;
-    XShmSegmentInfo shm;	
+    XShmSegmentInfo shm;
+    Atom a;
+    void regetwindows()
+    {
+    	unsigned long nitems=0;
+	unsigned long bytes_after;
+	unsigned int *prop;
+	Atom aa;
+	int af;
+	int max_len = 10000;
+	double x=-12.5;
+	objects.push_back(new composite_window(x+=2.5,0.8, dpy, root));				
+	if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
+	{
+            for(int j=0;j<nitems;j++)
+	    {
+		//cout <<prop[j]<<"::"<<endl;
+		if(prop[j])
+		{
+		    int found = 0;
+		    for_each_composite_window
+			if(prop[j]==c->window)
+			    found=1;
+		    endfor endfor
+		    if(!found)
+			objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j]));
+		}
+	    }
+	}
+    }
     composite()
     {
         SDL_SysWMinfo i;
@@ -1132,26 +1164,8 @@ class composite:public obj
 				  //  windowPix = XCompositeNameWindowPixmap( dpy, root );
 				//objects.push_back(new composite_window(dpy, root));
 				XSelectInput(dpy, root, SubstructureNotifyMask);
-				Atom a = XInternAtom(dpy,"_NET_CLIENT_LIST",1);
-				unsigned long nitems=0;
-				unsigned long bytes_after;
-				unsigned int *prop;
-				Atom aa;
-				int af;
-				int max_len = 10000;
-				double x=-12.5;
-				objects.push_back(new composite_window(x+=2.5,0.8, dpy, root));				
-				if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
-				{
-
-				    for(int j=0;j<nitems;j++)
-				    {
-					cout <<prop[j]<<"::"<<endl;
-					if(prop[j])
-					    objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j]));
-				    }
-				}
-
+				a = XInternAtom(dpy,"_NET_CLIENT_LIST",1);
+				regetwindows();
 				/*unsigned int nchildren;
 				Window*children;
 				Window parent;
@@ -1949,6 +1963,25 @@ void lemon (void)
 					as composite_window*>(objects[i])->needsreconf=1;
 				}
 			    }
+			    if(event.syswm.msg->event.xevent.type==DestroyNotify)
+			    {
+				
+				XEvent ee = event.syswm.msg->event.xevent;
+				XDestroyWindowEvent* eee = (XDestroyWindowEvent*)&ee;
+				for(int i=0;i<objects.size();i++)
+				{
+
+				    if(is composite_window*>(objects[i])&&(as composite_window*>(objects[i])->window==(eee->window)))
+				    {
+				    	cout <<"destroyyyed"<<endl;
+					objects.erase(objects.begin()+i);
+					break;
+				    }
+				}
+			    }
+			    if(event.syswm.msg->event.xevent.type==CreateNotify)
+				comp->regetwindows();
+			    
 			}
 			break;
 			
@@ -2350,12 +2383,12 @@ int main(int argc, char *argv[])
 {
 	logit("hi");
 	
-	if(argc==3)
+	if((argc==3)||(argc==2))
 	    if(!strcmp(argv[1],"-originalldpreload"))
 	    
 	    {
-		cout << "LD_PRELOAD:"<<argv[2]<<endl;
-		originalldpreload=argv[2];
+		originalldpreload=(argc==2)?strdup(""):argv[2];
+		cout << "LD_PRELOAD:"<<originalldpreload<<endl;
 	    }
 	    
 	char *path;

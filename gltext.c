@@ -221,7 +221,7 @@ void draw_text(const char *a)
 void loadfont(char * fln)
 {
     if(!fln)return;
-    cout << fln;
+    cout << fln<<endl;
     ifstream ff(fln,std::ios::in);
     if (!ff)
     {

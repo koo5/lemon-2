@@ -817,7 +817,7 @@ printf("MapNotify!\n");
 #ifdef DEBUG_XEVENTS
 printf("ConfigureNotify! (resize: %dx%d)\n", xevent.xconfigure.width, xevent.xconfigure.height);
 #endif		
-		if(SDL_Window == xevent.xconfigure.window)
+		if(WMwindow == xevent.xconfigure.window)
 		{
 		if ( SDL_VideoSurface ) {
 		    if ((xevent.xconfigure.width != SDL_VideoSurface->w) ||
