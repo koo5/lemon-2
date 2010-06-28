@@ -955,6 +955,31 @@ class composite_window:public obj
     {
 	YAML_LOAD_PARENT_MEMBERS(doc,obj)
     }
+    int zerotoone(double x)
+    {
+	return ((x>=0)&&(x<=1));
+    }
+    int _isvisible(double x, double y, double z)
+    {
+	GLint viewport[4]={0,0,1,1};
+	GLdouble winx, winy, winz;// Space For Returned Projected Coords
+        GLdouble mvmatrix[16], projmatrix[16];// Space For Transform Matrix
+        glGetDoublev (GL_MODELVIEW_MATRIX, (GLdouble*)&mvmatrix);// Get Actual Model View Matrix
+        glGetDoublev (GL_PROJECTION_MATRIX,  (GLdouble*)&projmatrix);// Get Actual Projection Matrix
+	gluProject(x,y,z,mvmatrix,projmatrix,viewport,&winx,&winy,&winz);
+	return(zerotoone(winx)&&zerotoone(winy)&&zerotoone(winz));
+    }
+    int isvisible()
+    {
+	return 	 _isvisible(-(float)width/(float)rw,(float)height/(float)rh,0)||
+		 _isvisible(-(float)width/(float)rw,-(float)height/(float)rh,0)||
+	     	 _isvisible((float)width/(float)rw,-(float)height/(float)rh,0)||
+	      	 _isvisible(-(float)width/(float)rw,(float)height/(float)rh,0)||
+	       	 _isvisible(-(float)width/(float)rw,0,0)||
+	       	 _isvisible((float)width/(float)rw,0,0)||
+	       	 _isvisible(0,(float)height/(float)rh,0)||
+	       	 _isvisible(0,-(float)height/(float)rh,0);
+    }
     GLuint texture;
     Display *dpy;
     Window window;
@@ -1012,12 +1037,16 @@ class composite_window:public obj
     }
     void draw(int picking,double alpha)
     {
+        if(needsreconf)reconfigure();
+	if(!isvisible())
+	    return;
+	cout << window << endl;
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
-//        if(needsreconf)
+
     	if(damaged)
 	{
-            reconfigure();
+
 
 	    int XX,YY;
 	    XX=YY=0;
@@ -1028,17 +1057,12 @@ class composite_window:public obj
 //	    cout<< window << ":"  << XX << "," << YY << ":" << width << "x" << height << endl;
 	    if((XX>=0)&&(YY>=0)&&(width<=rw)&&(height<=rh))
 	    {
-		XWindowAttributes attr;
-	        if(XGetWindowAttributes(dpy,window,&attr))
-	        {
-	    	    if((attr.c_class==InputOutput)&&(attr.map_state==IsViewable))
 		    {
 //			if(xim)XDestroyImage(xim);
 //			if((xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap)))
 			    XShmGetImage(dpy, window, xim, 0, 0, 0xffffffff);
 			    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
 		    }
-		}
 	    }
 	    damaged=0;
 	}
@@ -1091,7 +1115,7 @@ class composite:public obj
 	int af;
 	int max_len = 10000;
 	double x=-12.5;
-	objects.push_back(new composite_window(x+=2.5,0.8, dpy, root,scr));	
+//	objects.push_back(new composite_window(x+=2.5,0.8, dpy, root,scr));	
 	if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
 	{
             for(int j=0;j<nitems;j++)
@@ -1105,7 +1129,14 @@ class composite:public obj
 			    found=1;
 		    endfor endfor
 		    if(!found)
-			objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j],scr));
+		    {
+			XWindowAttributes attr;
+	    		if(XGetWindowAttributes(dpy,prop[j],&attr))
+	    		{
+	    		    if((attr.c_class==InputOutput)&&(attr.map_state==IsViewable))
+	            		objects.push_back(new composite_window(x+=2.5,0.8, dpy, prop[j],scr));
+			}
+		    }
 		}
 	    }
 	}
@@ -1814,6 +1845,9 @@ void moveit(Uint8*k)
 		active->r.z+=10;
 	    else
 		cam.z+=0.1;
+		
+	int x,y;
+	pick(SDL_GetMouseState(&x,&y),x,y);
 }
 void lemon (void)
 {
@@ -1853,14 +1887,14 @@ void lemon (void)
     if(!objects.size())
     {
 	#ifdef GL
-	    objects.push_back(new nerverot);
-	    objects.push_back(new spectrum_analyzer);
+//	    objects.push_back(new nerverot);
+//	    objects.push_back(new spectrum_analyzer);
 	    objects.push_back(comp = new composite);
 	#endif
-	objects.push_back(active=new face("bash"));
-	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
-	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
-	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));
+//	objects.push_back(active=new face("bash"));
+//	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
+//	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
+//	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));
 	objects.push_back(new fontwatcher);
 	
     }
