@@ -1040,7 +1040,7 @@ class composite_window:public obj
         if(needsreconf)reconfigure();
 	if(!isvisible())
 	    return;
-	cout << window << endl;
+//	cout << window << endl;
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -1851,7 +1851,7 @@ void moveit(Uint8*k)
 }
 void lemon (void)
 {
-    cam.z=15;
+    cam.z=1.5;
     cam.x=cam.y=0;
     int normalize;
     xy ss;
@@ -1882,6 +1882,7 @@ void lemon (void)
         glClearColor( 0.0, 0.0, 0.0, 0.0 );
         updatelinewidth();
 	updatelinesmooth();
+	glClear(GL_COLOR_BUFFER_BIT);
     #endif
 //    loadobjects();
     if(!objects.size())
@@ -1891,7 +1892,7 @@ void lemon (void)
 //	    objects.push_back(new spectrum_analyzer);
 	    objects.push_back(comp = new composite);
 	#endif
-//	objects.push_back(active=new face("bash"));
+	objects.push_back(active=new face("bash"));
 //	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
 //	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
 //	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));
@@ -1913,7 +1914,7 @@ void lemon (void)
 
 	    nothing_dirty();
 	    #ifdef GL
-		glClear(GL_COLOR_BUFFER_BIT);
+
         	glLoadIdentity();
 	        perspmatrix();
 	        if(SDL_GetMouseState(0,0)||mousemoved)
@@ -1950,6 +1951,7 @@ void lemon (void)
 
 		}
 		SDL_GL_SwapBuffers( );
+		glClear(GL_COLOR_BUFFER_BIT);
 	    #else
 		SDL_UpdateRect(s,0,0,0,0);
 	    #endif
