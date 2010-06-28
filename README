@@ -4,6 +4,9 @@ git clone  git://github.com/koo5/lemon.git
 cd lemon/yaml-cpp-0.2.5
 cmake CMakeList.txt
 make
+cd ../SDL-1.2.14
+./configure
+make
 cd ../lemon2
 make lgl
 ./l
