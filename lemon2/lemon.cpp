@@ -1002,14 +1002,17 @@ class composite_window:public obj
 	    if(XX+width>rw)width=rw-XX;
 	    if(YY+height>rh)height=rh-YY;
 //	    cout<< window << ":"  << XX << "," << YY << ":" << width << "x" << height << endl;
-	    XWindowAttributes attr;
-	    if(XGetWindowAttributes(dpy,window,&attr))
+	    if((XX>=0)&&(YY>=0)&&(width<=rw)&&(height<=rh))
 	    {
-		if((attr.c_class==InputOutput)&&(attr.map_state==IsViewable))
-		{
-		    if(xim)XDestroyImage(xim);
-		    xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap);
-		    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+		XWindowAttributes attr;
+	        if(XGetWindowAttributes(dpy,window,&attr))
+	        {
+	    	    if((attr.c_class==InputOutput)&&(attr.map_state==IsViewable))
+		    {
+			if(xim)XDestroyImage(xim);
+			if((xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap)))
+			    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+		    }
 		}
 	    }
 	    damaged=0;
