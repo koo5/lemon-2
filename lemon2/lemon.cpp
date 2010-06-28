@@ -957,22 +957,28 @@ class composite_window:public obj
     Display *dpy;
     Window window;
     int X,Y;
-    composite_window(double x,double sc, Display *dpy,Window id)
+    int needsreconf;
+    void reconfigure()
     {
-	gc=0;
-	t.x=x;
-	s.x=sc;
-	damaged=1;
-	xim=0;
-	window=id;
-	this->dpy=dpy;
+    	damaged=1;
 	unsigned int Z;
 	Window programming;
 	int sucks;
 	//real
 	//BAD
-	XGetGeometry(dpy, id, &programming,&X,&Y,&width,&height,&Z,&Z);
+	XGetGeometry(dpy, window, &programming,&X,&Y,&width,&height,&Z,&Z);
 	cout << width << "x" << height << "at"<<X<<","<<Y<<endl;
+	needsreconf=0;
+    }
+    composite_window(double x,double sc, Display *dpy,Window id)
+    {
+	gc=0;
+	t.x=x;
+	s.x=sc;
+	xim=0;
+	window=id;
+	this->dpy=dpy;
+
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
@@ -993,7 +999,9 @@ class composite_window:public obj
     {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	if(damaged)
+        if(needsreconf)
+            reconfigure();
+    	if(damaged)
 	{
 	    int XX,YY;
 	    XX=YY=0;
@@ -1929,7 +1937,18 @@ void lemon (void)
 
 				}
 			    }
-			    
+			    if(event.syswm.msg->event.xevent.type==ConfigureNotify)
+			    {
+				
+				XEvent ee = event.syswm.msg->event.xevent;
+				XConfigureEvent* eee = (XConfigureEvent*)&ee;
+				for(int i=0;i<objects.size();i++)
+				{
+//				cout <<"damaged"<<endl;
+				    if(is composite_window*>(objects[i]))//&&(as composite_window*>(objects[i])->window==(eee->window)))
+					as composite_window*>(objects[i])->needsreconf=1;
+				}
+			    }
 			}
 			break;
 			
