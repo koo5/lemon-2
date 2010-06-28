@@ -229,7 +229,7 @@ void rote_vt_draw(RoteTerm *rt, WINDOW *win, int srow, int scol,
    wmove(win, srow + rt->crow, scol + rt->ccol);
 }
 */
-pid_t rote_vt_forkpty(RoteTerm *rt, const char *command) {
+pid_t rote_vt_forkpty(RoteTerm *rt, const char *command, char * env, char *envval) {
    struct winsize ws;
    pid_t childpid;
    
@@ -246,6 +246,8 @@ pid_t rote_vt_forkpty(RoteTerm *rt, const char *command) {
       /* Cajole application into using linux-console-compatible escape
        * sequences (which is what we are prepared to interpret) */
       setenv("TERM", "linux", 1);
+      if(env)
+        setenv(env, envval, 1);
 
       /* Now we will exec /bin/sh -c command. */
       execl("/bin/sh", "/bin/sh", "-c", command, NULL);
@@ -423,9 +425,9 @@ char * rotoclipin(int sel)
     RoteTerm *t;
     t = rote_vt_create(10,10);
     if(sel)
-        rote_vt_forkpty(t, "xclip -o -selection clipboard");
+        rote_vt_forkpty(t, "xclip -o -selection clipboard",0,0);
     else
-        rote_vt_forkpty(t, "xclip -o");
+        rote_vt_forkpty(t, "xclip -o",0,0);
     int br=0;
     buf=(char*)malloc(512513);
     rote_vt_update_thready(buf, 6, &br,t);
@@ -440,11 +442,11 @@ char * rotoclipin(int sel)
 void rotoclipout(char * x, RoteTerm *t, int selection)
 {
     if(selection ==3)
-	rote_vt_forkpty(t, "xclip -i -selection clipboard");
+	rote_vt_forkpty(t, "xclip -i -selection clipboard",0,0);
     else if(selection ==2)
-	rote_vt_forkpty(t, "xclip -i -selection secondary");
+	rote_vt_forkpty(t, "xclip -i -selection secondary",0,0);
     else if(selection ==1)
-	rote_vt_forkpty(t, "xclip -i");
+	rote_vt_forkpty(t, "xclip -i",0,0);
     rote_vt_write(t,x,strlen(x));
     rote_vt_write(t,"\4\4",strlen("\4\4"));
     rote_vt_update(t);

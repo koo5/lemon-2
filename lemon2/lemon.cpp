@@ -94,7 +94,7 @@ s3d
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
 float znear=1;
 float zfar=20;
-
+char * originalldpreload=0;
 #ifdef GL
     inline void dooooot(float x,float y)
     {
@@ -503,7 +503,10 @@ struct face:public obj
     {
 	logit("adding terminal");
 	t = rote_vt_create(r,c);
-	rote_vt_forkpty((RoteTerm*) t, run);
+	if(originalldpreload)
+	    rote_vt_forkpty((RoteTerm*) t, run, "LD_PRELOAD", originalldpreload);
+	else
+	    rote_vt_forkpty((RoteTerm*) t, run, 0, 0);
 	#ifdef threaded
 	    upd_t_data.lock=SDL_CreateMutex();
 	    upd_t_data.t=t;
@@ -938,6 +941,7 @@ class mplayer:public obj
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
+unsigned int rw,rh;
 class composite_window:public obj
 {
     public:
@@ -952,18 +956,19 @@ class composite_window:public obj
     GLuint texture;
     Display *dpy;
     Window window;
+    int X,Y;
     composite_window(Display *dpy,Window id)
     {
 	damaged=1;
 	xim=0;
 	window=id;
 	this->dpy=dpy;
-	unsigned int X;
+	unsigned int Z;
 	Window programming;
 	int sucks;
 	//real
 	//BAD
-	XGetGeometry(dpy, id, &programming,&sucks,&sucks,&width,&height,&X,&X);
+	XGetGeometry(dpy, id, &programming,&X,&Y,&width,&height,&Z,&Z);
 	cout << width << "x" << height << endl;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -986,9 +991,10 @@ class composite_window:public obj
 	if(damaged)
 	{
 	    if(xim)XDestroyImage(xim);
-	    xim = XGetImage(dpy, window, 0,0,width, height,AllPlanes,ZPixmap);
-	    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
-	    damaged=0;
+	    //if((X>0)&&(Y>0))
+	    //{xim = XGetImage(dpy, window, 0,0,X+width>rw?width-(X+width-rw):width,Y+height>rh?height-(Y+height-rh):height,AllPlanes,ZPixmap);
+	    //glTexImage2D(GL_TEXTURE_2D,0,4,X+width>rw?width-(X+width-rw):width,Y+height>rh?height-(Y+height-rh):height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
+	    //}damaged=0;
 	}
 	glBegin(GL_QUADS);
 	glColor4f(1,1,1,alpha);
@@ -1040,6 +1046,8 @@ class composite:public obj
     	    SDL_EventState(SDL_SYSWMEVENT,SDL_ENABLE);
     	    scr=DefaultScreen(dpy);
     	    root=RootWindow(dpy,scr);
+    	    rw=DisplayWidth(dpy,scr);
+    	    rh=DisplayHeight(dpy,scr);
     	    if(XRenderQueryExtension(dpy,&render_event,&render_error))
     	    {
     		if(XQueryExtension(dpy, COMPOSITE_NAME, &composite_opcode, &composite_event,&composite_error))
@@ -1093,7 +1101,59 @@ class composite:public obj
 //				<------><------>  &num_children))
 				//if(hasNamePixmap)
 				  //  windowPix = XCompositeNameWindowPixmap( dpy, root );
-				objects.push_back(new composite_window(dpy, root));
+				//objects.push_back(new composite_window(dpy, root));
+				XSelectInput(dpy, root, SubstructureNotifyMask);
+				Atom a = XInternAtom(dpy,"_NET_CLIENT_LIST",1);
+				unsigned long nitems;
+				unsigned long bytes_after;
+				unsigned int *prop;
+				Atom aa;
+				int af;
+				int max_len = 10000;
+				if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
+				{
+				    for(int j=0;j<nitems;j++)
+				    {
+					cout <<prop[j]<<"::";
+					objects.push_back(new composite_window(dpy, prop[j]));
+				    }
+				}
+				
+				/*unsigned int nchildren;
+				Window*children;
+				Window parent;
+				Window rootret;
+				int numprop;
+				
+				
+				
+				
+				if(XQueryTree(dpy, root, &rootret, &parent, &children, &nchildren))
+				{
+				    for(int i=0;i<nchildren;i++)
+				    {
+					Window *children2;
+					unsigned int nchildren2;                                                   
+					if(XQueryTree(dpy, *children,&rootret, &parent, &children2, &nchildren2))
+					{
+					    if(parent==root)
+					    {
+						cout<<*children<<":";
+						//objects.push_back(new composite_window(dpy, *children));
+	unsigned int X;
+	Window programming;
+	int sucks;
+	//real
+	//BAD
+	unsigned int width,height;
+	XGetGeometry(dpy, *children, &programming,&sucks,&sucks,&width,&height,&X,&X);
+	cout << width << "x" << height << endl;
+
+					    }
+					}
+					children++;
+				    }
+				} */
 			    }
 			}
 		    }
@@ -1101,8 +1161,6 @@ class composite:public obj
 	    }
     	}
     }
-	
-
 };
 composite *comp;
 
@@ -1695,7 +1753,7 @@ void moveit(Uint8*k)
 	    else
 		cam.z+=0.1;
 }
-int RunGLTest (void)
+void lemon (void)
 {
     cam.z=2;
     cam.x=cam.y=0;
@@ -1867,10 +1925,7 @@ int RunGLTest (void)
 			break;
 		    }
 		    
-/*todo:
-draw vs show
-dbus freezescrollback;
-
+/*
 d(WINDOWS) && !defined(OSX)                                                                                              
    framebuffer.h       72                  case SDL_SYSWMEVENT:                                                                                                
       frustum.c           73                                                                                                                                      
@@ -2151,7 +2206,7 @@ d(WINDOWS) && !defined(OSX)
 				    {
 					if(!s)exit(1);
 					w=event.resize.w;h=event.resize.h;
-                                        logit("videoresize %ix%i bpp %i\n", w,h,bpp);
+                                        logit("videoresize %ix%i bpp %i", w,h,bpp);
 					dirty=1;
 					s=SDL_SetVideoMode( w,h, bpp, s->flags);
 					resetviewport();
@@ -2185,6 +2240,7 @@ d(WINDOWS) && !defined(OSX)
 			int x,y;
 			SDL_GetMouseState(&x,&y);
 			pick(0,x,y);
+			mousemoved=0;
 		    }
 		    if (mustresize)
 		    {
@@ -2212,10 +2268,10 @@ d(WINDOWS) && !defined(OSX)
 			    {
 				char *c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_VERT", i.info.x11.window);
 				norm=!system(c);
-				free(c);
+				//free(c);
 				c==make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_HORZ", i.info.x11.window);
-				norm&=(!system(c))<1;
-				free(c);
+				norm&=(!system(c))<<1;
+				//free(c);
 			    }
 			    system("wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz");
 			    #endif
@@ -2245,24 +2301,25 @@ d(WINDOWS) && !defined(OSX)
 			//savefaces();
 		    }
 		}
-
 	}
 	objects.clear();
 	font.clear();
 	SDL_Quit( );
-	return(0);
 }                      
 
 int main(int argc, char *argv[])
 {
-	logit("hi\n");
-	logit("outdated info:right Ctrl+ Home End PgDn Delete to resize, f12 to quit, f9 f10 scale terminal tab to tab thru terminals, \n");
-	cout << argv[0] << endl;
+	logit("hi");
+	
+	if(argc==3)
+	    if(!strcmp(argv[1],"-originalldpreload"))
+		originalldpreload=argv[2];
+	    
 	char *path;
 	path=getexepath(argv[0]);
 	if(path)
 	{
-		logit("path:%s\n", path);
+		logit("path:%s", path);
 		path=(char*)realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l1"));		*n=0;
@@ -2274,19 +2331,12 @@ int main(int argc, char *argv[])
 		btns=strdup(strcat(path, "buttons/"));		*n=0;
 	}
 	loadsettings();
-	int i;
-	for(i=1;i<argc;i++)
-	    if(!strcmp(argv[i],"-f"))
-		if(argc>i)
-		    fnfl=argv[i+1];
-	FILE* f;
-
 	clipout=rote_vt_create(10,10);
 	clipout2=rote_vt_create(10,10);
-	RunGLTest();
-	savesettings();
+	lemon();
 	rote_vt_destroy(clipout);
 	rote_vt_destroy(clipout2);
+	savesettings();
 	logit("finished.bye.\n");
 	return 0;
 }

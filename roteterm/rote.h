@@ -178,7 +178,7 @@ void rote_vt_destroy(RoteTerm *rt);
  * to execute the command and will exit with status 127. You can catch
  * that by installing a SIGCHLD handler if you want.
  */
-pid_t rote_vt_forkpty(RoteTerm *rt, const char *command);
+pid_t rote_vt_forkpty(RoteTerm *rt, const char *command, char * env, char *envval);
 
 /* Disconnects the RoteTerm from its forked child process. This function
  * should be called when the child process dies or something of the sort.
