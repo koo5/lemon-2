@@ -323,3 +323,4 @@ void rotoclipout(char * x, RoteTerm *t, int selection);
 
 
 
+void clearscrollback(RoteTerm * t);

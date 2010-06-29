@@ -455,3 +455,17 @@ void rotoclipout(char * x, RoteTerm *t, int selection)
 
 
 
+void clearscrollback(RoteTerm *t)
+{
+    for(int i=0;i<t->logl;i++)
+	if(t->log[i])free(t->log[i]);
+    free(t->log);
+    t->log=NULL;
+    t->logl=0;
+
+
+
+
+}
+
+

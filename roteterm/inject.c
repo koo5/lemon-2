@@ -34,7 +34,7 @@ void appendlog(RoteTerm *rt)
    int loglen=20000;
    if(rt->logl<loglen)
    {
-	neww = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell**));
+	neww = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell*));
 	if(neww)
 	{
 	    rt->log=(RoteCell **)neww;
@@ -268,6 +268,12 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
    }
 
    if (firstchar != '[' && firstchar != ']') {
+    if(!strcmp(rt->pd->esbuf, "clearscrollback"))
+    {
+      clearscrollback(rt);
+      cancel_escape_sequence(rt);
+      return;
+    }
       /* unrecognized escape sequence. Let's forget about it. */
       #ifdef DEBUG
       fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);

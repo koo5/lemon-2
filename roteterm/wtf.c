@@ -59,9 +59,15 @@ int wtf(unsigned char x, wtfdecoder *w)
         }
         else if (w->len==4)
         {
+    	    w->pos=0;
             return 1;
         }
         w->pos=0;
+    }
+    if(w->pos>4)
+    {
+	w->pos=0;
+	w->len=0;
     }
     return 0;
 }
