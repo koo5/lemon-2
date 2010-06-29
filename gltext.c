@@ -2,7 +2,17 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
-vector<string> font;
+
+struct glyph
+{
+    int left, right;
+    string s;
+    glyph(string ss)
+    {
+	s=ss;
+    }
+};
+vector<glyph> font;
 const char *nullglyph="dzdptuzpznxnxpzp";
 double r,g,b,a;
 void setcolor(double rr,double gg,double bb,double aa)
@@ -47,7 +57,7 @@ string prepare(string y)
 	    if(!endptr)
     	    {
     		if(font.size()<b)
-    		    ret.append(font.at(b));
+    		    ret.append(font.at(b).s);
 	    }
 	    else
 		ret.append(tokens.at(i));
@@ -127,70 +137,24 @@ xy drawchar(xy lok, unsigned int i)
 {
     xy nlok;
     nlok=lok;
-    nlok.x+=26;
 
-    if (i<font.size()&&font[i].length())
-        spillit(lok,font[i].c_str());
+    if (i<font.size())
+    {
+	if(font[i].s.length())
+	{
+    	    lok.x-=font[i].left;
+    	    lok.x+=4;
+    	    spillit(lok,font[i].s.c_str());
+    	    nlok.x=lok.x;
+    	    nlok.x+=4;
+    	    nlok.x+=font[i].right-font[i].left;
+	    return nlok;
+	}
+    }
+    spillit(lok,"ZZZ~~~~ZZZ");
+    nlok.x+=26;
     return nlok;
 }
-
-/*
-void draw_line(int x,int y,const char *a)
-{
-    xy lok;
-    lok.x=x;
-    lok.y=y;
-    do
-    {
-
-        lok=drawchar(lok,*a,1,1);
-        lok.x+=4;
-        if (!*a)
-            break;
-        a++;
-    }
-    while (1);
-
-}
-
-void draw_line_z(const char *a, double z)
-{
-    xy lok;
-    lok.x=0;
-    lok.y=0;
-    do
-    {
-
-        lok=drawchar(lok,*a,z,z);
-        lok.x+=4;
-        if (!*a)
-            break;
-        a++;
-    }
-    while (1);
-
-}
-
-
-
-
-
-void lokdraw_line(xy lok,const char *a)
-{
-    glBegin(GL_LINE_STRIP);
-    do 
-    {
-	lok=drawchar(lok,*a,1,1);
-	lok.x+=4;
-	if (!*a)
-	    break;
-	a++;
-    }
-    while(1);
-    glEnd();
-}
-
-*/
 
 
 void draw_text(const char *a)
@@ -199,7 +163,7 @@ void draw_text(const char *a)
   xy lok;
   lok.x=0;
   lok.y=0;
-  setcolor(0,1,0.2,1);
+  setcolor(0,1,0,1);
   glBegin(GL_LINE_STRIP);
   do 
   {
@@ -218,6 +182,30 @@ void draw_text(const char *a)
   while(1);
   glEnd();
 }
+
+void sizes(glyph&g)
+{
+    if(strcmp(g.s.c_str(),"  "))
+    {
+	g.left=26;
+	g.right=0;
+	for(int i=0; i<g.s.length();i+=2)
+	    if(g.s[i]!=' ')
+	    {
+		if(g.left>g.s.c_str()[i]-'a')
+		    g.left=g.s.c_str()[i]-'a';
+		if(g.right<g.s.c_str()[i]-'a')
+		    g.right=g.s.c_str()[i]-'a';
+	    }
+    }
+    else
+    {
+	g.left=0;
+	g.right=13;
+    }
+}
+    
+    
 void loadfont(char * fln)
 {
     if(!fln)return;
@@ -229,11 +217,12 @@ void loadfont(char * fln)
         return;
     }
     font.clear();
-    font.push_back(nullglyph);
+    font.push_back(glyph(nullglyph));
     string x;
     while(getline(ff,x))
-	font.push_back(x);
+	font.push_back(glyph(x));
     for(int i=0;i<font.size();i++)
-	font.at(i)=prepare(font.at(i));
-	
+	font.at(i).s=prepare(font.at(i).s);
+    for(int i=0;i<font.size();i++)
+	sizes(font.at(i));
 }
