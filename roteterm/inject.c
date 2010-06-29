@@ -268,11 +268,15 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
    }
 
    if (firstchar != '[' && firstchar != ']') {
-    if(!strcmp(rt->pd->esbuf, "clearscrollback"))
+    if(!strncmp(rt->pd->esbuf, "clearscrollback",rt->pd->esbuf_len))
     {
+     if(!strcmp(rt->pd->esbuf, "clearscrollback"))
+     {
+      printf("clearing scrollback\n");
       clearscrollback(rt);
       cancel_escape_sequence(rt);
-      return;
+     }
+    return;
     }
       /* unrecognized escape sequence. Let's forget about it. */
       #ifdef DEBUG
