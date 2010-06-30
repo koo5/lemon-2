@@ -174,6 +174,11 @@ float floabs(float x)
 {
     return x>0 ? x : -x;
 }
+void slogit(const char * iFormat, ...)
+{
+
+}
+
 void logit(const char * iFormat, ...)
 {
     va_list argp;
@@ -943,6 +948,59 @@ class mplayer:public obj
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <X11/extensions/XShm.h>
+
+static int _XPrintDefaultError(
+    Display *dpy,
+    XErrorEvent *event)
+{
+    char buffer[BUFSIZ];
+    char mesg[BUFSIZ];
+    char number[32];
+    const char *mtype = "XlibMessage";
+    XGetErrorText(dpy, event->error_code, buffer, BUFSIZ);
+    XGetErrorDatabaseText(dpy, mtype, "XError", "X Error", mesg, BUFSIZ);
+    slogit("%s:  %s\n  ", mesg, buffer);
+    XGetErrorDatabaseText(dpy, mtype, "MajorCode", "Request Major code %d",
+	mesg, BUFSIZ);
+    slogit(mesg, event->request_code);
+    if (event->request_code < 128) {
+	sprintf(number, "%d", event->request_code);
+	XGetErrorDatabaseText(dpy, "XRequest", number, "", buffer, BUFSIZ);
+    } 
+    slogit( " (%s)\n", buffer);
+    if (event->request_code >= 128) {
+	XGetErrorDatabaseText(dpy, mtype, "MinorCode", "Request Minor code %d",
+			      mesg, BUFSIZ);
+	logit( mesg, event->minor_code);
+    }
+    if ((event->error_code == BadWindow) ||
+	       (event->error_code == BadPixmap) ||
+	       (event->error_code == BadCursor) ||
+	       (event->error_code == BadFont) ||
+	       (event->error_code == BadDrawable) ||
+	       (event->error_code == BadColor) ||
+	       (event->error_code == BadGC) ||
+	       (event->error_code == BadIDChoice) ||
+	       (event->error_code == BadValue) ||
+	       (event->error_code == BadAtom)) {
+	if (event->error_code == BadValue)
+	    XGetErrorDatabaseText(dpy, mtype, "Value", "Value 0x%x",
+				  mesg, BUFSIZ);
+	else if (event->error_code == BadAtom)
+	    XGetErrorDatabaseText(dpy, mtype, "AtomID", "AtomID 0x%x",
+				  mesg, BUFSIZ);
+	else
+	    XGetErrorDatabaseText(dpy, mtype, "ResourceID", "ResourceID 0x%x",
+				  mesg, BUFSIZ);
+	logit( mesg, event->resourceid);
+    }
+    XGetErrorDatabaseText(dpy, mtype, "ErrorSerial", "Error Serial #%d",
+			  mesg, BUFSIZ);
+    slogit( mesg, event->serial);
+    if (event->error_code == BadImplementation) return 0;
+    return 1;
+}
+
 unsigned int rw,rh;
 class composite_window:public obj
 {
@@ -978,7 +1036,9 @@ class composite_window:public obj
 	       	 _isvisible(-(float)width/(float)rw,0,0)||
 	       	 _isvisible((float)width/(float)rw,0,0)||
 	       	 _isvisible(0,(float)height/(float)rh,0)||
-	       	 _isvisible(0,-(float)height/(float)rh,0);
+	       	 _isvisible(0,-(float)height/(float)rh,0)||
+	       	 _isvisible(0,0,0);
+	       	 
     }
     GLuint texture;
     Display *dpy;
@@ -986,6 +1046,7 @@ class composite_window:public obj
     int X,Y;
     int needsreconf;
     XShmSegmentInfo shminfo;
+    int border_width;
     void reconfigure()
     {
 	unsigned int Z;
@@ -995,6 +1056,9 @@ class composite_window:public obj
 	//BAD
 	XGetGeometry(dpy, window, &programming,&X,&Y,&width,&height,&Z,&Z);
 //	cout << width << "x" << height << "at"<<X<<","<<Y<<endl;
+	XWindowAttributes attr;
+	XGetWindowAttributes(dpy,window,&attr);
+	border_width=attr.border_width;
 	needsreconf=0;
     }
     composite_window(double x,double sc, Display *dpy,Window id,int scr)
@@ -1020,9 +1084,9 @@ class composite_window:public obj
 	shmctl(shminfo.shmid, IPC_RMID, NULL);
 	shminfo.readOnly = False;
 	if (!XShmAttach(dpy, &shminfo))
-	    printf("cannot use the shared memory segment .. :( \n");
+	    logit("cannot use the shared memory segment .. :( \n");
 	else
-	    printf("can use share segment :D\n");
+	    logit("can use share segment :D\n");
 	XSync(dpy, False);
     }
     XImage *xim;
@@ -1037,7 +1101,8 @@ class composite_window:public obj
     }
     void draw(int picking,double alpha)
     {
-        if(needsreconf)reconfigure();
+//        if(needsreconf)
+    	    reconfigure();
 	if(!isvisible())
 	    return;
 //	cout << window << endl;
@@ -1046,21 +1111,22 @@ class composite_window:public obj
 
     	if(damaged)
 	{
-
+	    //if((X<0)||(Y<0))return;
+	    //if((width>rw)||(height>rh))return;
 
 	    int XX,YY;
 	    XX=YY=0;
-	    if(X<0)XX=0-X;
-	    if(Y<0)YY=0-Y;
-	    if(XX+width>rw)width=rw-XX;
-	    if(YY+height>rh)height=rh-YY;
-//	    cout<< window << ":"  << XX << "," << YY << ":" << width << "x" << height << endl;
-	    if((XX>=0)&&(YY>=0)&&(width<=rw)&&(height<=rh))
+//	    if(X<0)XX=0-X;
+//	    if(Y<0)YY=0-Y;
+//	    if(XX+width>rw)width=rw-XX;
+//	    if(YY+height>rh)height=rh-YY;
+//	    cout<< window << ":"<<X <<","<<Y<<" " << XX << "," << YY << ":" << width << "x" << height << endl;
+//	    if((X>10)&&(Y>10)&&(X+width<rw-10)&&(Y+height<rh-10))
 	    {
 		    {
 //			if(xim)XDestroyImage(xim);
 //			if((xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap)))
-			    XShmGetImage(dpy, window, xim, 0, 0, 0xffffffff);
+			    XShmGetImage(dpy, window, xim, XX,YY, AllPlanes);
 			    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
 		    }
 	    }
@@ -1211,6 +1277,7 @@ class composite:public obj
 				//objects.push_back(new composite_window(dpy, root));
 				
 				
+				XSetErrorHandler(_XPrintDefaultError);
 				
 				
 				XSelectInput(dpy, root, SubstructureNotifyMask);
