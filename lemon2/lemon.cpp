@@ -1,7 +1,5 @@
 /*
 atlantis
-dbus freezescrollback
-todo
 editor
 draw everywhere
 client server copying
@@ -122,8 +120,6 @@ char *stng;//settingz
 char *mdfl;//modes
 char *fcfl;//faces
 char *clfl;//colors
-char *ntfl;//newtermmsg
-char *newtermmsg;
 char *btns;//buttons/
 typedef 
 struct 
@@ -257,22 +253,14 @@ struct obj:public Serializable
     virtual void activate(){
 	active=this;
     }
-    virtual void picked(int b,vector<int>&v)
+    virtual void picked(int up, int b,vector<int>&v)
     {
 	activate();
     }
-    virtual void draw(int picking,double alpha){};
+    virtual void draw(int picking){};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
-    
-    void move(double xx,double yy,double zz)
-    {
-	t.x+=xx;
-	t.y+=yy;
-	t.z+=zz;
-	dirty=1;
-    }
-    void translate_and_draw(int picking, double aa,int ghost=0)
+    void translate_and_draw(int picking)
     {
 	#ifdef GL
 	    glPushMatrix();
@@ -282,8 +270,14 @@ struct obj:public Serializable
 	    glRotated(r.z,0,0,1);
 	    glScalef(s.x,s.y,s.z);
 	#endif
-	glColor4f(0,0,1,alpha*aa);
-	draw(picking,alpha);
+	if(picking==2)
+	    glColor4f(0,0,1,0.04);
+	else if(1==picking)
+	    glColor4f(1,1,1,1);
+	//else define it yourself
+	draw(picking);
+	/*picking == 2 == visualizing picking
+	picking == 1 == picking*/
 	#ifdef GL
 	    glPopMatrix();
 	#endif
@@ -292,7 +286,6 @@ struct obj:public Serializable
     {
     }
     ~obj(){if(active==this)active=0;}
-
 };
 
 #ifdef nerve
@@ -309,7 +302,7 @@ struct obj:public Serializable
 	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
 	    load(nerv->please_num)
 	}
-        void draw(int picking,double alpha)
+        void draw(int picking)
         {
 	    
     	    if(picking)
@@ -341,19 +334,21 @@ struct obj:public Serializable
 		    break;
 	    }
 	}
-	void picked(int b,vector<int>&v)
+	void picked(int up, int b,vector<int>&v)
 	{
-	    switch(b)
-	    {
-		case SDL_BUTTON_LEFT:
-		    nerverot_cycleup(nerv);
-		    break;
-		case SDL_BUTTON_RIGHT:
-		    nerverot_cycledown(nerv);
-		    break;
-		case SDL_BUTTON_MIDDLE:
-		    activate();
-	    }
+	    if(!up)
+		switch(b)
+		{
+		    case SDL_BUTTON_LEFT:
+			nerverot_cycleup(nerv);
+			break;
+		    case SDL_BUTTON_RIGHT:
+		        nerverot_cycledown(nerv);
+		        break;
+		    case SDL_BUTTON_MIDDLE:
+		    default:
+		        activate();
+		}
 	}
 	int getDirty(){return 1;}
 	protected:
@@ -428,7 +423,7 @@ struct face:public obj
 	oldcrow=oldccol=-1;
 	lastrotor=rotor=0;
 	selstartx=selstarty=selendx=selendy=-1;
-	s.x=0.001;
+	s.x=0.002;
 	s.y=-0.005;
 	s.z=0.002;
     }
@@ -536,12 +531,12 @@ struct face:public obj
 	glScalef(s.x,s.y,s.z);
         glTranslatef((t->cols-t->ccol)*26/s.x,(t->rows-t->crow)*26/s.y,0);
 	glScalef(30,30,1);
-	draw_terminal(1,0.2);
+	draw_terminal(1,0.2*alpha);
 	glPopMatrix();
     }
 	
 
-    void draw(int picking,double alpha)
+    void draw(int picking)
     {
 	if(picking)
 	{
@@ -553,7 +548,10 @@ struct face:public obj
 	    glEnd();
 	}
 	else
-    	    draw_terminal(0,alpha);
+	{
+	    ghost();
+    	    draw_terminal();
+    	}
     }
     void clipin(int noes, int sel)
     {
@@ -573,10 +571,28 @@ struct face:public obj
     {
     	if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
     	    if(mod&KMOD_RCTRL)
-    		clipin(0,0);
+    		clipin(0,0);  //clipboard
     	    else
-		clipin(0,1);
-	if(mod&KMOD_RCTRL)return;
+		clipin(0,1);  //selection buffer
+	if(mod&KMOD_RCTRL)
+	{	
+	    Uint8*k = SDL_GetKeyState(0);
+	    switch(key)
+	    {
+		case SDLK_END:
+		    resizooo(0,1,k);
+		    break;
+		case SDLK_HOME:
+		    resizooo(0,-1,k);
+		    break;
+		case SDLK_DELETE:
+		    resizooo(-1,0,k);
+		    break;
+		case SDLK_PAGEDOWN:
+		    resizooo(1,0,k);
+	    }
+	    return;
+	}
 	else if(mod&KMOD_RSHIFT&&(key==SDLK_HOME||key==SDLK_END||key==SDLK_PAGEUP||key==SDLK_PAGEDOWN))
 	{
 	    if(key==SDLK_PAGEUP)
@@ -588,7 +604,6 @@ struct face:public obj
 	    if(key==SDLK_HOME)
 		scroll=t->logl;
 	    if(scroll<0)scroll=0;
-	    cout<<scroll<<endl;
 	}
 	else
 	{
@@ -609,7 +624,7 @@ struct face:public obj
 	    if(t)_mutexV(upd_t_data.lock);
 	#endif
     }
-    void draw_terminal(int theme=0,double alpha=1)
+    void draw_terminal(int theme=0, double alpha=1)
     {
         xy lok;
         lok.x=0;
@@ -736,8 +751,8 @@ struct face:public obj
 	    glEnd();
 	#endif
     }
-
 };
+
 #ifdef GL
     struct spectrum_analyzer:public obj
     {
@@ -762,38 +777,30 @@ struct face:public obj
 	    alpha=0.05;
 	    rz=ry=rz=rotx=roty=rotz=0;
 	}
-	void picked(int  b,vector<int>&v)
+	void picked(int up, int  b,vector<int>&v)
 	{
-	    if(b==SDL_BUTTON_LEFT)
-		ry-=2;
-	    else if (b==SDL_BUTTON_RIGHT)
-		ry+=2;
-	    else if(b==SDL_BUTTON_MIDDLE)
-	    {
-		rx=ry=rz=0;
-		rotx=roty=rotz=0;
-	    }
+	    if(!up)
+		if(b==SDL_BUTTON_LEFT)
+		    ry-=2;
+		else if (b==SDL_BUTTON_RIGHT)
+		    ry+=2;
+		else if(b==SDL_BUTTON_MIDDLE)
+		    rx=0;
 	}
 	void keyp(int key,int uni,int mod)
 	{
 	    switch(key)
 	    {
-		case SDLK_LEFT:
+		case SDLK_UP:
 		    rx-=0.2;
 		    break;
-		case SDLK_RIGHT:
+		case SDLK_DOWN:
 		    rx+=0.2;
 		    break;
-		case SDLK_UP:
-		    ry-=0.2;
-		    break;
-		case SDLK_DOWN:
-		    ry+=0.2;
-		    break;
-		case SDLK_a:
+		case SDLK_LEFT:
 		    rz-=0.2;
 		    break;
-		case SDLK_z:
+		case SDLK_RIGHT:
 		    rz+=0.2;
 		    break;
 	    }
@@ -865,7 +872,7 @@ struct face:public obj
 	    }
 	}
 	
-	void draw(int picking,double alpha)
+	void draw(int picking)
 	{
 	    int x,y;
 	    GLfloat x_offset, z_offset, r_base, b_base;
@@ -877,6 +884,9 @@ struct face:public obj
 	    glRotatef(roty,0,1,0);
 	    glRotatef(rotz,0,0,1);
     	    glBegin(GL_TRIANGLES);
+    	    float oldalpha=alpha;
+    	    if(picking==1)
+    		alpha=1;
 	    for(y = 0; y < 16; y++)
 	    {
 		z_offset = -1.6 + ((15 - y) * 0.2);
@@ -888,6 +898,7 @@ struct face:public obj
 		    draw_bar(x_offset, z_offset, spectrum_analyzer::heights[y][x], r_base - (x * (r_base / 15.0)), x * (1.0 / 15), b_base);
 		}
 	    }
+	    alpha=oldalpha;
 	    glEnd();
 	    glPopMatrix();
 	    FILE *f;
@@ -900,8 +911,8 @@ struct face:public obj
 		oglspectrum_gen_heights(buf);
 	    }
 	}
-};
-GLfloat spectrum_analyzer::heights[16][16];
+    };
+    GLfloat spectrum_analyzer::heights[16][16];
 #endif
 
 #include <string>
@@ -971,7 +982,7 @@ static int _XPrintDefaultError(
     if (event->request_code >= 128) {
 	XGetErrorDatabaseText(dpy, mtype, "MinorCode", "Request Minor code %d",
 			      mesg, BUFSIZ);
-	logit( mesg, event->minor_code);
+	slogit( mesg, event->minor_code);
     }
     if ((event->error_code == BadWindow) ||
 	       (event->error_code == BadPixmap) ||
@@ -992,7 +1003,7 @@ static int _XPrintDefaultError(
 	else
 	    XGetErrorDatabaseText(dpy, mtype, "ResourceID", "ResourceID 0x%x",
 				  mesg, BUFSIZ);
-	logit( mesg, event->resourceid);
+	slogit( mesg, event->resourceid);
     }
     XGetErrorDatabaseText(dpy, mtype, "ErrorSerial", "Error Serial #%d",
 			  mesg, BUFSIZ);
@@ -1047,6 +1058,7 @@ class composite_window:public obj
     int needsreconf;
     XShmSegmentInfo shminfo;
     int border_width;
+    int pictaken;
     void reconfigure()
     {
 	unsigned int Z;
@@ -1068,7 +1080,9 @@ class composite_window:public obj
 	s.x=sc;
 	xim=0;
 	window=id;
+	pictaken=0;
 	this->dpy=dpy;
+	
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -1099,42 +1113,29 @@ class composite_window:public obj
     {
 	XDamageDestroy(dpy, damage);
     }
-    void draw(int picking,double alpha)
+    void draw(int picking)
     {
 //        if(needsreconf)
     	    reconfigure();
 	if(!isvisible())
 	    return;
 //	cout << window << endl;
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-    	if(damaged)
+	if(1!=picking)
 	{
-	    //if((X<0)||(Y<0))return;
-	    //if((width>rw)||(height>rh))return;
-
-	    int XX,YY;
-	    XX=YY=0;
-//	    if(X<0)XX=0-X;
-//	    if(Y<0)YY=0-Y;
-//	    if(XX+width>rw)width=rw-XX;
-//	    if(YY+height>rh)height=rh-YY;
-//	    cout<< window << ":"<<X <<","<<Y<<" " << XX << "," << YY << ":" << width << "x" << height << endl;
-//	    if((X>10)&&(Y>10)&&(X+width<rw-10)&&(Y+height<rh-10))
+	    glEnable(GL_TEXTURE_2D);
+	    glBindTexture(GL_TEXTURE_2D, texture);
+    	    if(damaged)
 	    {
-		    {
-//			if(xim)XDestroyImage(xim);
-//			if((xim = XGetImage(dpy, window, XX,YY,width,height,AllPlanes,ZPixmap)))
-			    XShmGetImage(dpy, window, xim, XX,YY, AllPlanes);
-			    glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
-		    }
+		if(Success==XShmGetImage(dpy, window, xim, 0,0, AllPlanes))
+		    pictaken=1;
+		glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
 	    }
 	    damaged=0;
 	}
+	
 	glBegin(GL_QUADS);
-	glColor4f(1,1,1,alpha);
-//	cout << width/rw << "x"<<height/rh << endl;
+	if(!picking)
+	    glColor4f(1,1,1,alpha);
 	glTexCoord2f(0,0);	glVertex2f(-(float)width/(float)rw,(float)height/(float)rh);
 	glTexCoord2f(1,0);	glVertex2f((float)width/(float)rw,(float)height/(float)rh);
 	glTexCoord2f(1,1);	glVertex2f((float)width/(float)rw,-(float)height/(float)rh);
@@ -1172,6 +1173,31 @@ class composite:public obj
     Display *dpy;
     XShmSegmentInfo shm;
     Atom a;
+    GLuint list;
+    float cell;
+    void genlists()
+    {
+	cell=1+sqrt((max(rw,rh)));
+    	list = glGenLists(1);
+	glNewList(list,GL_COMPILE);
+	glPushName(0);
+	for(int x=0;x<cell;x++)
+	{
+	    glLoadName(x);
+	    glPushName(0);
+	    glBegin(GL_QUAD_STRIP);
+	    for(int y=0;y<cell;y++)
+	    {
+		glLoadName(y);
+		glVertex2f(x*cell, y*cell);
+		glVertex2f((1+x)*cell, y*cell);
+		glVertex2f((1+x)*cell, (1+y)*cell);
+		glVertex2f(x*cell, (1+y)*cell);
+	    }
+	    glPopName();
+	}
+	glEndList();
+    }
     void regetwindows()
     {
     	unsigned long nitems=0;
@@ -1318,6 +1344,8 @@ class composite:public obj
 					children++;
 				    }
 				} */
+				genlists();
+
 			    }
 			}
 		    }
@@ -1368,7 +1396,7 @@ class fontwatcher:public obj
         SDL_KillThread(t);
         close(i);
     }
-    void draw( int picking,double alpha)
+    void draw( int picking)
     {
 	#ifdef GL
 	    size+=grow;
@@ -1468,16 +1496,18 @@ class buttons:public obj
 	overlay=1;
 	s.x=s.y=s.z=1/300;
     }
-    void show_button(int x, int y, button *b, int picking,double alpha)
+    void show_button(int x, int y, button *b, int picking)
     {
 //	cout << b->content << endl;
 	glPushMatrix();
 	glTranslatef(x,y,0);
 	if(picking)
-		glBegin(GL_QUADS);
+	    glBegin(GL_QUADS);
 	else
-		glBegin(GL_LINE_LOOP);
-	glColor4f(1,1,0,alpha);
+	{
+	    glBegin(GL_LINE_LOOP);
+	    glColor4f(1,1,0,alpha);
+	}
 	int w=b->content.length()*13+13;
 	glVertex2f(0,0);
 	glVertex2f(w,0);
@@ -1491,7 +1521,7 @@ class buttons:public obj
 	}
 	glPopMatrix();
     }
-    void draw(int picking,double alpha)
+    void draw(int picking)
     {
 	int n=buttonz.size();
 	int y=0;
@@ -1499,13 +1529,13 @@ class buttons:public obj
 	while(n)
 	{
 		if(picking)glLoadName(n-1);
-		show_button(-100,y+=100, &buttonz.at(--n),picking,alpha);
+		show_button(-100,y+=100, &buttonz.at(--n),picking);
 	}
 //	glLoadName(-1);
     }
-    void picked(int b, vector<int> &v)
+    void picked(int up, int b, vector<int> &v)
     {
-	if(is face*>(active))
+	if(!up&&b&&is face*>(active))
 	{
 	    cout << v.at(0)<<endl;
 	    as face*>(active)->type(buttonz.at(v.at(0)).content.c_str());
@@ -1707,7 +1737,7 @@ void perspmatrix()
 
 #ifdef GL
 
-obj* pick(int button, int x, int y)
+obj* pick(int up, int button, int x, int y)
 {
     GLuint fuf[500];
     GLint viewport[4];
@@ -1723,35 +1753,48 @@ obj* pick(int button, int x, int y)
     glPushName(-1);
     for_each_object
         glLoadName(i);
-	o->translate_and_draw(1,1);
-    }
+	o->translate_and_draw(1);
+    endfor
     glPopMatrix();
     int i,j, k;
+    unsigned int minz = -1;
+    int nearest=-1;
     int numhits = glRenderMode(GL_RENDER);
 //    logit("%i\n", numhits);
+    vector<vector<int>> hits;
     for(i=0,k=0;i<numhits;i++)
     {
 	GLuint numnames=fuf[k++];
-	k++;k++;
-	int obj=fuf[k];
-	int j = 1;
-	k++;
-	vector<int> v;
-	for(;j<numnames;j++)
+	if(fuf[k]<minz)
 	{
-	    v.push_back(fuf[k]);
-	    //logit("%i\n", n);
+	    nearest = i;
+	    minz = fuf[k++];
+	}
+	k++;//maxz
+	vector<int> v;
+	hits.push_back(v);
+	for(j=0;j<numnames;j++)
+	{
+	    hits[hits.size()-1].push_back(fuf[k]);
 	    k++;
 	}
-	objects.at(obj)->picked(button,v);
-	v.clear();
+	if(nearest != -1)
+	{
+	    if(hits.at(nearest).size())
+	    {
+		obj *x=objects.at(hits.at(nearest)[0]);
+		hits.at(nearest).erase(hits.at(nearest).begin());
+		//lets send the name stack, without the first hit, which identifies object
+		x->picked(up, button,hits.at(nearest));
+	    }
+	}
     }
-    return active;
+    hits.clear();
 }
 void vispick()
 {
     for_each_object
-	o->translate_and_draw(1,0.04);
+	o->translate_and_draw(2);
     }
 }
                           
@@ -1783,7 +1826,7 @@ void updatelinewidth()
 }							    
 
 //int RunGLTest (void)
-	int startup=1;
+	int restartup=1;
 	int bpp=8;
 	int w = 1280;
 	int h = 800;
@@ -1914,7 +1957,7 @@ void moveit(Uint8*k)
 		cam.z+=0.1;
 		
 	int x,y;
-	pick(SDL_GetMouseState(&x,&y),x,y);
+	pick(0,SDL_GetMouseState(&x,&y),x,y);
 }
 void lemon (void)
 {
@@ -1938,7 +1981,6 @@ void lemon (void)
     SDL_EnableUNICODE(1);
     SDL_InitSubSystem( SDL_INIT_TIMER);
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY/2, SDL_DEFAULT_REPEAT_INTERVAL*2);
-    if(ntfl)newtermmsg=GetFileIntoCharPointer1(ntfl);
     loadfont(fnfl);
     loadcolors();
     #ifdef GL
@@ -1968,6 +2010,7 @@ void lemon (void)
     }
     int norm=0;
     int mousemoved=1;
+    int mousejustmoved=0;
     int lastmousemoved=SDL_GetTicks();
     while( !done )
     {
@@ -1990,9 +2033,9 @@ void lemon (void)
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
 	    for_each_object
-		if(!o->overlay)o->translate_and_draw(0,1);}
+		if(!o->overlay)o->translate_and_draw(0);}
 	    for_each_object
-		if( o->overlay)o->translate_and_draw(0,1);}
+		if( o->overlay)o->translate_and_draw(0);}
 	    for_each_face
 		if((active==f)&&(!f->t->cursorhidden))
 		    f->ghost();}}
@@ -2108,21 +2151,18 @@ void lemon (void)
 			break;
 			
 		    case SDL_MOUSEMOTION:
-			if(active&&(escaped||k[SDLK_RCTRL])&&(SDL_BUTTON(1)&SDL_GetMouseState(0,0)))
-			{
-			    escaped=0;
-			    active->move(event.motion.xrel/10,event.motion.yrel/10,0);
-			}
 			mousemoved=1;
+			lastmousemoved=SDL_GetTicks();
+			mousejustmoved=1;
 		        break;
 		    case SDL_MOUSEBUTTONDOWN:
 		    {
-			pick(event.button.button,event.button.x,event.button.y);
+			pick(0,event.button.button,event.button.x,event.button.y);
 			break;
 		    }
 		    case SDL_MOUSEBUTTONUP:
 		    {
-			pick(event.button.button,event.button.x,event.button.y);
+			pick(1,event.button.button,event.button.x,event.button.y);
 			break;
 		    }
 		    
@@ -2136,7 +2176,7 @@ d(WINDOWS) && !defined(OSX)
     */
 		    case SDL_KEYDOWN:
 			dirty=1;
-			if(escaped||(mod&KMOD_RCTRL))
+			if(escaped||(mod&KMOD_RCTRL)||(key==SDLK_RCTRL))
 			{
 			    escaped=0;
 			    switch (key)
@@ -2267,18 +2307,6 @@ d(WINDOWS) && !defined(OSX)
 				        updatelinesmooth();
 				        break;
 				#endif
-				case SDLK_END:
-				    if(active&&is face*>(active))as face*>(active)->resizooo(0,1,k);
-				    break;
-				case SDLK_HOME:
-				    if(active&&is face*>(active))as face*>(active)->resizooo(0,-1,k);
-				    break;
-				case SDLK_DELETE:
-				    if(active&&is face*>(active))as face*>(active)->resizooo(-1,0,k);
-				    break;
-				case SDLK_PAGEDOWN:
-				    if(active&&is face*>(active))as face*>(active)->resizooo(1,0,k);
-				    break;
 				case 44:
 				    znear-=0.2;
 				    break;
@@ -2294,17 +2322,16 @@ d(WINDOWS) && !defined(OSX)
 				case SDLK_h:
 				    settingz.givehelp=!settingz.givehelp;
 				    break;
+				case SDLK_RCTRL:
+				    escaped=1;
+				    break;
 				default:
 				    if(active)
-					active->keyp(key,uni,mod);
+					active->keyp(key,uni,mod|KMOD_RCTRL);//escaped
 			    }
 			}
-			else
-			    if(active)
-				active->keyp(key,uni,mod);
-
-			if(key==SDLK_RCTRL)
-			    escaped=1;
+			else if(active)
+			    active->keyp(key,uni,mod);
 			break;
 		    case SDL_QUIT:
 		        done = 1;
@@ -2433,13 +2460,12 @@ d(WINDOWS) && !defined(OSX)
 			}
 		    }
 		    while (SDL_PollEvent(&event));
-		    if(mousemoved)
+		    if(mousejustmoved)
 		    {
-			lastmousemoved=SDL_GetTicks();
 			int x,y;
 			SDL_GetMouseState(&x,&y);
-			pick(0,x,y);
-			mousemoved=0;
+			pick(0,0,x,y);
+			mousejustmoved=0;
 		    }
 		    if(gofullscreen)
 		    {
@@ -2475,15 +2501,6 @@ d(WINDOWS) && !defined(OSX)
 			}
 			gofullscreen=0;
 		    }
-		    if(startup)
-		    {
-			startup=0;
-//			if(!face1->t&&!face1->scripted)
-//			{
-//			    add_terminal(face1);
-  //              lockterm(face1);
-//			}
-		    }
 		    if(!done)
 		    {
 			unlockterms();
@@ -2510,7 +2527,7 @@ int main(int argc, char *argv[])
 	    
 	    {
 		originalldpreload=(argc==2)?strdup(""):argv[2];
-		cout << "LD_PRELOAD:"<<originalldpreload<<endl;
+		//cout << "LD_PRELOAD:"<<originalldpreload<<endl;
 	    }
 	    
 	char *path;
@@ -2518,11 +2535,10 @@ int main(int argc, char *argv[])
 	if(path)
 	{
 		logit("path:%s", path);
-		path=(char*)realloc(path, 1+strlen(path)+strlen("newtermmsg"));//newtermmsg is the longest string
 		char* n=strrchr(path, 0);
+		path=(char*)realloc(path, 100+strlen(path));
 		fnfl=strdup(strcat(path, "l1"));		*n=0;
 		clfl=strdup(strcat(path, "colors"));		*n=0;
-		ntfl=strdup(strcat(path, "newtermmsg"));	*n=0;
 		stng=strdup(strcat(path, "settings"));		*n=0;
 		mdfl=strdup(strcat(path, "mode"));		*n=0;
 		fcfl=strdup(strcat(path, "faces"));		*n=0;
