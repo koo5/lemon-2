@@ -1294,16 +1294,17 @@ class composite:public obj
 	{
 	    glLoadName(x);
 	    glPushName(0);
-	    glBegin(GL_QUAD_STRIP);
 	    for(int y=0;y<celly;y++)
 	    {
 		glLoadName(y);
+		glBegin(GL_QUADS);
 		glVertex2f(x*cellx, y*celly);
 		glVertex2f((1+x)*cellx, y*celly);
 		glVertex2f((1+x)*cellx, (1+y)*celly);
 		glVertex2f(x*cellx, (1+y)*celly);
+		glEnd();
 	    }
-	    glEnd();
+	    
 	    glPopName();
 	}
 	glPopName();
