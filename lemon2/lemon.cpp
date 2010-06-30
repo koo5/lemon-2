@@ -92,6 +92,7 @@ s3d
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
 #define for_each_composite_window for_each_object if (as composite_window*>(o)){composite_window*c=as composite_window*>(o);
 #define endfor }
+
 float znear=1;
 float zfar=20;
 char * originalldpreload=0;
@@ -183,6 +184,38 @@ void logit(const char * iFormat, ...)
     va_end(argp);
     printf("\n");
 }
+
+
+void gle(void)
+{
+    #ifdef GL
+	GLenum gl_error;
+	gl_error = glGetError( );
+	if( gl_error != GL_NO_ERROR )
+	{
+	    if(gl_error==GL_STACK_UNDERFLOW)
+		logit("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
+	    if(gl_error==GL_STACK_OVERFLOW)
+		logit("QUACK QUACK QUACK, OVERFLOVING STACK\n");
+	    else if(gl_error==GL_INVALID_OPERATION)
+		logit("INVALID OPERATION, PATIENT EXPLODED\n");
+	    else
+		logit("testgl: OpenGL error: 0x%X\n", gl_error );
+	}
+    #endif
+}
+void sdle(void)
+{
+	char* sdl_error;
+	sdl_error = SDL_GetError( );
+	if( sdl_error[0] != '\0' )
+	{
+		logit("testgl: SDL error '%s'\n", sdl_error);
+		SDL_ClearError();
+	}
+}
+
+
 typedef struct
 {
     RoteTerm* t;
@@ -287,7 +320,9 @@ struct obj:public Serializable
 	else if(1==picking)
 	    glColor4f(1,1,1,1);
 	//else define it yourself
+	gle();
 	draw(picking);
+	gle();
 	/*picking == 2 == visualizing picking
 	picking == 1 == picking*/
 	#ifdef GL
@@ -561,7 +596,7 @@ struct face:public obj
 	}
 	else
 	{
-	    ghost();
+	    if((active==this)&&!t->cursorhidden)ghost();
     	    draw_terminal();
     	}
     }
@@ -798,6 +833,7 @@ struct face:public obj
 		    ry+=2;
 		else if(b==SDL_BUTTON_MIDDLE)
 		    rx=0;
+	    activate();
 	}
 	void keyp(int key,int uni,int mod)
 	{
@@ -1067,6 +1103,7 @@ class composite_window:public obj
     }
     void picked(int up, int  b,vector<int>&v)
     {
+	obj::picked(up,b,v);
 	logit("picking...");
 	int x,y;
 	SDL_GetMouseState(&x,&y);
@@ -1082,9 +1119,16 @@ class composite_window:public obj
 	glInitNames();
 	glCallList(dlist);
 	glPopMatrix();
-	logit("%i hits",glRenderMode(GL_RENDER));
-	int xx=fuf[4];
-	int yy=fuf[5];
+	int numhits;
+	gle();
+	logit("%i hits",numhits=glRenderMode(GL_RENDER));
+	gle();
+	if(!numhits)return;
+	if(!fuf[0])return;
+	int xx=fuf[3];
+	int yy=fuf[4];
+        glSelectBuffer(500, fuf);
+        
         glRenderMode (GL_SELECT);
         glPushMatrix ();
         glLoadIdentity ();
@@ -1094,9 +1138,11 @@ class composite_window:public obj
         glScalef(1/cellx, 1/celly,1);
 	glCallList(dlist);
 	glPopMatrix();
-	logit("%i hits",glRenderMode(GL_RENDER));
-	int xxx=fuf[4];
-	int yyy=fuf[5];
+	logit("%i hits",numhits=glRenderMode(GL_RENDER));
+	if(!numhits)return;
+	if(!fuf[0])return;
+	int xxx=fuf[3];
+	int yyy=fuf[4];
 	mousex=xx*cellx+xxx;
 	mousey=-(yy*celly+yyy);
     }
@@ -1167,11 +1213,12 @@ class composite_window:public obj
     {
 //        if(needsreconf)
     	    reconfigure();
-	if(!isvisible())
-	    return;
 //	cout << window << endl;
 	if(!picking)
 	{
+	    if(!isvisible())
+	        return;
+
 	    glEnable(GL_TEXTURE_2D);
 	    glBindTexture(GL_TEXTURE_2D, texture);
     	    if(damaged)
@@ -1185,11 +1232,13 @@ class composite_window:public obj
 	}
 	
 	glBegin(GL_QUADS);
-	glTexCoord2f(0,0);	glVertex2f(-(float)width/(float)rw,(float)height/(float)rh);
-	glTexCoord2f(1,0);	glVertex2f((float)width/(float)rw,(float)height/(float)rh);
-	glTexCoord2f(1,1);	glVertex2f((float)width/(float)rw,-(float)height/(float)rh);
-	glTexCoord2f(0,1);	glVertex2f(-(float)width/(float)rw,-(float)height/(float)rh);
+	if(!picking)glTexCoord2f(0,0);	glVertex2f(-(float)width/(float)rw,(float)height/(float)rh);
+	if(!picking)glTexCoord2f(1,0);	glVertex2f((float)width/(float)rw,(float)height/(float)rh);
+	if(!picking)glTexCoord2f(1,1);	glVertex2f((float)width/(float)rw,-(float)height/(float)rh);
+	if(!picking)glTexCoord2f(0,1);	glVertex2f(-(float)width/(float)rw,-(float)height/(float)rh);
 	glEnd();
+        if(picking)
+    	    return;
 	glDisable(GL_TEXTURE_2D);
 	glBegin(GL_LINES);
 	{
@@ -1254,6 +1303,7 @@ class composite:public obj
 		glVertex2f((1+x)*cellx, (1+y)*celly);
 		glVertex2f(x*cellx, (1+y)*celly);
 	    }
+	    glEnd();
 	    glPopName();
 	}
 	glPopName();
@@ -1416,6 +1466,7 @@ class composite:public obj
     }
 };
 composite *comp;
+#ifdef fontwatcher
 #include <sys/inotify.h>
 int fontwatcherthread(void *data);
 
@@ -1478,7 +1529,7 @@ int fontwatcherthread(void *data)
     while(1)
     {
 	char buf[1000];
-	cout << reinterpret_cast<fontwatcher*>(data)->i << endl;
+//	cout << reinterpret_cast<fontwatcher*>(data)->i << endl;
 	read(reinterpret_cast<fontwatcher*>(data)->i,&buf,1000);
 	reinterpret_cast<fontwatcher*>(data)->grow=0.1;
         SDL_Event e;
@@ -1488,6 +1539,7 @@ int fontwatcherthread(void *data)
         cout << "reloading " << endl;
     }
 }
+#endif
 void add_button(char *path, char *justname, void *data);
 
 
@@ -1755,36 +1807,8 @@ void saveobjects(void)
 */
 
 
-void gle(void)
-{
-    #ifdef GL
-	GLenum gl_error;
-	gl_error = glGetError( );
-	if( gl_error != GL_NO_ERROR )
-	{
-	    if(gl_error==GL_STACK_UNDERFLOW)
-		logit("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
-	    if(gl_error==GL_STACK_OVERFLOW)
-		logit("QUACK QUACK QUACK, OVERFLOVING STACK\n");
-	    else if(gl_error==GL_INVALID_OPERATION)
-		logit("INVALID OPERATION, PATIENT EXPLODED\n");
-	    else
-		logit("testgl: OpenGL error: 0x%X\n", gl_error );
-	}
-    #endif
-}
-void sdle(void)
-{
-	char* sdl_error;
-	sdl_error = SDL_GetError( );
-	if( sdl_error[0] != '\0' )
-	{
-		logit("testgl: SDL error '%s'\n", sdl_error);
-		SDL_ClearError();
-	}
-}
-
 #ifdef GL
+#include <limits>
 
 obj* pick(int up, int button, int x, int y)
 {         
@@ -1807,7 +1831,7 @@ obj* pick(int up, int button, int x, int y)
     endfor
     glPopMatrix();
     int i,j, k;
-    unsigned int minz = -1;
+    GLuint minz = std::numeric_limits<int>::max() ;
     int nearest=-1;
     int numhits = glRenderMode(GL_RENDER);
     logit("%i hits", numhits);
@@ -1819,9 +1843,9 @@ obj* pick(int up, int button, int x, int y)
 	if(fuf[k]<minz)
 	{
 	    nearest = i;
-	    minz = fuf[k++];
+	    minz = fuf[k];
 	}
-	k++;//maxz
+	k+=2;
 	vector<int> v;
 	hits.push_back(v);
 	for(j=0;j<numnames;j++)
@@ -1829,24 +1853,24 @@ obj* pick(int up, int button, int x, int y)
 	    hits[hits.size()-1].push_back(fuf[k]);
 	    k++;
 	}
-	if(nearest != -1)
-	{
-	    if(hits.at(nearest).size())
-	    {
-		obj *x=objects.at(hits.at(nearest)[0]);
-		hits.at(nearest).erase(hits.at(nearest).begin());
-		//lets send the name stack, without the first hit, which identifies object
-		x->picked(up, button,hits.at(nearest));
-	    }
+    }
+    if(nearest != -1)
+    {
+        if(hits.at(nearest).size())
+        {
+	    obj *x=objects.at(hits.at(nearest)[0]);
+	    hits.at(nearest).erase(hits.at(nearest).begin());
+	    //lets send the name stack, without the first hit, which identifies object
+	    x->picked(up, button,hits.at(nearest));
 	}
     }
-    hits.clear();
+
 }
 void vispick()
 {
     for_each_object
 	o->translate_and_draw(2);
-    }
+    endfor
 }
                           
 #endif
@@ -2035,6 +2059,7 @@ void lemon (void)
     loadfont(fnfl);
     loadcolors();
     #ifdef GL
+	gle();
 	resetviewport();
         resetmatrices();
         glEnable(GL_BLEND);
@@ -2048,7 +2073,7 @@ void lemon (void)
     if(!objects.size())
     {
 	#ifdef GL
-	    objects.push_back(new nerverot);
+	//    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
 	    objects.push_back(comp = new composite);
 	#endif
@@ -2056,7 +2081,7 @@ void lemon (void)
 //	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
 //	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
 //	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));
-	objects.push_back(new fontwatcher);
+//	objects.push_back(new fontwatcher);
 	
     }
     int norm=0;
@@ -2075,11 +2100,14 @@ void lemon (void)
 
 	    nothing_dirty();
 	    #ifdef GL
-
+                gle();
         	glLoadIdentity();
+        	gle();
 	        perspmatrix();
+	        gle();
 	        if(SDL_GetMouseState(0,0)||mousemoved)
 	    	vispick();
+	    	gle();
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
 	    #endif
@@ -2087,13 +2115,12 @@ void lemon (void)
 		if(!o->overlay)o->translate_and_draw(0);}
 	    for_each_object
 		if( o->overlay)o->translate_and_draw(0);}
-	    for_each_face
-		if((active==f)&&(!f->t->cursorhidden))
-		    f->ghost();}}
+	    gle();
 	    if((escaped||k[SDLK_RCTRL]))
 	    	showfocus();
 
 	    #ifdef GL
+	    gle();
 		if(settingz.givehelp)
 		{	
 		    glLoadIdentity();
