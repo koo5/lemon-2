@@ -223,6 +223,18 @@ v3d cam;
 v3d look;
 v3d cr;
 
+void perspmatrix()
+{
+    #ifdef GL
+	glFrustum(-1,1,-1,1,znear,zfar);
+	gluLookAt(cam.x,cam.y,cam.z,look.x,look.y,look.z,0,1,0);
+	glRotated(cr.x,1,0,0);
+	glRotated(cr.y,0,1,0);
+	glRotated(cr.z,0,0,1);
+    #endif
+}
+
+
 vector<obj *> objects;
 obj * active;
 struct obj:public Serializable
@@ -1013,6 +1025,8 @@ static int _XPrintDefaultError(
 }
 
 unsigned int rw,rh;
+float cellx,celly;
+GLuint dlist;
 class composite_window:public obj
 {
     public:
@@ -1051,6 +1065,42 @@ class composite_window:public obj
 	       	 _isvisible(0,0,0);
 	       	 
     }
+    void picked(int up, int  b,vector<int>&v)
+    {
+	logit("picking...");
+	int x,y;
+	SDL_GetMouseState(&x,&y);
+	GLuint fuf[500];
+	GLint viewport[4];
+	glGetIntegerv (GL_VIEWPORT, viewport);
+	glSelectBuffer(500, fuf);
+        glRenderMode (GL_SELECT);
+        glPushMatrix ();
+        glLoadIdentity ();
+        gluPickMatrix (x,y,10,10, viewport);
+        perspmatrix();
+	glInitNames();
+	glCallList(dlist);
+	glPopMatrix();
+	logit("%i hits",glRenderMode(GL_RENDER));
+	int xx=fuf[4];
+	int yy=fuf[5];
+        glRenderMode (GL_SELECT);
+        glPushMatrix ();
+        glLoadIdentity ();
+        gluPickMatrix (x,y,10,10, viewport);
+        perspmatrix();
+        glTranslatef(xx*cellx-cellx*cellx/2,yy*celly-celly*celly/2,0);
+        glScalef(1/cellx, 1/celly,1);
+	glCallList(dlist);
+	glPopMatrix();
+	logit("%i hits",glRenderMode(GL_RENDER));
+	int xxx=fuf[4];
+	int yyy=fuf[5];
+	mousex=xx*cellx+xxx;
+	mousey=-(yy*celly+yyy);
+    }
+    int mousex,mousey;
     GLuint texture;
     Display *dpy;
     Window window;
@@ -1082,7 +1132,7 @@ class composite_window:public obj
 	window=id;
 	pictaken=0;
 	this->dpy=dpy;
-	
+	mousex=mousey=50;
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -1120,7 +1170,7 @@ class composite_window:public obj
 	if(!isvisible())
 	    return;
 //	cout << window << endl;
-	if(1!=picking)
+	if(!picking)
 	{
 	    glEnable(GL_TEXTURE_2D);
 	    glBindTexture(GL_TEXTURE_2D, texture);
@@ -1131,17 +1181,28 @@ class composite_window:public obj
 		glTexImage2D(GL_TEXTURE_2D,0,4,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,xim->data);
 	    }
 	    damaged=0;
+	    glColor4f(1,1,1,alpha);
 	}
 	
 	glBegin(GL_QUADS);
-	if(!picking)
-	    glColor4f(1,1,1,alpha);
 	glTexCoord2f(0,0);	glVertex2f(-(float)width/(float)rw,(float)height/(float)rh);
 	glTexCoord2f(1,0);	glVertex2f((float)width/(float)rw,(float)height/(float)rh);
 	glTexCoord2f(1,1);	glVertex2f((float)width/(float)rw,-(float)height/(float)rh);
 	glTexCoord2f(0,1);	glVertex2f(-(float)width/(float)rw,-(float)height/(float)rh);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
+	glBegin(GL_LINES);
+	{
+	    glColor3f(0,0,0.2);
+	    glVertex2f(-(float)width/(float)rw,((float)mousey/(float)rh*2.0-1.0));
+	    glVertex2f((float)width/(float)rw,((float)mousey/(float)rh*2.0-1.0));
+	    glVertex2f((float)mousex/(float)rw*2.0-1.0,(float)height/(float)rh);
+	    glVertex2f((float)mousex/(float)rw*2.0-1.0,-(float)height/(float)rh);
+	    glVertex3f((float)mousex/(float)rw*2.0-1.0,((float)mousey/(float)rh*2.0-1.0),-1);
+	    glVertex3f((float)mousex/(float)rw*2.0-1.0,((float)mousey/(float)rh*2.0-1.0),+1);
+	}
+	glEnd();
+
     }
     
 };
@@ -1173,29 +1234,29 @@ class composite:public obj
     Display *dpy;
     XShmSegmentInfo shm;
     Atom a;
-    GLuint list;
-    float cell;
     void genlists()
     {
-	cell=1+sqrt((max(rw,rh)));
-    	list = glGenLists(1);
-	glNewList(list,GL_COMPILE);
+	cellx=sqrt(rw);
+	celly=sqrt(rh);
+    	dlist = glGenLists(1);
+	glNewList(dlist,GL_COMPILE);
 	glPushName(0);
-	for(int x=0;x<cell;x++)
+	for(int x=0;x<cellx;x++)
 	{
 	    glLoadName(x);
 	    glPushName(0);
 	    glBegin(GL_QUAD_STRIP);
-	    for(int y=0;y<cell;y++)
+	    for(int y=0;y<celly;y++)
 	    {
 		glLoadName(y);
-		glVertex2f(x*cell, y*cell);
-		glVertex2f((1+x)*cell, y*cell);
-		glVertex2f((1+x)*cell, (1+y)*cell);
-		glVertex2f(x*cell, (1+y)*cell);
+		glVertex2f(x*cellx, y*celly);
+		glVertex2f((1+x)*cellx, y*celly);
+		glVertex2f((1+x)*cellx, (1+y)*celly);
+		glVertex2f(x*cellx, (1+y)*celly);
 	    }
 	    glPopName();
 	}
+	glPopName();
 	glEndList();
     }
     void regetwindows()
@@ -1355,7 +1416,6 @@ class composite:public obj
     }
 };
 composite *comp;
-
 #include <sys/inotify.h>
 int fontwatcherthread(void *data);
 
@@ -1723,22 +1783,12 @@ void sdle(void)
 		SDL_ClearError();
 	}
 }
-void perspmatrix()
-{
-    #ifdef GL
-	glFrustum(-1,1,-1,1,znear,zfar);
-	gluLookAt(cam.x,cam.y,cam.z,look.x,look.y,look.z,0,1,0);
-	glRotated(cr.x,1,0,0);
-	glRotated(cr.y,0,1,0);
-	glRotated(cr.z,0,0,1);
-    #endif
-}
-
 
 #ifdef GL
 
 obj* pick(int up, int button, int x, int y)
-{
+{         
+    logit("picking objects...");
     GLuint fuf[500];
     GLint viewport[4];
     glGetIntegerv (GL_VIEWPORT, viewport);
@@ -1760,11 +1810,12 @@ obj* pick(int up, int button, int x, int y)
     unsigned int minz = -1;
     int nearest=-1;
     int numhits = glRenderMode(GL_RENDER);
-//    logit("%i\n", numhits);
+    logit("%i hits", numhits);
     vector<vector<int>> hits;
     for(i=0,k=0;i<numhits;i++)
     {
 	GLuint numnames=fuf[k++];
+	logit("%i names", numnames);
 	if(fuf[k]<minz)
 	{
 	    nearest = i;
@@ -1997,8 +2048,8 @@ void lemon (void)
     if(!objects.size())
     {
 	#ifdef GL
-//	    objects.push_back(new nerverot);
-//	    objects.push_back(new spectrum_analyzer);
+	    objects.push_back(new nerverot);
+	    objects.push_back(new spectrum_analyzer);
 	    objects.push_back(comp = new composite);
 	#endif
 	objects.push_back(active=new face("bash"));
