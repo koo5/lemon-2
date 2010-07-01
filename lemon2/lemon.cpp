@@ -1145,6 +1145,7 @@ class composite_window:public obj
 	int yyy=fuf[4];
 	mousex=xx*cellx+xxx;
 	mousey=-(yy*celly+yyy);
+	cout<<xx<<yy<<xxx<<yyy<<endl;
     }
     int mousex,mousey;
     GLuint texture;
@@ -1285,23 +1286,25 @@ class composite:public obj
     Atom a;
     void genlists()
     {
-	cellx=sqrt(rw);
-	celly=sqrt(rh);
+	cellx=2/sqrt(rw);
+	celly=2/sqrt(rh);
     	dlist = glGenLists(1);
 	glNewList(dlist,GL_COMPILE);
 	glPushName(0);
-	for(int x=0;x<cellx;x++)
+	int nx=0;
+	int ny=0;
+	for(float x=-1;x<1;x+=cellx)
 	{
-	    glLoadName(x);
+	    glLoadName(nx++);
 	    glPushName(0);
-	    for(int y=0;y<celly;y++)
+	    for(float y=-1;y<1;y+=celly)
 	    {
-		glLoadName(y);
+		glLoadName(ny++);
 		glBegin(GL_QUADS);
-		glVertex2f(x*cellx, y*celly);
-		glVertex2f((1+x)*cellx, y*celly);
-		glVertex2f((1+x)*cellx, (1+y)*celly);
-		glVertex2f(x*cellx, (1+y)*celly);
+		glVertex2f(x, y);
+		glVertex2f(x+cellx, y);
+		glVertex2f(x+cellx, y+celly);
+		glVertex2f(x, y+celly);
 		glEnd();
 	    }
 	    
