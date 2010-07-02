@@ -1134,8 +1134,8 @@ class composite_window:public obj
         glLoadIdentity ();
         gluPickMatrix (x,y,10,10, viewport);
         perspmatrix();
-        glTranslatef(xx*cellx-cellx*cellx/2,yy*celly-celly*celly/2,0);
-        glScalef(1/cellx, 1/celly,1);
+        glTranslatef(cellx*xx-1,celly*yy-1,0);
+        glScalef(2/cellx, 2/celly,1);
 	glCallList(dlist);
 	glPopMatrix();
 	logit("%i hits",numhits=glRenderMode(GL_RENDER));
@@ -1143,9 +1143,9 @@ class composite_window:public obj
 	if(!fuf[0])return;
 	int xxx=fuf[3];
 	int yyy=fuf[4];
-	mousex=xx*cellx+xxx;
-	mousey=-(yy*celly+yyy);
-	cout<<xx<<yy<<xxx<<yyy<<endl;
+	mousex=xx*rw/cellx+xxx;
+	mousey=-(yy*rh/celly+yyy);
+	cout<<xx<<" "<<yy<<" "<<xxx<<" "<<yyy<<endl;
     }
     int mousex,mousey;
     GLuint texture;
@@ -1307,7 +1307,7 @@ class composite:public obj
 		glVertex2f(x, y+celly);
 		glEnd();
 	    }
-	    
+	    ny=0;
 	    glPopName();
 	}
 	glPopName();
