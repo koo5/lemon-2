@@ -1839,7 +1839,7 @@ obj* pick(int up, int button, int x, int y)
     endfor
     glPopMatrix();
     int i,j, k;
-    GLuint minz = std::numeric_limits<int>::max() ;
+    GLuint minz = std::numeric_limits<unsigned int>::max() ;
     int nearest=-1;
     int numhits = glRenderMode(GL_RENDER);
     logit("%i hits", numhits);
