@@ -42,7 +42,7 @@ setup:
 	make&&\
 	make install&&\
 	cd ../lemon2
-	
+
 TARGETS = lsdl lgl
 all: lgl
 a: $(TARGETS)
