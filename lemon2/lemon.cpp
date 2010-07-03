@@ -1848,8 +1848,11 @@ obj* pick(int up, int button, int x, int y)
     {
 	GLuint numnames=fuf[k++];
 	logit("%i names", numnames);
+	logit("%d minz", fuf[k]);
+	logit("%d maxz", fuf[k+1]);
 	if(fuf[k]<minz)
 	{
+	    logit("%u < %u, nearest = %i", fuf[k],minz,i);
 	    nearest = i;
 	    minz = fuf[k];
 	}
@@ -2561,7 +2564,7 @@ d(WINDOWS) && !defined(OSX)
 		    {
 			int x,y;
 			SDL_GetMouseState(&x,&y);
-			pick(0,0,x,y);
+			pick(0,0,x,h-y);
 			mousejustmoved=0;
 		    }
 		    if(gofullscreen)
