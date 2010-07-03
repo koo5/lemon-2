@@ -1,5 +1,5 @@
 /* XPM */
-static char *sea_texture = {
+const char *sea_texture[] =  {
 /* width height num_colors chars_per_pixel */
 "   128   128       64            1",
 /* colors */

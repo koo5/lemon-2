@@ -103,9 +103,13 @@ static const char sccsid[] = "@(#)atlantis.c	5.08 2003/04/09 xlockmore";
 
 #include "minixpm.h"
 #include "minixpm.c"
+#include "sea-texture.xpm"
 
 # include <math.h>
 #define RAD 57.295
+#include <cstdlib>
+#define NRAND(x) rand()%x
+#define LRAND rand
 #define RRAD 0.01745
 
 struct fishRec {
@@ -121,9 +125,8 @@ struct fishRec {
 #include "dolphin.c"
 #include "whale.c"
 #include "shark.c"
-#include "sea-texture.xpm"
 
-class atlantis: obj
+class atlantis: public obj
 {
 	float       sharkspeed, whalespeed;
 	int         sharksize;
@@ -135,7 +138,7 @@ class atlantis: obj
 	dolphin     dolph;
         XImage     *texture;	   /* water distortion overlay bits */
         GLfloat texscale;
-        GLuint gltex;
+        GLuint gltexture;
         GLfloat aspect;
         int do_texture;
 	int do_gradient;
@@ -144,14 +147,11 @@ class atlantis: obj
 //	{"-gradient",       "whether to introduce gradient-filled background"},
 
 
-#include <cstdlib>
-#define NRAND(x) rand()%x
-#define LRAND rand
 void InitFishs()
 {
 	int         i;
 
-	for (i = 0; i < num_sharks; i++) {
+	for (i = 0; i < sharks.size(); i++) {
 		sharks[i].x = 70000.0 + NRAND(sharksize);
 		sharks[i].y = NRAND(sharksize);
 		sharks[i].z = NRAND(sharksize);
@@ -184,7 +184,7 @@ void InitFishs()
 	babyWhale.v = 3.0;
 }
 
-void predraw()
+void predraw(int picking)
 {
 	static const float ambient[]        = {0.1, 0.1, 0.1, 1.0};
 	static const float diffuse[]        = {1.0, 1.0, 1.0, 1.0};
@@ -256,12 +256,12 @@ void predraw()
 
     	    glMatrixMode(GL_TEXTURE);
     	    glLoadIdentity();
-    	    glScalef(scale, scale, 1);
+    	    glScalef(texscale, texscale, 1);
     	    glMatrixMode(GL_MODELVIEW);
           }
 }
 
-postdraw()
+void postdraw()
 {
         glMatrixMode(GL_TEXTURE);
         glLoadIdentity();
@@ -269,10 +269,10 @@ postdraw()
 	glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-	glPopAtrtrib(GL_ALL_ATTRIB_BITS);
+	glPopAttrib();
 }
 
-inittexture()
+void inittexture()
 {
 	    glGenTextures(1,&gltexture);
             glBindTexture(GL_TEXTURE_2D, gltexture);
@@ -477,7 +477,7 @@ SharkMiss(int i)
 	float       avoid, thetal;
 	float       X, Y, Z, R;
 
-	for (j = 0; j < sharks->size(); j++) {
+	for (j = 0; j < sharks.size(); j++) {
 		if (j != i) {
 			X = sharks[j].x - sharks[i].x;
 			Y = sharks[j].y - sharks[i].y;
@@ -523,24 +523,24 @@ void AllDisplay()
 	for (i = 0; i < sharks.size(); i++) {
 		glPushMatrix();
 		FishTransform(&(sharks[i]));
-		sharks[i]->Draw();
+		sharks[i].Draw();
 		glPopMatrix();
 	}
 
 	glPushMatrix();
 	FishTransform(&(dolph));
-	dolph->Draw();
+	dolph.Draw();
 	glPopMatrix();
 
 	glPushMatrix();
 	FishTransform(&(momWhale));
-	momWhale->Draw();
+	momWhale.Draw();
 	glPopMatrix();
 
 	glPushMatrix();
 	FishTransform(&(babyWhale));
 	glScalef(0.45, 0.45, 0.3);
-	babyWhale->Draw();
+	babyWhale.Draw();
 	glPopMatrix();
 }
 
@@ -549,13 +549,14 @@ void AllDisplay()
  *    Initialize atlantis.  Called each time the window changes.
  *-----------------------------------------------------------------------------
  */
-
-atlantis(Display *dpy, XWindowAttributes xgwa)
+public:
+atlantis(Display *dpy, XWindowAttributes wgwa)
 {
-	texture = xpm_to_ximage (dpy,xgwa.visual,xgwa.colormap,sea_texture);
+	texture = minixpm_to_ximage (dpy,wgwa.visual,wgwa.colormap,wgwa.depth,
+	BlackPixelOfScreen(wgwa.screen), sea_texture,0,0,0,0,0);
 	inittexture();
 	do_texture=1;
-	texscale = 0.0005
+	texscale = 0.0005;
 	sharks.resize(5);
 	sharkspeed = 100;		/* has influence on the "width"
 						   of the movement */
@@ -563,13 +564,13 @@ atlantis(Display *dpy, XWindowAttributes xgwa)
 					   of the sharks */
 	whalespeed = 250;
 	wire = 0;
-        InitFishs(ap);
+        InitFishs();
         setwire(wire);
 }
 
 void setwire(int w)
 {
-    	for (i = 0; i < sharks.size(); i++) {
+    	for (int i = 0; i < sharks.size(); i++) {
     		sharks[i].wire=w;
     	}
     	momWhale.wire=w;
@@ -595,7 +596,7 @@ virtual void key(int k)
  */
 void draw(int picking)
 {
-	predraw(picking)
+	predraw(picking);
         AllDisplay();
         postdraw();
         if (!picking)
@@ -617,3 +618,4 @@ void draw(int picking)
 }
 
 };
+

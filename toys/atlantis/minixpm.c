@@ -221,9 +221,9 @@ minixpm_to_ximage (Display *dpy, Visual *visual, Colormap colormap, int depth,
         }
     }
 
-  *width_ret = w;
-  *height_ret = h;
-  *pixels_ret = pixels;
-  *npixels_ret = pixel_count;
+//  *width_ret = w;
+//  *height_ret = h;
+//  *pixels_ret = pixels;
+//  *npixels_ret = pixel_count;
   return ximage;
 }

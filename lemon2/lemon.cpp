@@ -1,5 +1,5 @@
 /*
-atlantis
+share height data across windows
 editor
 draw everywhere
 client server copying
@@ -430,6 +430,8 @@ struct obj:public Serializable
 	}
 	return 1;
     }
+#include "../toys/atlantis/atlantis.c"
+
 #endif
 struct face:public obj
 {
@@ -1387,7 +1389,7 @@ class composite:public obj
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-
+			        objects.push_back(new atlantis(dpy,attr));
 				if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
@@ -1670,7 +1672,6 @@ void add_button(char *path, char *justname, void *data)
 	}
 }
 
-#include "../toys/atlantis/atlantis.c"
 
 #endif 
 
