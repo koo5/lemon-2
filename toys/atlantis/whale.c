@@ -72,7 +72,7 @@ static const char sccsid[] = "@(#)whale.c	1.3 98/06/18 xlockmore";
  * OpenGL(TM) is a trademark of Silicon Graphics, Inc.
  */
 
-class whale:public fish
+class whale:public fishRec
 {
  float N001[3]; 
  float N002[3]; 
@@ -2124,4 +2124,4 @@ Draw()
 
 	glPopMatrix();
 }
-}
+};

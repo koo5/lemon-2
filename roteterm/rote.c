@@ -146,7 +146,8 @@ RoteTerm *rote_vt_create(int rows, int cols) {
    rt->log=0;
    rt->logl=0;
    rt->logstart=0;
-    rt->cursorhidden=0;
+   rt->cursorhidden=0;
+   rt->stoppedscrollback=0;//this is just informational, for teh UI
    /* create the cell matrix */
    rt->cells = (RoteCell**) malloc(sizeof(RoteCell*) * rt->rows);
    for (i = 0; i < rt->rows; i++) {
@@ -462,10 +463,11 @@ void clearscrollback(RoteTerm *t)
     free(t->log);
     t->log=NULL;
     t->logl=0;
+}
 
-
-
-
+void stopscrollback(RoteTerm *t)
+{
+    t->stoppedscrollback=1;
 }
 
 

@@ -413,6 +413,7 @@ struct obj:public Serializable
 	        SDL_Event e;
 	        e.type=SDL_USEREVENT;
 	        e.user.code=CODE_DATA;
+	        e.user.data1=d->t;
 	        SDL_PushEvent(&e);
 	    }
 	    if(!d->t->childpid)
@@ -526,6 +527,9 @@ struct face:public obj
 	void updateterminal()
 	{
     	    rote_vt_update(t);
+    	    if(d->t->stoppedscrollback)
+	    	scroll=t->logl;
+
     	    if(!t->childpid)
     	    {
 	        SDL_Event e;
@@ -643,8 +647,11 @@ struct face:public obj
 	}
 	else
 	{
-	    if(key!=SDLK_RSHIFT)
+	    if((key!=SDLK_LALT)&&(key!=SDLK_RSHIFT))
+	    {
 	        scroll=0;
+	        t->stoppedscrollback=0;
+	    }
     	    sdlkeys(t,key,uni,mod);
 	}
     }
@@ -1663,7 +1670,7 @@ void add_button(char *path, char *justname, void *data)
 	}
 }
 
-//#include "../toys/atlantis/atlantis.c"
+#include "../toys/atlantis/atlantis.c"
 
 #endif 
 
@@ -2536,7 +2543,14 @@ d(WINDOWS) && !defined(OSX)
 					    dirty=1;
 					}
 					else if(event.user.code==CODE_FNFLCHANGED)
-						loadfont(fnfl);
+					    loadfont(fnfl);
+					else if(event.user.code==CODE_DATA)
+                                            if(reinterpret_cast<RoteTerm*>(event.user.data1)->stoppedscrollback)
+                                            	for_each_face
+                                            	    if(f->t==reinterpret_cast<RoteTerm*>(event.user.data1))
+							f->scroll=f->t->logl;
+						endfor endfor
+
 				
 					break;
 			}

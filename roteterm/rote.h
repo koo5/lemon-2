@@ -105,6 +105,7 @@ typedef struct RoteTerm_ {
                                  * can't resize the terminal by changing
                                  * this (a segfault is about all you will 
                                  * accomplish). */
+    int stoppedscrollback;
     int logstart;
     int logl;
    RoteCell **log;         
@@ -324,3 +325,4 @@ void rotoclipout(char * x, RoteTerm *t, int selection);
 
 
 void clearscrollback(RoteTerm * t);
+void stopscrollback(RoteTerm * t);

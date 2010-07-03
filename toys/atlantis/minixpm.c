@@ -43,7 +43,7 @@ bigendian (void)
   return !u.c[0];
 }
 
-static const char hex[128] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+static const char hexxx[128] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                               0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0,
@@ -124,9 +124,9 @@ minixpm_to_ximage (Display *dpy, Visual *visual, Colormap colormap, int depth,
               }
               if (*line == '#')
                 line++;
-              r = (hex[(int) line[0]] << 4) | hex[(int) line[1]]; line += 2;
-              g = (hex[(int) line[0]] << 4) | hex[(int) line[1]]; line += 2;
-              b = (hex[(int) line[0]] << 4) | hex[(int) line[1]]; line += 2;
+              r = (hexxx[(int) line[0]] << 4) | hexxx[(int) line[1]]; line += 2;
+              g = (hexxx[(int) line[0]] << 4) | hexxx[(int) line[1]]; line += 2;
+              b = (hexxx[(int) line[0]] << 4) | hexxx[(int) line[1]]; line += 2;
             }
 
           if (which == 'c')

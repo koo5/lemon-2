@@ -107,9 +107,6 @@ static const char sccsid[] = "@(#)atlantis.c	5.08 2003/04/09 xlockmore";
 # include <math.h>
 #define RAD 57.295
 #define RRAD 0.01745
-#include "dolphin.c"
-#include "whale.c"
-#include "shark.c"
 
 struct fishRec {
 	float       x, y, z, phi, theta, psi, v;
@@ -119,7 +116,12 @@ struct fishRec {
 	int         spurt, attack;
         int         sign;
 	int         wire;
-}
+};
+
+#include "dolphin.c"
+#include "whale.c"
+#include "shark.c"
+#include "sea-texture.xpm"
 
 class atlantis: obj
 {
@@ -132,21 +134,16 @@ class atlantis: obj
 	whale     babyWhale;
 	dolphin     dolph;
         XImage     *texture;	   /* water distortion overlay bits */
-        GLfloat texscale = 0.0005;
+        GLfloat texscale;
         GLuint gltex;
         GLfloat aspect;
         int do_texture;
-
-
-int  whalespeed;
-int do_texture;
-int do_gradient;
+	int do_gradient;
 //	{"-whalespeed num", "speed of whales and the dolphin"},
 //	{"-texture",        "whether to introduce water-like distortion"},
 //	{"-gradient",       "whether to introduce gradient-filled background"},
 
 
-#include "sea-texture.xpm"
 #include <cstdlib>
 #define NRAND(x) rand()%x
 #define LRAND rand
@@ -558,6 +555,7 @@ atlantis(Display *dpy, XWindowAttributes xgwa)
 	texture = xpm_to_ximage (dpy,xgwa.visual,xgwa.colormap,sea_texture);
 	inittexture();
 	do_texture=1;
+	texscale = 0.0005
 	sharks.resize(5);
 	sharkspeed = 100;		/* has influence on the "width"
 						   of the movement */
@@ -618,4 +616,4 @@ void draw(int picking)
     sharks.clear();
 }
 
-}
+};

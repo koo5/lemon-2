@@ -278,6 +278,16 @@ static void try_interpret_escape_seq(RoteTerm *rt) {
      }
     return;
     }
+    if(!strncmp(rt->pd->esbuf, "stopscrollback",rt->pd->esbuf_len))
+    {
+     if(!strcmp(rt->pd->esbuf, "stopscrollback"))
+     {
+      printf("stoping scrollback\n");
+      stopscrollback(rt);
+      cancel_escape_sequence(rt);
+     }
+    return;
+    }
       /* unrecognized escape sequence. Let's forget about it. */
       #ifdef DEBUG
       fprintf(stderr, "Unrecognized ES: <%s>\n", rt->pd->esbuf);
