@@ -2073,7 +2073,7 @@ void lemon (void)
     if(!objects.size())
     {
 	#ifdef GL
-	//    objects.push_back(new nerverot);
+	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
 	    objects.push_back(comp = new composite);
 	#endif
