@@ -4,16 +4,6 @@ editor
 draw everywhere
 client server copying
 s3d
-
-
-
-
-
-
-
-
-
-
 */
 /*******************************************************************
 * Description:
@@ -96,12 +86,6 @@ s3d
 float znear=1;
 float zfar=20;
 char * originalldpreload=0;
-#ifdef GL
-    inline void dooooot(float x,float y)
-    {
-        glVertex2f(x,y);
-    }
-#endif
 SDL_Surface* s;
 #ifdef SDLD
     #include "../sdldlines.c"
@@ -329,8 +313,13 @@ struct obj:public Serializable
 	    glPopMatrix();
 	#endif
     }
+    virtual void key(int k)
+    {
+    
+    }
     virtual void keyp(int key,int uni,int mod)
     {
+	obj::key(uni);
     }
     ~obj(){if(active==this)active=0;}
 };
@@ -1114,7 +1103,7 @@ class composite_window:public obj
         glRenderMode (GL_SELECT);
         glPushMatrix ();
         glLoadIdentity ();
-        gluPickMatrix (x,y,10,10, viewport);
+        gluPickMatrix (x,y,1,1, viewport);
         perspmatrix();
 	glInitNames();
 	glCallList(dlist);
@@ -1124,15 +1113,19 @@ class composite_window:public obj
 	logit("%i hits",numhits=glRenderMode(GL_RENDER));
 	gle();
 	if(!numhits)return;
-	if(!fuf[0])return;
+	if(fuf[0]!=2)return;
 	int xx=fuf[3];
 	int yy=fuf[4];
+
+	mousex=xx*rw/cellx;
+	mousey=-(yy*rh/celly);
+
+/*
         glSelectBuffer(500, fuf);
-        
         glRenderMode (GL_SELECT);
         glPushMatrix ();
         glLoadIdentity ();
-        gluPickMatrix (x,y,10,10, viewport);
+        gluPickMatrix (x,y,1,1, viewport);
         perspmatrix();
         glTranslatef(cellx*xx-1,celly*yy-1,0);
         glScalef(2/cellx, 2/celly,1);
@@ -1146,6 +1139,7 @@ class composite_window:public obj
 	mousex=xx*rw/cellx+xxx;
 	mousey=-(yy*rh/celly+yyy);
 	cout<<xx<<" "<<yy<<" "<<xxx<<" "<<yyy<<endl;
+*/
     }
     int mousex,mousey;
     GLuint texture;
@@ -1669,6 +1663,8 @@ void add_button(char *path, char *justname, void *data)
 	}
 }
 
+//#include "../toys/atlantis/atlantis.c"
+
 #endif 
 
 RoteTerm *clipout, *clipout2;
@@ -2040,7 +2036,7 @@ void moveit(Uint8*k)
 }
 void lemon (void)
 {
-    cam.z=1.5;
+    cam.z=1;
     cam.x=cam.y=0;
     int normalize;
     xy ss;
@@ -2107,7 +2103,8 @@ void lemon (void)
                 gle();
         	glLoadIdentity();
         	gle();
-	        perspmatrix();
+	        //perspmatrix();
+	        glScalef(1/cam.z,1/cam.z,1);
 	        gle();
 	        if(SDL_GetMouseState(0,0)||mousemoved)
 	    	vispick();
@@ -2136,10 +2133,10 @@ void lemon (void)
 		    
 			draw_text("\npress right ctrl for more fun...");
 		    else
-			draw_text("\nnow press fkeys to move camera,\nright shift + fkeys to move objects, \ndel end home and pgdn to resize terminal...\nh to hide help");
+			draw_text("\nnow press f12 to zoom out,\nf9 to zoom in\ndel end home and pgdn to resize terminal...\nh to hide help");
 		    glPopMatrix();
 		    glLoadIdentity();
-	    	    perspmatrix();
+	    	  //  perspmatrix();
 
 		}
 		SDL_GL_SwapBuffers( );
@@ -2227,7 +2224,10 @@ void lemon (void)
 				}
 			    }
 			    if(event.syswm.msg->event.xevent.type==CreateNotify)
+			    {
+				cout << "created" << endl;
 				comp->regetwindows();
+			    }
 			    
 			}
 			break;
@@ -2348,7 +2348,7 @@ d(WINDOWS) && !defined(OSX)
 					break;
 				    case SDLK_v:
 					cr.y+=3.4;
-					break;
+					break;             
 				    case SDLK_c:
 					cr.y-=3.4;
 					break;
@@ -2362,13 +2362,13 @@ d(WINDOWS) && !defined(OSX)
 						break;
 					    }
 				        settingz.line_antialiasing?settingz.lv+=0.1:settingz.lv++;
-				        GLint max=10;
+				        /*GLint max=10;
 				        if(settingz.line_antialiasing)
 					    glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE,&max);
 					else
 					    glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE,&max); 
 					if(settingz.lv>max)settingz.lv=max;
-					cout << "max:" << max <<endl;
+					cout << "max:" << max <<endl;*/
 					updatelinewidth();
 					break;
 					}

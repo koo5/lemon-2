@@ -105,15 +105,15 @@ void _spillit(xy lok, const char*x, float offset)
     	    {
     		first=0;
     		glColor4d(0,0,0,0);
-                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
+                glVertex2f(offset+lok.x+xdot,offset+lok.y+ydot);
                 glColor4d(r,g,b,a);
             }
 
             if ((!*x)||(' '==(*x)))/* last dot*/
             {
-                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
+                glVertex2f(offset+lok.x+xdot,offset+lok.y+ydot);
     		glColor4d(0,0,0,0);
-                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
+                glVertex2f(offset+lok.x+xdot,offset+lok.y+ydot);
         	if(!*x)
         	{
             	    return;
@@ -121,7 +121,7 @@ void _spillit(xy lok, const char*x, float offset)
             }
             else // just ordinary dot
             {
-                dooooot(offset+lok.x+xdot,offset+lok.y+ydot);
+                glVertex2f(offset+lok.x+xdot,offset+lok.y+ydot);
             }
         }
     }

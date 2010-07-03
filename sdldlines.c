@@ -3,6 +3,8 @@ int have_first=0;
 int gltx,glty;
 #define GL_LINE_STRIP 0
 
+
+
 void glEnd()
 {
 }
@@ -27,7 +29,7 @@ inline void glColor4f(double r,double g,double b,double a)
 	dotcolor=SDL_MapRGBA( s->format ,r*255.0f,g*255.0f,b*255.0f,a*255.0f);
 }
 
-void dooooot(float x,float y)
+void  glVertex2f(float x,float y)
 {
     static Uint32 firstc;
     static Sint16 firstx, firsty;

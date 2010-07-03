@@ -39,8 +39,8 @@ a: $(TARGETS)
 lgl$(EXE): $(DEPS)
 	$(CC) -Dlibpng -lpng -Dnerve -lGLU  -lm -Wno-write-strings  -lXcomposite -lXdamage -lXfixes -lXrender -lX11 
 
-test :serializabletests.cpp 
-	g++ -o test serializabletests.cpp  
+test :
+	g++ -o test test.cpp  
 
 lsdl$(EXE):  $(DEPS)
 	$(CC)  -DSDLD  -lpng   -Xlinker   \
