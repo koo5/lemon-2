@@ -56,7 +56,7 @@ SDL_Surface *initsdl(int w,int h,int *bppp,Uint32 flags)
 		exit(1);
 	}
 	
-#ifdef chaos
+//#ifdef chaos
 	printf("Screen BPP: %d\n", SDL_GetVideoSurface()->format->BitsPerPixel);
 	printf("\n");
 #ifdef GL
@@ -82,10 +82,10 @@ SDL_Surface *initsdl(int w,int h,int *bppp,Uint32 flags)
 	printf("mustlock=%i\n", SDL_MUSTLOCK(s));
 
 	*bppp=bpp;
-	char * x= malloc(20);
+	char * x= (char*)malloc(20);
 	if(x&&SDL_VideoDriverName(x,20))
 	    printf("Current SDL video driver is %s.\n",x);
-	  
-#endif
+	   
+//#endif
 	return s;
 }
