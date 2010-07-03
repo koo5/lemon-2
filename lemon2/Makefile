@@ -33,6 +33,16 @@ endif
 
 CC      =g++ -o $@ lemon.cpp -g -ggdb  $(GLLIBS) $(CFLIBS) -std=c++0x
 
+setup:
+	cd ../yaml-cpp-0.2.5;\
+	cmake CMakeLists.txt ;\
+	make                ;\
+	cd ../SDL-1.2.14    ;\
+	./configure --prefix=`pwd`/../sdl;\
+	make;\
+	make install;\
+	cd ../lemon2
+	
 TARGETS = lsdl lgl
 all: lgl
 a: $(TARGETS)

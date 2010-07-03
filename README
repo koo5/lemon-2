@@ -1,15 +1,9 @@
 sudo aptitude update
 sudo aptitude install make cmake g++ libncurses-dev  git-core xclip pkg-config #mplayer
 git clone  git://github.com/koo5/lemon.git
-cd lemon/yaml-cpp-0.2.5
-cmake CMakeList.txt
+cd lemon/lemon2
+make setup
 make
-cd ../SDL-1.2.14
-./configure --prefix=`pwd`/../sdl
-make
-make install
-cd ../lemon2
-make lgl
 ./l
 
 
