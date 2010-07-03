@@ -3,7 +3,7 @@ DEPS  =  ../roteterm/* lemon.cpp ../*
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
- -L/usr/lib -lSDL -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
+ -L/usr/lib -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
     -L/usr/local/lib   `pkg-config --libs x11`\
       `pkg-config --cflags x11`\
        -I/usr/include -I/usr/local/include -I./ \
@@ -17,7 +17,7 @@ pl=$(shell uname)
 
 ifeq ($(pl),Linux)
 PYLIBS = -Dpython `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
-CFLIBS += -DLINUX -pthread `pkg-config --libs sdl` `pkg-config --cflags sdl` 
+CFLIBS += -DLINUX -pthread `../sdl/bin/sdl-config --libs --cflags` 
 GLLIBS += -lGL
 # -lSDL_ttf 
 
