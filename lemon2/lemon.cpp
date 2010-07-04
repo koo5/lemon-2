@@ -359,7 +359,7 @@ struct obj:public Serializable
 	}
 	return 1;
     }
-#include "../toys/atlantis/atlantis.c"
+//#include "../toys/atlantis/atlantis.c"
 #include "../toys/flipflop.c"
 
 
@@ -1415,7 +1415,7 @@ class composite:public obj
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-			        objects.push_back(new atlantis(dpy,attr));
+//			        objects.push_back(new atlantis(dpy,attr));
 				if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
@@ -1869,7 +1869,7 @@ obj* pick(int up, int button, int x, int y)
     int nearest=-1;
     int numhits = glRenderMode(GL_RENDER);
     logit("%i hits", numhits);
-    vector<vector<int>> hits;
+    vector<vector<int> > hits;
     for(i=0,k=0;i<numhits;i++)
     {
 	GLuint numnames=fuf[k++];

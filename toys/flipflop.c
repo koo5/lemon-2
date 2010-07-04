@@ -28,7 +28,7 @@
 
 #undef countof
 #define countof(x) (sizeof((x))/sizeof((*x)))
-
+#define progname "flipflop"
 class flipflop: public obj
 {
 int board_x_size, board_y_size, board_avg_size;
