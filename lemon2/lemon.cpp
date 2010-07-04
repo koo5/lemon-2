@@ -880,7 +880,7 @@ struct face:public obj
 		r_base = 1.0 - b_base;
 		for(x = 0; x < 16; x++)
 		{
-		    x_offset = -1.6 + (x * 0.2);			
+		    x_offset = -1.6 + (x * 0.2);
 		    draw_bar(x_offset, z_offset, spectrum_analyzer::heights[y][x], r_base - (x * (r_base / 15.0)), x * (1.0 / 15), b_base);
 		}
 	    }
@@ -892,9 +892,18 @@ struct face:public obj
     GLfloat spectrum_analyzer::heights[16][16];
 
 #ifdef nerve
+    GLfloat fmin(GLfloat a, GLfloat b)
+    {
+	return a>b?b:a;
+    }
+    GLfloat fmax(GLfloat a, GLfloat b)
+    {
+	return a<b?b:a;
+    }
     class nerverot:public obj
     {
         public:
+        int band;
 	SAVE(nerverot)
 	{
 	    YAML_EMIT_PARENT_MEMBERS(out,obj)
@@ -908,10 +917,16 @@ struct face:public obj
         void draw(int picking)
         {
 	    glPushMatrix();
-	    float sx=1+spectrum_analyzer::heights[0][0]+spectrum_analyzer::heights[0][1]+spectrum_analyzer::heights[0][2]+spectrum_analyzer::heights[0][3]+spectrum_analyzer::heights[0][4];
-	    float sy=1+spectrum_analyzer::heights[0][5]+spectrum_analyzer::heights[0][6]+spectrum_analyzer::heights[0][7]+spectrum_analyzer::heights[0][8]+spectrum_analyzer::heights[0][9];
-	    float sz=1+spectrum_analyzer::heights[0][10]+spectrum_analyzer::heights[0][11]+spectrum_analyzer::heights[0][12]+spectrum_analyzer::heights[0][13]+spectrum_analyzer::heights[0][14]+spectrum_analyzer::heights[0][15];
-	    glScalef(sx,sy,sz);
+	    if(band==-1)
+	    {
+	    float sx=fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][0],spectrum_analyzer::heights[0][1]),spectrum_analyzer::heights[0][2]),spectrum_analyzer::heights[0][3]),spectrum_analyzer::heights[0][4]);
+	    float sy=fmax(sx,fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][5],spectrum_analyzer::heights[0][6]),spectrum_analyzer::heights[0][7]),spectrum_analyzer::heights[0][8]),spectrum_analyzer::heights[0][9]));
+	    float sz=fmax(sy,fmax(fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][10],spectrum_analyzer::heights[0][11]),spectrum_analyzer::heights[0][12]),spectrum_analyzer::heights[0][13]),spectrum_analyzer::heights[0][14]),spectrum_analyzer::heights[0][15]));
+	    glScalef(1+sz,1+sz,1+sz);
+	    }
+	    else
+	    glScalef(1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band]);
+	    
     	    if(picking)
     		gluSphere(gluNewQuadric(),1,10,10);
     	    else
@@ -921,10 +936,12 @@ struct face:public obj
     	    }
     	    glPopMatrix();
         }
-	nerverot()
+	nerverot(float x=0,float y=0,float z=0,int b = -1)
 	{
 	    nerv=nerverot_init(SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h);
+	    t.x=x;t.y=y;t.z=z;
 	    alpha=0.5;
+	    band=b;
 	}
 	~nerverot()
 	{
@@ -1396,7 +1413,7 @@ class composite:public obj
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-//			        objects.push_back(new atlantis(dpy,attr));
+			        objects.push_back(new atlantis(dpy,attr));
 				if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
@@ -2091,9 +2108,11 @@ void lemon (void)
     if(!objects.size())
     {
 	#ifdef GL
-	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
-	//    objects.push_back(comp = new composite);
+	    for(int i=0;i<16;i++)
+		objects.push_back(new nerverot(-10.0f+20.0f/16.0f*(float)i,0,0,i));
+
+	    objects.push_back(comp = new composite);
 	#endif
 //	objects.push_back(active=new face("bash"));
 //	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));

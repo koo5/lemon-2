@@ -1,5 +1,5 @@
 
-DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/*
+DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/* ../sdl/lib/libSDL.so ../yaml-cpp-0.2.5/libyaml-cpp.so
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -38,7 +38,7 @@ TARGETS = lsdl lgl
 all: lgl
 a: $(TARGETS)
 lgl$(EXE): $(DEPS)
-	$(CC) -Dlibpng -lpng -Dnerve -lGLU  -lm -Wno-write-strings  -lXcomposite -lXdamage -lXfixes -lXrender -lX11 
+	$(CC) -pg -Dlibpng -lpng -Dnerve -lGLU  -lm -Wno-write-strings  -lXcomposite -lXdamage -lXfixes -lXrender -lX11 
 
 test :
 	g++ -o test test.cpp  
@@ -51,12 +51,15 @@ clean:
 	rm ./lgl ./lsdl ./lglpy
 	
 
-setup:
-	cd ../yaml-cpp-0.2.5&&\
-	cmake CMakeLists.txt &&\
-	make                &&\
+../sdl/lib/libSDL.so:
 	cd ../SDL-1.2.14    &&\
 	./configure --prefix=`pwd`/../sdl &&\
 	make&&\
-	make install&&\
-	cd ../lemon2
+	make install
+
+../yaml-cpp-0.2.5/libyaml-cpp.so:
+	cd ../yaml-cpp-0.2.5&&\
+	cmake CMakeLists.txt &&\
+	make
+
+
