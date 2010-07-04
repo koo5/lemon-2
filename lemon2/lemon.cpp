@@ -360,6 +360,8 @@ struct obj:public Serializable
 	return 1;
     }
 #include "../toys/atlantis/atlantis.c"
+#include "../toys/flipflop.c"
+
 
 #endif
 struct face:public obj
@@ -2111,6 +2113,7 @@ void lemon (void)
 	    objects.push_back(new spectrum_analyzer);
 	    for(int i=0;i<16;i++)
 		objects.push_back(new nerverot(-10.0f+20.0f/16.0f*(float)i,0,0,i));
+	    objects.push_back(new flipflop);
 
 	    objects.push_back(comp = new composite);
 	#endif
