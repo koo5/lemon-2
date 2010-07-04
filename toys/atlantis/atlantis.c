@@ -131,6 +131,7 @@ class atlantis: public obj
 	float       sharkspeed, whalespeed;
 	int         sharksize;
 	int         wire;
+	int ghost;
 	Bool        whaledir;
 	vector<shark>sharks;
 	whale     momWhale;
@@ -207,24 +208,28 @@ void predraw(int picking)
 	glLoadIdentity();
 	gluPerspective(400.0, aspect, 1.0, 2000000.0);
 	glMatrixMode(GL_MODELVIEW);
-
-	if(picking)return;
-	
-        if (!picking&&wire)
+	glLoadIdentity();
+	glColor3f(0,0,0.1);
+	if(picking||ghost)return;
+	glColor3f(1,1,1);
+        if (wire)
           {
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_CULL_FACE);
             glDisable(GL_LIGHTING);
             glDisable(GL_NORMALIZE);
           }
-        else if (do_texture)
+        else
           {
-            glBindTexture(GL_TEXTURE_2D, gltexture);
-
+            
             glDepthFunc(GL_LEQUAL);
+            
             glEnable(GL_DEPTH_TEST);
+            
             glEnable(GL_CULL_FACE);
+
             glEnable(GL_NORMALIZE);
+
             glShadeModel(GL_SMOOTH);
 
             glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
@@ -240,11 +245,16 @@ void predraw(int picking)
             glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 
-    	    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	     if (do_texture)
+            {
+            glBindTexture(GL_TEXTURE_2D, gltexture);
 
+
+    	    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            
             GLfloat s_plane[] = { 1, 0, 0, 0 };
             GLfloat t_plane[] = { 0, 0, 1, 0 };
-
+           
     	    glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
     	    glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
     	    glTexGenfv(GL_S, GL_EYE_PLANE, s_plane);
@@ -253,11 +263,12 @@ void predraw(int picking)
     	    glEnable(GL_TEXTURE_GEN_S);
     	    glEnable(GL_TEXTURE_GEN_T);
     	    glEnable(GL_TEXTURE_2D);
-
+            
     	    glMatrixMode(GL_TEXTURE);
     	    glLoadIdentity();
     	    glScalef(texscale, texscale, 1);
     	    glMatrixMode(GL_MODELVIEW);
+    	    }          
           }
 }
 
@@ -550,12 +561,14 @@ void AllDisplay()
  *-----------------------------------------------------------------------------
  */
 public:
-atlantis(Display *dpy, XWindowAttributes wgwa)
+atlantis(Display *dpy, XWindowAttributes wgwa,float asp = 1)
 {
+	aspect=asp;
 	texture = minixpm_to_ximage (dpy,wgwa.visual,wgwa.colormap,wgwa.depth,
 	BlackPixelOfScreen(wgwa.screen), sea_texture,0,0,0,0,0);
+	//thats it! thats why the dpy and wgwa
 	inittexture();
-	do_texture=1;
+	do_texture=0;
 	texscale = 0.0005;
 	sharks.resize(5);
 	sharkspeed = 100;		/* has influence on the "width"
@@ -564,6 +577,7 @@ atlantis(Display *dpy, XWindowAttributes wgwa)
 					   of the sharks */
 	whalespeed = 250;
 	wire = 0;
+	ghost=0;
         InitFishs();
         setwire(wire);
 }
@@ -578,15 +592,18 @@ void setwire(int w)
     	dolph.wire=w;
 }
 
-virtual void key(int k)
+virtual void keyp(int key,int uni,int mod)
 {
-    if(k=='w')
+    cout << uni << endl;
+    if(uni=='w')
     {
 	wire=!wire;
 	setwire(wire);
     }
-    else if(k=='t')
+    else if(uni=='t')
 	do_texture=!do_texture;
+    else if(uni=='g')
+	ghost=!ghost;
     
 }
 /*

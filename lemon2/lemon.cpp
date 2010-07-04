@@ -1,4 +1,5 @@
 /*
+nerverot is backwards...
 share height data across windows
 editor
 draw everywhere
@@ -282,7 +283,7 @@ struct obj:public Serializable
     virtual void activate(){
 	active=this;
     }
-    virtual void picked(int up, int b,vector<int>&v)
+    virtual void picked(int up, int b,vector<int>&v,int x,int y)
     {
 	activate();
     }
@@ -313,85 +314,13 @@ struct obj:public Serializable
 	    glPopMatrix();
 	#endif
     }
-    virtual void key(int k)
-    {
-    
-    }
     virtual void keyp(int key,int uni,int mod)
     {
-	obj::key(uni);
     }
     ~obj(){if(active==this)active=0;}
 };
 
-#ifdef nerve
-    class nerverot:public obj
-    {
-        public:
-	SAVE(nerverot)
-	{
-	    YAML_EMIT_PARENT_MEMBERS(out,obj)
-	    save(nerv->please_num)
-	}
-	LOAD
-	{
-	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
-	    load(nerv->please_num)
-	}
-        void draw(int picking)
-        {
-	    
-    	    if(picking)
-    		gluSphere(gluNewQuadric(),1,10,10);
-    	    else
-    	    {
-        	nerverot_update(nerv);
-        	nerverot_draw(3,nerv,alpha);
-    	    }
-        }
-	nerverot()
-	{
-	    nerv=nerverot_init(SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h);
-	    alpha=0.5;
-	}
-	~nerverot()
-	{
-	    nerverot_free(nerv);
-	}
-	void keyp(int key,int uni,int mod)
-	{
-	    switch(key)
-	    {
-		case SDLK_LEFT:
-		    nerverot_cycledown(nerv);
-		    break;
-		case SDLK_RIGHT:
-		    nerverot_cycleup(nerv);
-		    break;
-	    }
-	}
-	void picked(int up, int b,vector<int>&v)
-	{
-	    if(!up)
-		switch(b)
-		{
-		    case SDL_BUTTON_LEFT:
-			nerverot_cycleup(nerv);
-			break;
-		    case SDL_BUTTON_RIGHT:
-		        nerverot_cycledown(nerv);
-		        break;
-		    case SDL_BUTTON_MIDDLE:
-		    default:
-		        activate();
-		}
-	}
-	int getDirty(){return 1;}
-	protected:
-        struct nerverotstate *nerv;
 
-    };
-#endif
 #ifdef threaded
     int update_terminal(void *data)
     {
@@ -822,7 +751,7 @@ struct face:public obj
 	    alpha=0.05;
 	    rz=ry=rz=rotx=roty=rotz=0;
 	}
-	void picked(int up, int  b,vector<int>&v)
+	void picked(int up, int  b,vector<int>&v,int x, int y)
 	{
 	    if(!up)
 		if(b==SDL_BUTTON_LEFT)
@@ -920,6 +849,17 @@ struct face:public obj
 	
 	void draw(int picking)
 	{
+	
+	    FILE *f;
+	    if(f=fopen("/tmp/somefunnyname", "r"))
+	    {
+	    	int16_t buf[2][256];
+		fread(buf,256,2,f);
+    		fclose(f);
+		//remove("/tmp/somefunnyname");
+		oglspectrum_gen_heights(buf);
+	    }
+
 	    int x,y;
 	    GLfloat x_offset, z_offset, r_base, b_base;
 	    glPushMatrix();
@@ -947,18 +887,83 @@ struct face:public obj
 	    alpha=oldalpha;
 	    glEnd();
 	    glPopMatrix();
-	    FILE *f;
-	    if(f=fopen("/tmp/somefunnyname", "r"))
-	    {
-	    	int16_t buf[2][256];
-		fread(buf,256,2,f);
-    		fclose(f);
-		remove("/tmp/somefunnyname");
-		oglspectrum_gen_heights(buf);
-	    }
 	}
     };
     GLfloat spectrum_analyzer::heights[16][16];
+
+#ifdef nerve
+    class nerverot:public obj
+    {
+        public:
+	SAVE(nerverot)
+	{
+	    YAML_EMIT_PARENT_MEMBERS(out,obj)
+	    save(nerv->please_num)
+	}
+	LOAD
+	{
+	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
+	    load(nerv->please_num)
+	}
+        void draw(int picking)
+        {
+	    glPushMatrix();
+	    float sx=1+spectrum_analyzer::heights[0][0]+spectrum_analyzer::heights[0][1]+spectrum_analyzer::heights[0][2]+spectrum_analyzer::heights[0][3]+spectrum_analyzer::heights[0][4];
+	    float sy=1+spectrum_analyzer::heights[0][5]+spectrum_analyzer::heights[0][6]+spectrum_analyzer::heights[0][7]+spectrum_analyzer::heights[0][8]+spectrum_analyzer::heights[0][9];
+	    float sz=1+spectrum_analyzer::heights[0][10]+spectrum_analyzer::heights[0][11]+spectrum_analyzer::heights[0][12]+spectrum_analyzer::heights[0][13]+spectrum_analyzer::heights[0][14]+spectrum_analyzer::heights[0][15];
+	    glScalef(sx,sy,sz);
+    	    if(picking)
+    		gluSphere(gluNewQuadric(),1,10,10);
+    	    else
+    	    {
+        	nerverot_update(nerv);
+        	nerverot_draw(3,nerv,alpha);
+    	    }
+    	    glPopMatrix();
+        }
+	nerverot()
+	{
+	    nerv=nerverot_init(SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h);
+	    alpha=0.5;
+	}
+	~nerverot()
+	{
+	    nerverot_free(nerv);
+	}
+	void keyp(int key,int uni,int mod)
+	{
+	    switch(key)
+	    {
+		case SDLK_LEFT:
+		    nerverot_cycledown(nerv);
+		    break;
+		case SDLK_RIGHT:
+		    nerverot_cycleup(nerv);
+		    break;
+	    }
+	}
+	void picked(int up, int b,vector<int>&v,int x, int y)
+	{
+	    if(!up)
+		switch(b)
+		{
+		    case SDL_BUTTON_LEFT:
+			nerverot_cycleup(nerv);
+			break;
+		    case SDL_BUTTON_RIGHT:
+		        nerverot_cycledown(nerv);
+		        break;
+		    case SDL_BUTTON_MIDDLE:
+		    default:
+		        activate();
+		}
+	}
+	int getDirty(){return 1;}
+	protected:
+        struct nerverotstate *nerv;
+
+    };
+#endif
 #endif
 
 #include <string>
@@ -1099,12 +1104,10 @@ class composite_window:public obj
 	       	 _isvisible(0,0,0);
 	       	 
     }
-    void picked(int up, int  b,vector<int>&v)
+    void picked(int up, int  b,vector<int>&v,int x, int y)
     {
-	obj::picked(up,b,v);
+	obj::picked(up,b,v,x,y);
 	logit("picking...");
-	int x,y;
-	SDL_GetMouseState(&x,&y);
 	GLuint fuf[500];
 	GLint viewport[4];
 	glGetIntegerv (GL_VIEWPORT, viewport);
@@ -1113,7 +1116,6 @@ class composite_window:public obj
         glPushMatrix ();
         glLoadIdentity ();
         gluPickMatrix (x,y,1,1, viewport);
-        perspmatrix();
 	glInitNames();
 	glCallList(dlist);
 	glPopMatrix();
@@ -1126,10 +1128,6 @@ class composite_window:public obj
 	int xx=fuf[3];
 	int yy=fuf[4];
 
-	mousex=xx*rw/cellx;
-	mousey=-(yy*rh/celly);
-
-/*
         glSelectBuffer(500, fuf);
         glRenderMode (GL_SELECT);
         glPushMatrix ();
@@ -1145,10 +1143,9 @@ class composite_window:public obj
 	if(!fuf[0])return;
 	int xxx=fuf[3];
 	int yyy=fuf[4];
-	mousex=xx*rw/cellx+xxx;
+	mousex=(float)xx*cellx+xxx;
 	mousey=-(yy*rh/celly+yyy);
-	cout<<xx<<" "<<yy<<" "<<xxx<<" "<<yyy<<endl;
-*/
+	cout<<xx<<" "<<yy<<" "<<xxx<<" "<<yyy<<" "<<mousex<<" "<<mousey<<endl;
     }
     int mousex,mousey;
     GLuint texture;
@@ -1241,6 +1238,16 @@ class composite_window:public obj
 	if(!picking)glTexCoord2f(1,1);	glVertex2f((float)width/(float)rw,-(float)height/(float)rh);
 	if(!picking)glTexCoord2f(0,1);	glVertex2f(-(float)width/(float)rw,-(float)height/(float)rh);
 	glEnd();
+	
+/*	GLint viewport[4];
+	glGetIntegerv (GL_VIEWPORT, viewport);
+        glPushMatrix ();
+        glLoadIdentity ();
+        gluPickMatrix (x,y,1,1, viewport);
+	glCallList(dlist);
+	glPopMatrix();
+
+*/	
         if(picking)
     	    return;
 	glDisable(GL_TEXTURE_2D);
@@ -1389,7 +1396,7 @@ class composite:public obj
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-			        objects.push_back(new atlantis(dpy,attr));
+//			        objects.push_back(new atlantis(dpy,attr));
 				if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
@@ -1526,7 +1533,7 @@ class fontwatcher:public obj
 	    if (size)gluSphere(gluNewQuadric(),size,10,10);
 	#endif
     }
-    void picked(int b,vector<int>&v)
+    void picked(int b,vector<int>&v, int x, int y)
     {
 	loadfont(fnfl);
     }
@@ -1652,7 +1659,7 @@ class buttons:public obj
 	}
 //	glLoadName(-1);
     }
-    void picked(int up, int b, vector<int> &v)
+    void picked(int up, int b, vector<int> &v, int x, int y)
     {
 	if(!up&&b&&is face*>(active))
 	{
@@ -1869,10 +1876,10 @@ obj* pick(int up, int button, int x, int y)
     {
         if(hits.at(nearest).size())
         {
-	    obj *x=objects.at(hits.at(nearest)[0]);
+	    obj *o=objects.at(hits.at(nearest)[0]);
 	    hits.at(nearest).erase(hits.at(nearest).begin());
 	    //lets send the name stack, without the first hit, which identifies object
-	    x->picked(up, button,hits.at(nearest));
+	    o->picked(up, button,hits.at(nearest),x,y);
 	}
     }
 
@@ -2047,7 +2054,7 @@ void moveit(Uint8*k)
 }
 void lemon (void)
 {
-    cam.z=1;
+    cam.z=10;
     cam.x=cam.y=0;
     int normalize;
     xy ss;
@@ -2086,9 +2093,9 @@ void lemon (void)
 	#ifdef GL
 	    objects.push_back(new nerverot);
 	    objects.push_back(new spectrum_analyzer);
-	    objects.push_back(comp = new composite);
+	//    objects.push_back(comp = new composite);
 	#endif
-	objects.push_back(active=new face("bash"));
+//	objects.push_back(active=new face("bash"));
 //	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
 //	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
 //	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));
@@ -2151,7 +2158,7 @@ void lemon (void)
 
 		}
 		SDL_GL_SwapBuffers( );
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	    #else
 		SDL_UpdateRect(s,0,0,0,0);
 	    #endif

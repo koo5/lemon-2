@@ -1066,8 +1066,8 @@ static void threed_draw (struct nerverotstate *st, double alpha)
 	    int i;
 	    for (i = 1; i < blotShapeCount; i++)
 	    {
-		FLOAT rx=(st->minRadius + (1-winz)*(st->maxRadius - st->minRadius))/st->windowWidth*2.0;
-		FLOAT ry=(st->minRadius + (1-winz)*(st->maxRadius - st->minRadius))/st->windowHeight*2.0;
+		FLOAT rx=(st->minRadius + (winz)*(st->maxRadius - st->minRadius))/st->windowWidth*2.0;
+		FLOAT ry=(st->minRadius + (winz)*(st->maxRadius - st->minRadius))/st->windowHeight*2.0;
 
 		glVertex3f(
 		    b->ip[0]+(blotShape[i-1].x+ b->xoff[1+blotShape[i-1].x][1+blotShape[i-1].y]* st->maxNerveRadius) *rx,
