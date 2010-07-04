@@ -1163,7 +1163,7 @@ class composite_window:public obj
 	int xxx=fuf[3];
 	int yyy=fuf[4];
 	mousex=(float)xx*cellx+xxx;
-	mousey=-(yy*rh/celly+yyy);
+	mousey=-(yy*celly+yyy);
 	cout<<xx<<" "<<yy<<" "<<xxx<<" "<<yyy<<" "<<mousex<<" "<<mousey<<endl;
     }
     int mousex,mousey;
@@ -2110,10 +2110,10 @@ void lemon (void)
     if(!objects.size())
     {
 	#ifdef GL
-	    objects.push_back(new spectrum_analyzer);
-	    for(int i=0;i<16;i++)
-		objects.push_back(new nerverot(-10.0f+20.0f/16.0f*(float)i,0,0,i));
-	    objects.push_back(new flipflop);
+//	    objects.push_back(new spectrum_analyzer);
+//	    for(int i=0;i<16;i++)
+//		objects.push_back(new nerverot(-10.0f+20.0f/16.0f*(float)i,0,0,i));
+//	    objects.push_back(new flipflop);
 
 	    objects.push_back(comp = new composite);
 	#endif
@@ -2622,7 +2622,7 @@ d(WINDOWS) && !defined(OSX)
 				norm&=(!system(c))<<1;
 				//free(c);
 			    }
-			    system("wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz");
+			    //system("wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz");
 			    #endif
 			    SDL_Surface *ns;
 			    ns=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
