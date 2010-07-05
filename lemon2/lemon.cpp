@@ -1,10 +1,9 @@
 /*
+s3d
+editor
+client server copying
 nerverot is backwards...
 share height data across windows
-editor
-draw everywhere
-client server copying
-s3d
 */
 /*******************************************************************
 * Description:
@@ -83,6 +82,11 @@ s3d
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
 #define for_each_composite_window for_each_object if (as composite_window*>(o)){composite_window*c=as composite_window*>(o);
 #define endfor }
+using namespace std;
+using namespace YAML;
+
+
+
 
 float znear=1;
 float zfar=20;
@@ -98,8 +102,6 @@ struct Settingz
     int32_t givehelp;
     double lv;//glLineWidth
 }settingz={0,1,1};//WTF
-using namespace std;
-using namespace YAML;
 #include "../gltext.c"
 char *fnfl;//font file
 char *stng;//settingz
@@ -191,13 +193,6 @@ void sdle(void)
 }
 
 
-typedef struct
-{
-    RoteTerm* t;
-    SDL_mutex *lock;
-    SDL_Thread *thr;
-}
-moomoo;
 struct obj;
 
 #define SAVE(class) 	YAML_SERIALIZABLE_AUTO(class)\
@@ -227,11 +222,28 @@ struct v3d:public Serializable
     }
 };
 
+/*
+class LoUT
+{
+    friend istream & operator >> (istream &in, LoUT l);
+
+};
+    istream & operator >> (istream &in, LoUT l)
+    {
+	string s;
+	in>>s;
+	logit(s.c_str());
+	return in;
+    }
+
+LoUT lout;
+*/
+
 v3d cam;
 v3d look;
 v3d cr;
 
-void perspmatrix()
+void viewmatrix()
 {
     #ifdef GL
 	glFrustum(-1,1,-1,1,znear,zfar);
@@ -314,49 +326,6 @@ struct obj:public Serializable
 
 #include "../toys/atlantis/atlantis.c"
 #include "../toys/flipflop.c"
-
-
-
-#ifdef threaded
-    int update_terminal(void *data)
-    {
-	while(1)
-    	{
-	    moomoo * d = (moomoo *)data;
-	    char buf[512512];
-	    int br=-1;
-	    //logit("UNLOCKED SELECT\n");
-	    rote_vt_update_thready(buf, 512512, &br, d->t);
-	    //logit("*end SELECT, locking %i*\n", d->lock);
-	    _mutexP(d->lock);
-	    //logit("LOCKED\n");
-	    if (br>0)
-	    {
-	        //logit("*locked injecting\n");
-	        rote_vt_inject(d->t, buf, br);
-	        //logit("*locked injected\n");
-	        SDL_Event e;
-	        e.type=SDL_USEREVENT;
-	        e.user.code=CODE_DATA;
-	        e.user.data1=d->t;
-	        SDL_PushEvent(&e);
-	    }
-	    if(!d->t->childpid)
-	    {
-	        SDL_Event e;
-	        e.type=SDL_USEREVENT;
-	        e.user.code=CODE_QUIT;
-	        e.user.data1=d->t;
-	        SDL_PushEvent(&e);
-	        _mutexV(d->lock);
-	        return 1;
-	    }
-	    _mutexV(d->lock);
-	}
-	return 1;
-    }
-#endif
-
 
 
 
@@ -1123,37 +1092,38 @@ class composite_window:public obj
         glPushMatrix ();
         glLoadIdentity ();
         gluPickMatrix (x,y,1,1, viewport);
+        viewmatrix();
 	glInitNames();
 	glCallList(dlist);
 	glPopMatrix();
 	int numhits;
 	gle();
 	logit("%i hits",numhits=glRenderMode(GL_RENDER));
-	gle();
 	if(!numhits)return;
 	if(fuf[0]!=2)return;
-	int xx=fuf[3];
-	int yy=fuf[4];
+	xx=fuf[3];
+	yy=fuf[4];
 
         glSelectBuffer(500, fuf);
         glRenderMode (GL_SELECT);
         glPushMatrix ();
         glLoadIdentity ();
-        gluPickMatrix (x,y,1,1, viewport);
-        perspmatrix();
-        glTranslatef(cellx*xx-1,celly*yy-1,0);
+        gluPickMatrix (x,y,3,3, viewport);
+        viewmatrix();
+        glTranslatef(2/cellx*xx-1,2/celly*yy-1,0);
         glScalef(2/cellx, 2/celly,1);
 	glCallList(dlist);
 	glPopMatrix();
 	logit("%i hits",numhits=glRenderMode(GL_RENDER));
 	if(!numhits)return;
-	if(!fuf[0])return;
+	if(fuf[0]>2)return;
 	int xxx=fuf[3];
 	int yyy=fuf[4];
 	mousex=(float)xx*cellx+xxx;
 	mousey=-(yy*celly+yyy);
-	cout<<xx<<" "<<yy<<" "<<xxx<<" "<<yyy<<" "<<mousex<<" "<<mousey<<endl;
+	logit("xx:%i yy:%i xxx:%i yyy:%i mousex:%i mousey:%i",xx,yy,xxx,yyy,mousex,mousey);
     }
+    int xx,yy;
     int mousex,mousey;
     GLuint texture;
     Display *dpy;
@@ -1246,15 +1216,6 @@ class composite_window:public obj
 	if(!picking)glTexCoord2f(0,1);	glVertex2f(-(float)width/(float)rw,-(float)height/(float)rh);
 	glEnd();
 	
-/*	GLint viewport[4];
-	glGetIntegerv (GL_VIEWPORT, viewport);
-        glPushMatrix ();
-        glLoadIdentity ();
-        gluPickMatrix (x,y,1,1, viewport);
-	glCallList(dlist);
-	glPopMatrix();
-
-*/	
         if(picking)
     	    return;
 	glDisable(GL_TEXTURE_2D);
@@ -1303,8 +1264,8 @@ class composite:public obj
     Atom a;
     void genlists()
     {
-	cellx=2/sqrt(rw);
-	celly=2/sqrt(rh);
+	cellx=sqrt(rw);
+	celly=sqrt(rh);
     	dlist = glGenLists(1);
 	glNewList(dlist,GL_COMPILE);
 	glPushName(0);
@@ -1319,9 +1280,9 @@ class composite:public obj
 		glLoadName(ny++);
 		glBegin(GL_QUADS);
 		glVertex2f(x, y);
-		glVertex2f(x+cellx, y);
-		glVertex2f(x+cellx, y+celly);
-		glVertex2f(x, y+celly);
+		glVertex2f(x+2/cellx, y);
+		glVertex2f(x+2/cellx, y+2/celly);
+		glVertex2f(x, y+2/celly);
 		glEnd();
 	    }
 	    ny=0;
@@ -1371,8 +1332,8 @@ class composite:public obj
         SDL_VERSION(&i.version)
         if(SDL_GetWMInfo(&i))
         {
-    	    cout << "d:"<<i.info.x11.display<<endl;
-    	    cout << "gfxd:"<<i.info.x11.gfxdisplay<<endl;
+    	    logit("d:%u",i.info.x11.display);
+    	    logit("gfxd:%u",i.info.x11.gfxdisplay);
     	    dpy=i.info.x11.display;
     	    SDL_EventState(SDL_SYSWMEVENT,SDL_ENABLE);
     	    scr=DefaultScreen(dpy);
@@ -1848,7 +1809,7 @@ obj* pick(int up, int button, int x, int y)
     glPushMatrix ();
     glLoadIdentity ();
     gluPickMatrix (x,y,10,10, viewport);
-    perspmatrix();
+    viewmatrix();
     glInitNames();
     glPushName(-1);
     for_each_object
@@ -2101,7 +2062,7 @@ void lemon (void)
 //    loadobjects();
     if(!objects.size())
     {
-    	objects.push_back(loggerface=new logger(-5,0,0,0,0,0));
+    	objects.push_back(loggerface=new logger(-5,0,0,0,70,0));
 	#ifdef GL
 //	    objects.push_back(new spectrum_analyzer);
 //	    for(int i=0;i<16;i++)
@@ -2136,11 +2097,10 @@ void lemon (void)
                 gle();
         	glLoadIdentity();
         	gle();
-	        //perspmatrix();
-	        glScalef(1/cam.z,1/cam.z,1);
+	        viewmatrix();
 	        gle();
 	        if(SDL_GetMouseState(0,0)||mousemoved)
-	    	vispick();
+	    	    vispick();
 	    	gle();
 	    #else
 		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
@@ -2157,20 +2117,15 @@ void lemon (void)
 	    gle();
 		if(settingz.givehelp)
 		{	
+		    glPushMatrix();
 		    glLoadIdentity();
 	    	    glOrtho(0,1200,1200,0,0,1);
-		    glPushMatrix();
-//		    glRotatef(90,0,0,1);
-//		    glTranslatef(0,-w,0);
 		    if(!(escaped||k[SDLK_RCTRL]))
 		    
 			draw_text("\npress right ctrl for more fun...");
 		    else
 			draw_text("\nnow press f12 to zoom out,\nf9 to zoom in\ndel end home and pgdn to resize terminal...\nh to hide help");
 		    glPopMatrix();
-		    glLoadIdentity();
-	    	  //  perspmatrix();
-
 		}
 		SDL_GL_SwapBuffers( );
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);

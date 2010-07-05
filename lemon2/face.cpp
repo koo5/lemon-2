@@ -1,3 +1,53 @@
+typedef struct
+{
+    RoteTerm* t;
+    SDL_mutex *lock;
+    SDL_Thread *thr;
+}
+moomoo;
+
+#ifdef threaded
+    int update_terminal(void *data)
+    {
+	while(1)
+    	{
+	    moomoo * d = (moomoo *)data;
+	    char buf[512512];
+	    int br=-1;
+	    //logit("UNLOCKED SELECT\n");
+	    rote_vt_update_thready(buf, 512512, &br, d->t);
+	    //logit("*end SELECT, locking %i*\n", d->lock);
+	    _mutexP(d->lock);
+	    //logit("LOCKED\n");
+	    if (br>0)
+	    {
+	        //logit("*locked injecting\n");
+	        rote_vt_inject(d->t, buf, br);
+	        //logit("*locked injected\n");
+	        SDL_Event e;
+	        e.type=SDL_USEREVENT;
+	        e.user.code=CODE_DATA;
+	        e.user.data1=d->t;
+	        SDL_PushEvent(&e);
+	    }
+	    if(!d->t->childpid)
+	    {
+	        SDL_Event e;
+	        e.type=SDL_USEREVENT;
+	        e.user.code=CODE_QUIT;
+	        e.user.data1=d->t;
+	        SDL_PushEvent(&e);
+	        _mutexV(d->lock);
+	        return 1;
+	    }
+	    _mutexV(d->lock);
+	}
+	return 1;
+    }
+#endif
+
+
+
 struct face:public terminal
 {
     moomoo upd_t_data;

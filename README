@@ -5,7 +5,7 @@ cd lemon/lemon2
 make
 ./l
 
-#to pull updates, discard your changes with
+#b4 pulling updates, discard your changes with
 #git reset --hard HEAD
 
 #optional
