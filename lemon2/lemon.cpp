@@ -312,7 +312,7 @@ struct obj:public Serializable
 
 
 
-//#include "../toys/atlantis/atlantis.c"
+#include "../toys/atlantis/atlantis.c"
 #include "../toys/flipflop.c"
 
 
@@ -361,14 +361,13 @@ struct obj:public Serializable
 
 
 
-struct face:public obj
+struct terminal:public obj
 {
     char *status;
     RoteTerm *t;
     Uint32 last_resize;
     int lastxresize;
     int lastyresize;
-    moomoo upd_t_data;
     int scroll;
     int oldcrow, oldccol;
     Uint32 lastrotor;
@@ -376,7 +375,7 @@ struct face:public obj
     int selstartx,selstarty,selendx,selendy;
     int getDirty(){return dirty||t->dirty;}
     void setDirty(int d){t->dirty=d;obj::setDirty(d);}
-    SAVE(face)
+    SAVE(terminal)
     {
 	YAML_EMIT_PARENT_MEMBERS(out,obj)
     }
@@ -395,25 +394,12 @@ struct face:public obj
 	s.x=0.002;
 	s.y=-0.005;
 	s.z=0.002;
+	obj::t.x=obj::t.y=obj::t.z=0;
+	r.x=r.y=r.z=0;
     }
-    face(double x=0, double y=0, int w=80, int h=28)
+    terminal()
     {
 	init();
-	obj::t.x=x;obj::t.y=y;
-	add_term(w,h,"bash");
-    }
-    face(char* run, double x, double y, double z, double a, double b, double c)
-    {
-	init();
-	obj::t.x=x;obj::t.y=y;obj::t.z=z;
-	r.x=a;r.y=b;r.z=c;
-	add_terminal(run);
-    }
-        
-    face(const char*run)
-    {
-	init();
-	add_terminal(run);
     }
     void type(const char * x)
     {
@@ -423,14 +409,9 @@ struct face:public obj
 	    x++;
 	}
     }
-    ~face()
+    ~terminal()
     {
 	rote_vt_destroy(t);
-	#ifdef threaded
-	    SDL_DestroyMutex(upd_t_data.lock);
-	    SDL_KillThread(upd_t_data.thr);
-	#endif
-	cout << "terminal destroyed"<<endl;
     }
     void resizooo(int xx, int yy, Uint8* duck)
     {
@@ -450,6 +431,7 @@ struct face:public obj
         {
     	    rote_vt_resize(t, t->rows+yy,t->cols+xx);
 	    last_resize=SDL_GetTicks();
+	    printstatus("%i x %i", t->rows, t->cols);
 	}
 	lastxresize=xx;
 	lastyresize=yy;
@@ -471,46 +453,10 @@ struct face:public obj
     {
 	if(status)free(status);
 	status=s;
+	dirty=1;
     }
 
-    #ifndef threaded
-	void updateterminal()
-	{
-    	    rote_vt_update(t);
-    	    if(d->t->stoppedscrollback)
-	    	scroll=t->logl;
-
-    	    if(!t->childpid)
-    	    {
-	        SDL_Event e;
-	        e.type=SDL_USEREVENT;
-	        e.user.code=CODE_QUIT;
-	        e.user.data1=t;
-	        SDL_PushEvent(&e);
-	    }
-	}
-    #endif
-
-    void add_term(int c,int r,const char *run)
-    {
-	logit("adding terminal");
-	t = rote_vt_create(r,c);
-	if(originalldpreload)
-	    rote_vt_forkpty((RoteTerm*) t, run, "LD_PRELOAD", originalldpreload);
-	else
-	    rote_vt_forkpty((RoteTerm*) t, run, 0, 0);
-	#ifdef threaded
-	    upd_t_data.lock=SDL_CreateMutex();
-	    upd_t_data.t=t;
-	    logit("upd_t_data.lock=%i",upd_t_data.lock);
-	    upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&upd_t_data);
-	#endif
-    }
-    void add_terminal(const char *run)
-    {
-	add_term(SDL_GetVideoSurface()->w/26*3,SDL_GetVideoSurface()->h/26,run);
-    }
-    
+    //FAIL
     void ghost()
     {
 	glPushMatrix();
@@ -604,18 +550,6 @@ struct face:public obj
 	    }
     	    sdlkeys(t,key,uni,mod);
 	}
-    }
-    void lock()
-    {
-        #ifdef threaded
-    	    if(t)_mutexP(upd_t_data.lock);
-	#endif
-    }
-    void unlock()
-    {
-        #ifdef threaded
-	    if(t)_mutexV(upd_t_data.lock);
-	#endif
     }
     void draw_terminal(int theme=0, double alpha=1)
     {
@@ -741,20 +675,23 @@ struct face:public obj
 	#ifdef GL
 	    oldcrow=t->crow;//4 cursor rotation
 	    oldccol=t->ccol;
+	    glEnd();
+
 	    if(status)
 	    {
 		glPushMatrix();
-		glTranslatef(-(((1+t->cols)/2.0))*26,(s+((1+t->rows)/2.0))*26,0);
+		glTranslatef(-t->cols/2.0*26,(s+((1+t->rows)/2.0))*26,0);
 		glColor4f(0,1,0,alpha);
 		draw_text(status);
-		glPushMatrix();
+		glPopMatrix();
+	    }
 
-	    glEnd();
 	#endif
     }
 };
-
+#include "face.cpp"
 #include "logger.cpp"
+logger * loggerface;
 void slogit(const char * iFormat, ...)
 {
     char* s=(char*)malloc(101);
@@ -762,8 +699,8 @@ void slogit(const char * iFormat, ...)
     va_start(argp, iFormat);
     vsnprintf(s,101,iFormat, argp);
     va_end(argp);
-    if(logger)
-	logger->slogit(s);
+    if(loggerface)
+	loggerface->slogit(s);
 }
 
 void logit(const char * iFormat, ...)
@@ -773,13 +710,10 @@ void logit(const char * iFormat, ...)
     va_start(argp, iFormat);
     vsnprintf(s,101,iFormat, argp);
     va_end(argp);
-    if(logger)
-	logger->logit(s);
+    if(loggerface)
+	loggerface->logit(s);
     else
-    {
-	printf(s);
-	printf("\n");
-    }
+	printf("%s\n",s);
     free(s);
 }
 
@@ -2167,6 +2101,7 @@ void lemon (void)
 //    loadobjects();
     if(!objects.size())
     {
+    	objects.push_back(loggerface=new logger(-5,0,0,0,0,0));
 	#ifdef GL
 //	    objects.push_back(new spectrum_analyzer);
 //	    for(int i=0;i<16;i++)
