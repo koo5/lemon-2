@@ -257,6 +257,10 @@ void viewmatrix()
 
 vector<obj *> objects;
 obj * active;
+
+
+
+
 struct obj:public Serializable
 {
     SAVE(obj)
@@ -321,6 +325,11 @@ struct obj:public Serializable
     }
     ~obj(){if(active==this)active=0;}
 };
+
+YAML::Emitter& operator<<(YAML::Emitter& out, const obj* &p)
+{
+    p->emit_yaml(out); return out;
+}
 
 
 
@@ -1739,59 +1748,34 @@ void savesettings(void)
     tpl_free(tn);
 }
 
-/*
 void loadobjects(void)
 {
-    face *g;
-    tpl_node *tn;
-    double a,b,c;
-    int32_t t,cols,rows;
-    tn = tpl_map("A(fffiii)",&a,&b,&c,&t,&cols,&rows);
-    tpl_load(tn,TPL_FILE, fcfl);
-    while(tpl_unpack(tn,1)>0)
-    {
-	g=new_face();
-	g->scale=a;
-	g->x=b;
-	g->y=c;
-	if(t)
-	{
-	    logit("adding term with %i %i, scale %f", rows,cols,a);
-	    add_term(g,rows,cols);
-	}
-	g->theme=4;
-	faces.push_back(g);
+    std::ifstream fin("world.yaml");
+    YAML::Parser parser(fin);
+    YAML::Node doc;
+    while(parser.GetNextDocument(doc)) {
+        for(unsigned int i=0;i<doc.size();i++) {
+            string n;
+            doc[i]["Class"]>>n;
+            cout << n <<endl;
+            
+            
+        }
     }
-    tpl_free(tn);
 }
 
 void saveobjects(void)
 {
-    face *f1;
-    tpl_node *tn;
-    double a,b,c;
-    int32_t t,cols,rows;
-    tn = tpl_map("A(fffiii)",&a,&b,&c,&t,&cols,&rows);
-    for(int i=0;i<faces.size(); i++)
-    {
-        f1=faces.at(i);
-	if(!f1->scripted)
-	{
-	    a=f1->scale;
-	    b=f1->x;
-	    c=f1->y;
-	    t=f1->t?1:0;
-	    logit("saving face with t:%i,scale %f", t,a);
-	    cols=f1->t?f1->t->cols:0;
-	    rows=f1->t?f1->t->rows:0;
-
-	    tpl_pack(tn,1);
-	}
-    }
-    tpl_dump(tn, TPL_FILE, fcfl);
-    tpl_free(tn);
+    ofstream fout("world.yaml");
+    Emitter out;
+    out << BeginSeq;
+    for_each_object
+	if(!is composite_window*>(o))
+	    out << *o;
+    endfor
+    out << EndSeq;
+    fout << out.c_str();
 }
-*/
 
 
 #ifdef GL
@@ -2059,10 +2043,10 @@ void lemon (void)
 	updatelinesmooth();
 	glClear(GL_COLOR_BUFFER_BIT);
     #endif
-//    loadobjects();
+    loadobjects();
     if(!objects.size())
     {
-    	objects.push_back(loggerface=new logger(-5,0,0,0,70,0));
+    	objects.push_back(loggerface=new logger(-8,0,0,0,70,0));
 	#ifdef GL
 //	    objects.push_back(new spectrum_analyzer);
 //	    for(int i=0;i<16;i++)
@@ -2110,7 +2094,7 @@ void lemon (void)
 	    for_each_object
 		if( o->overlay)o->translate_and_draw(0);}
 	    gle();
-	    if((escaped||k[SDLK_RCTRL]))
+	   // if((escaped||k[SDLK_RCTRL]))
 	    	showfocus();
 
 	    #ifdef GL
@@ -2151,7 +2135,6 @@ void lemon (void)
 	    //logit("---------locked goooin %i\n", event.type);
 	    if(x)SDL_RemoveTimer(x);
 	    x=0;
-	    int rootdamaged=1;
 	    do
 	    {
 		if(event.type!=SDL_MOUSEMOTION||!SDL_GetMouseState(0,0))
@@ -2586,7 +2569,7 @@ d(WINDOWS) && !defined(OSX)
 		    else
 		    {
 			savemode(w,h,mdfl);
-			//savefaces();
+			saveobjects();
 		    }
 		}
 	}
@@ -2612,8 +2595,8 @@ int main(int argc, char *argv[])
 	if(path)
 	{
 		logit("path:%s", path);
-		char* n=strrchr(path, 0);
 		path=(char*)realloc(path, 100+strlen(path));
+		char* n=strrchr(path, 0);
 		fnfl=strdup(strcat(path, "l1"));		*n=0;
 		clfl=strdup(strcat(path, "colors"));		*n=0;
 		stng=strdup(strcat(path, "settings"));		*n=0;

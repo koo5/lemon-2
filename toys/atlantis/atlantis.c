@@ -637,6 +637,18 @@ void draw(int picking)
     sharks.clear();
 }
 
+
+    SAVE(atlantis)
+    {
+	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD
+    {
+	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    }
+
+
+
 };
 
 #define has_atlantis
