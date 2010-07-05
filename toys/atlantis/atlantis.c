@@ -1,3 +1,6 @@
+
+#if __GNUC__ > 4 ||(__GNUC__ == 4 && (__GNUC_MINOR__ > 3))
+
 /* atlantis --- Shows moving 3D sea animals */
 
 #if 0
@@ -636,3 +639,5 @@ void draw(int picking)
 
 };
 
+#define has_atlantis
+#endif

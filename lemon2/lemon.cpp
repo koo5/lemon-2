@@ -156,19 +156,9 @@ float floabs(float x)
 {
     return x>0 ? x : -x;
 }
-void slogit(const char * iFormat, ...)
-{
+void slogit(const char * iFormat, ...);
+void logit(const char * iFormat, ...);
 
-}
-
-void logit(const char * iFormat, ...)
-{
-    va_list argp;
-    va_start(argp, iFormat);
-    vprintf(iFormat, argp);
-    va_end(argp);
-    printf("\n");
-}
 
 
 void gle(void)
@@ -321,6 +311,12 @@ struct obj:public Serializable
 };
 
 
+
+//#include "../toys/atlantis/atlantis.c"
+#include "../toys/flipflop.c"
+
+
+
 #ifdef threaded
     int update_terminal(void *data)
     {
@@ -359,13 +355,15 @@ struct obj:public Serializable
 	}
 	return 1;
     }
-//#include "../toys/atlantis/atlantis.c"
-#include "../toys/flipflop.c"
-
-
 #endif
+
+
+
+
+
 struct face:public obj
 {
+    char *status;
     RoteTerm *t;
     Uint32 last_resize;
     int lastxresize;
@@ -388,6 +386,7 @@ struct face:public obj
     }
     void init()
     {
+	status=0;
 	last_resize=lastxresize=lastyresize=0;
 	scroll=0;
 	oldcrow=oldccol=-1;
@@ -454,6 +453,24 @@ struct face:public obj
 	}
 	lastxresize=xx;
 	lastyresize=yy;
+	
+    }
+
+    void printstatus(const char * iFormat, ...)
+    {
+	char *s = (char*)malloc(99);
+	va_list argp;
+	va_start(argp, iFormat);
+	vsnprintf(s,99,iFormat, argp);
+	va_end(argp);
+	updatestatus(s);
+    }
+
+
+    void updatestatus(char *s)
+    {
+	if(status)free(status);
+	status=s;
     }
 
     #ifndef threaded
@@ -724,10 +741,48 @@ struct face:public obj
 	#ifdef GL
 	    oldcrow=t->crow;//4 cursor rotation
 	    oldccol=t->ccol;
+	    if(status)
+	    {
+		glPushMatrix();
+		glTranslatef(-(((1+t->cols)/2.0))*26,(s+((1+t->rows)/2.0))*26,0);
+		glColor4f(0,1,0,alpha);
+		draw_text(status);
+		glPushMatrix();
+
 	    glEnd();
 	#endif
     }
 };
+
+#include "logger.cpp"
+void slogit(const char * iFormat, ...)
+{
+    char* s=(char*)malloc(101);
+    va_list argp;
+    va_start(argp, iFormat);
+    vsnprintf(s,101,iFormat, argp);
+    va_end(argp);
+    if(logger)
+	logger->slogit(s);
+}
+
+void logit(const char * iFormat, ...)
+{
+    char* s=(char*)malloc(101);
+    va_list argp;
+    va_start(argp, iFormat);
+    vsnprintf(s,101,iFormat, argp);
+    va_end(argp);
+    if(logger)
+	logger->logit(s);
+    else
+    {
+	printf(s);
+	printf("\n");
+    }
+    free(s);
+}
+
 
 #ifdef GL
     struct spectrum_analyzer:public obj
@@ -1414,7 +1469,9 @@ class composite:public obj
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-//			        objects.push_back(new atlantis(dpy,attr));
+#ifdef has_atlantis
+			        objects.push_back(new atlantis(dpy,attr));
+#endif
 				if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
