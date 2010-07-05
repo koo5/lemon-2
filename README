@@ -1,5 +1,5 @@
 sudo aptitude update
-sudo aptitude install make cmake g++ libncurses-dev  git-core xclip pkg-config #mplayer
+sudo aptitude install libgl-dev libglu-dev libpng-dev libxcomposite-dev libxdamage-dev libxrender-dev make cmake g++ libncurses-dev  git-core xclip pkg-config #mplayer
 git clone  git://github.com/koo5/lemon.git
 cd lemon/lemon2
 make

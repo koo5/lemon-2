@@ -1,5 +1,5 @@
 #include "../rote.h"
-#include "SDL/SDL_keysym.h"
+#include "SDL_keysym.h"
 #include <stdio.h>
 
 void sdlkeys(RoteTerm *t, int key, int unicode, int mod)

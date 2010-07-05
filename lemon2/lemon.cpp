@@ -1081,7 +1081,6 @@ static int _XPrintDefaultError(
     if (event->error_code == BadImplementation) return 0;
     return 1;
 }
-
 unsigned int rw,rh;
 float cellx,celly;
 GLuint dlist;
@@ -1498,7 +1497,9 @@ class composite:public obj
     	}
     }
 };
+
 composite *comp;
+
 #ifdef fontwatcher
 #include <sys/inotify.h>
 int fontwatcherthread(void *data);
