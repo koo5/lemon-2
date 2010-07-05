@@ -201,6 +201,8 @@ struct obj;
 #define LOAD	void load_members(const Node& doc)
 #define save(x) YAML_EMIT_MEMBER(out, x);
 #define load(x) YAML_LOAD_MEMBER(doc, x);
+#define vsave(x) YAML_EMIT(out, x);
+#define vload(x) YAML_LOAD(doc, x);
 struct v3d:public Serializable
 {
     SAVE(v3d)
@@ -356,10 +358,20 @@ struct terminal:public obj
     SAVE(terminal)
     {
 	YAML_EMIT_PARENT_MEMBERS(out,obj)
+	int cols, rows;
+	cols=t->cols;
+	rows=t->rows;
+	vsave(cols)
+	vsave(rows)
     }
     LOAD
     {
     	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    	int cols, rows;
+    	vload(cols)
+    	vload(rows)
+	rote_vt_resize(t,rows,cols);
+	rote_vt_clear(t);
     }
     void init()
     {
@@ -1225,6 +1237,23 @@ class composite_window:public obj
 	if(!picking)glTexCoord2f(0,1);	glVertex2f(-(float)width/(float)rw,-(float)height/(float)rh);
 	glEnd();
 	
+	
+	glColor4f(0,1,0,0.3);
+        glPushMatrix ();
+        glLoadIdentity ();
+        viewmatrix();
+	glCallList(dlist);
+	glPopMatrix();
+        glPushMatrix ();
+        glLoadIdentity ();
+        viewmatrix();
+        glTranslatef(2/cellx*xx-1,2/celly*yy-1,0);
+        glScalef(2/cellx, 2/celly,1);
+	glColor4f(1,0,0,0.3);
+	glCallList(dlist);
+	glPopMatrix();
+
+	
         if(picking)
     	    return;
 	glDisable(GL_TEXTURE_2D);
@@ -1373,9 +1402,6 @@ class composite:public obj
 				logit("HAPPY");
 				XWindowAttributes attr;
 				XGetWindowAttributes( dpy, root, &attr );
-#ifdef has_atlantis
-			        objects.push_back(new atlantis(dpy,attr));
-#endif
 				if(XShmQueryExtension(dpy))
 				{
 				    int shm_pixmaps;
@@ -1755,11 +1781,22 @@ void loadobjects(void)
     YAML::Node doc;
     while(parser.GetNextDocument(doc)) {
         for(unsigned int i=0;i<doc.size();i++) {
-            string n;
-            doc[i]["Class"]>>n;
-            cout << n <<endl;
-            
-            
+            string nn;
+            doc[i]["Class"]>>nn;
+            const char *n=nn.c_str();
+            obj * o = 0;
+            if(!strcmp("face",n))
+        	o=new face;
+	    #ifdef has_atlantis
+            else if(!strcmp("atlantis",n))
+        	o=new atlantis;
+	    #endif
+            else if(!strcmp("composite",n))
+        	o=comp=new composite;
+            else if(!strcmp("logger",n))
+        	o=loggerface=new logger;
+    	    if(o)
+    		objects.push_back(o);
         }
     }
 }
@@ -1842,6 +1879,11 @@ obj* pick(int up, int button, int x, int y)
 }
 void vispick()
 {
+    glMatrixMode (GL_MODELVIEW);
+    glPushMatrix ();
+    glLoadIdentity ();
+    viewmatrix();
+
     for_each_object
 	o->translate_and_draw(2);
     endfor
@@ -2056,6 +2098,10 @@ void lemon (void)
 	    objects.push_back(comp = new composite);
 	#endif
 	objects.push_back(active=new face("bash"));
+#ifdef has_atlantis
+        objects.push_back(new atlantis);
+#endif
+
 //	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
 //	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
 //	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));

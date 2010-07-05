@@ -277,6 +277,7 @@ namespace YAML
     \sa YAML::Serializable::emit_members()
     **/
     #define YAML_EMIT_MEMBER(emitter,member) emitter << YAML::Key << #member << YAML::Value << this->member
+    #define YAML_EMIT(emitter,member) emitter << YAML::Key << #member << YAML::Value << member
 
     /** \def YAML_LOAD_PARENT_MEMBERS(doc, parent_class_name)
     Autogenerate the code to load all of a class's parent's members
@@ -330,6 +331,7 @@ namespace YAML
     \sa YAML::Serializable::load_members()
     **/
     #define YAML_LOAD_MEMBER(doc,member) doc[#member] >> this->member
+    #define YAML_LOAD(doc,member) doc[#member] >> member
 }
 
 #endif // __YAML_SERIALIZABLE_H__

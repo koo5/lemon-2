@@ -471,3 +471,17 @@ void stopscrollback(RoteTerm *t)
 }
 
 
+
+void rote_vt_clear(RoteTerm*t)
+{
+   for (int i = 0; i < t->rows; i++) {
+      /* fill row with spaces */
+      for (int j = 0; j < t->cols; j++) {
+         t->cells[i][j].ch = 0x20;    /* a space */
+         t->cells[i][j].attr = 0x70;  /* white text, black background */
+      }
+   }
+
+
+}
+

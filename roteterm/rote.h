@@ -326,3 +326,5 @@ void rotoclipout(char * x, RoteTerm *t, int selection);
 
 void clearscrollback(RoteTerm * t);
 void stopscrollback(RoteTerm * t);
+
+void rote_vt_clear(RoteTerm*t);

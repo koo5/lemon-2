@@ -16,6 +16,11 @@ class logger:public terminal
 	t = rote_vt_create(100,30);
 	t->cursorhidden=1;//
     }
+   logger()
+    {
+	t = rote_vt_create(100,30);
+	t->cursorhidden=1;//
+    }
 	
 	
     ~logger()

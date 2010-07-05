@@ -564,13 +564,23 @@ void AllDisplay()
  *-----------------------------------------------------------------------------
  */
 public:
-atlantis(Display *dpy, XWindowAttributes wgwa,float asp = 1)
+atlantis(float asp = 1)
 {
+
+        SDL_SysWMinfo i;
+        SDL_VERSION(&i.version)
+        if(SDL_GetWMInfo(&i))
+        {
+    	    Display*dpy=i.info.x11.display;
+    	    int scr=DefaultScreen(dpy);
+    	    Window root=RootWindow(dpy,scr);
+	    XWindowAttributes wgwa;
+	    XGetWindowAttributes( dpy, root, &wgwa );
+	    texture = minixpm_to_ximage (dpy,wgwa.visual,wgwa.colormap,wgwa.depth,
+	    BlackPixelOfScreen(wgwa.screen), sea_texture,0,0,0,0,0);
+	    inittexture();
+	}
 	aspect=asp;
-	texture = minixpm_to_ximage (dpy,wgwa.visual,wgwa.colormap,wgwa.depth,
-	BlackPixelOfScreen(wgwa.screen), sea_texture,0,0,0,0,0);
-	//thats it! thats why the dpy and wgwa
-	inittexture();
 	do_texture=0;
 	texscale = 0.0005;
 	sharks.resize(5);
