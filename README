@@ -13,3 +13,7 @@ make
 #make 
 #sudo make install
 #go to xmms settings, visualizations, enable cat freq
+
+
+#to pull updates, discard your changes with
+#git reset --hard HEAD
