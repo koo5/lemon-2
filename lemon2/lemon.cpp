@@ -109,6 +109,7 @@ char *mdfl;//modes
 char *fcfl;//faces
 char *clfl;//colors
 char *btns;//buttons/
+char *wrld;//world.yaml
 typedef 
 struct 
 {
@@ -370,6 +371,7 @@ struct terminal:public obj
     	int cols, rows;
     	vload(cols)
     	vload(rows)
+        cout << cols<<" "<<rows<<endl;
 	rote_vt_resize(t,rows,cols);
 	rote_vt_clear(t);
     }
@@ -1774,9 +1776,11 @@ void savesettings(void)
     tpl_free(tn);
 }
 
-void loadobjects(void)
+#define loado(y,x) if(!strcmp(n , #x )) if(online) { if(id!=-1) if(is x*>(objects.at(id))) objects.at(id)->load_members(doc[i]); } else {  y=as x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }
+
+void loadobjects(int online=0)
 {
-    std::ifstream fin("world.yaml");
+    std::ifstream fin(wrld);
     YAML::Parser parser(fin);
     YAML::Node doc;
     while(parser.GetNextDocument(doc)) {
@@ -1784,34 +1788,53 @@ void loadobjects(void)
             string nn;
             doc[i]["Class"]>>nn;
             const char *n=nn.c_str();
+            int id=-1;
+            if(online)
+        	try
+        	{
+	    	    id = doc[i]["id"];
+	    	}
+	    	catch(Exception){}
+	    if(id>objects.size())
+		id=-1;
             obj * o = 0;
-            if(!strcmp("face",n))
-        	o=new face;
+            obj * d;//dummy
+	    loado(d,face)
 	    #ifdef has_atlantis
-            else if(!strcmp("atlantis",n))
-        	o=new atlantis;
+            loado(d,atlantis)
 	    #endif
-            else if(!strcmp("composite",n))
-        	o=comp=new composite;
-            else if(!strcmp("logger",n))
-        	o=loggerface=new logger;
-    	    if(o)
-    		objects.push_back(o);
+	    loado(comp,composite)
+	    loado(loggerface,logger)
         }
     }
 }
 
-void saveobjects(void)
+void saveobjects(int online=0)
 {
-    ofstream fout("world.yaml");
+    ofstream fout(wrld);
     Emitter out;
     out << BeginSeq;
     for_each_object
 	if(!is composite_window*>(o))
-	    out << *o;
+	{
+	    if(online)
+	    {
+		out << YAML::BeginMap;
+	        std::string my_class_name = o->class_name();
+	        if (my_class_name.size()>0) {
+	          out << YAML::Key << CLASS_TAG << YAML::Value << my_class_name;
+	        }
+	        out<<Key<<"id"<<Value<<i;
+	        o->emit_members(out);
+		out << YAML::EndMap;
+	    }
+	    else
+		out << *o;
+	}
     endfor
     out << EndSeq;
     fout << out.c_str();
+    logit("L:%i",(strlen(out.c_str())));
 }
 
 
@@ -1820,7 +1843,7 @@ void saveobjects(void)
 
 obj* pick(int up, int button, int x, int y)
 {         
-    logit("picking objects...");
+//    logit("picking objects...");
     GLuint fuf[500];
     GLint viewport[4];
     glGetIntegerv (GL_VIEWPORT, viewport);
@@ -1842,17 +1865,17 @@ obj* pick(int up, int button, int x, int y)
     GLuint minz = std::numeric_limits<unsigned int>::max() ;
     int nearest=-1;
     int numhits = glRenderMode(GL_RENDER);
-    logit("%i hits", numhits);
+//    logit("%i hits", numhits);
     vector<vector<int> > hits;
     for(i=0,k=0;i<numhits;i++)
     {
 	GLuint numnames=fuf[k++];
-	logit("%i names", numnames);
-	logit("%d minz", fuf[k]);
-	logit("%d maxz", fuf[k+1]);
+//	logit("%i names", numnames);
+//	logit("%d minz", fuf[k]);
+//	logit("%d maxz", fuf[k+1]);
 	if(fuf[k]<minz)
 	{
-	    logit("%u < %u, nearest = %i", fuf[k],minz,i);
+//	    logit("%u < %u, nearest = %i", fuf[k],minz,i);
 	    nearest = i;
 	    minz = fuf[k];
 	}
@@ -1887,6 +1910,7 @@ void vispick()
     for_each_object
 	o->translate_and_draw(2);
     endfor
+    glPopMatrix();
 }
                           
 #endif
@@ -2320,8 +2344,10 @@ d(WINDOWS) && !defined(OSX)
 					gofullscreen=1;
 				    break;
 				case SDLK_s:
+				    saveobjects(1);
 				    break;
 				case SDLK_l:
+				    loadobjects(1);
 				    break;
 				case SDLK_r:
 			    	    loadfont(fnfl);
@@ -2643,6 +2669,7 @@ int main(int argc, char *argv[])
 		logit("path:%s", path);
 		path=(char*)realloc(path, 100+strlen(path));
 		char* n=strrchr(path, 0);
+		wrld=strdup(strcat(path, "world.yaml"));	*n=0;
 		fnfl=strdup(strcat(path, "l1"));		*n=0;
 		clfl=strdup(strcat(path, "colors"));		*n=0;
 		stng=strdup(strcat(path, "settings"));		*n=0;
