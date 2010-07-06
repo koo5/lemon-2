@@ -336,12 +336,6 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const obj* &p)
 
 
 
-#include "../toys/atlantis/atlantis.c"
-#include "../toys/flipflop.c"
-
-
-
-
 struct terminal:public obj
 {
     char *status;
@@ -697,10 +691,10 @@ void slogit(const char * iFormat, ...)
 
 void logit(const char * iFormat, ...)
 {
-    char* s=(char*)malloc(101);
+    char* s=(char*)malloc(10101010);
     va_list argp;
     va_start(argp, iFormat);
-    vsnprintf(s,101,iFormat, argp);
+    vsnprintf(s,10101010,iFormat, argp);
     va_end(argp);
     if(loggerface)
 	loggerface->logit(s);
@@ -708,6 +702,13 @@ void logit(const char * iFormat, ...)
 	printf("%s\n",s);
     free(s);
 }
+
+float maxvol;
+
+
+#include "../toys/atlantis/atlantis.c"
+#include "../toys/flipflop.c"
+
 
 
 #ifdef GL
@@ -839,7 +840,7 @@ void logit(const char * iFormat, ...)
 	    	int16_t buf[2][256];
 		fread(buf,256,2,f);
     		fclose(f);
-		//remove("/tmp/somefunnyname");
+		remove("/tmp/somefunnyname");
 		oglspectrum_gen_heights(buf);
 	    }
 
@@ -870,6 +871,12 @@ void logit(const char * iFormat, ...)
 	    alpha=oldalpha;
 	    glEnd();
 	    glPopMatrix();
+	    
+	    float sx=fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][0],spectrum_analyzer::heights[0][1]),spectrum_analyzer::heights[0][2]),spectrum_analyzer::heights[0][3]),spectrum_analyzer::heights[0][4]);
+	    float sy=fmax(sx,fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][5],spectrum_analyzer::heights[0][6]),spectrum_analyzer::heights[0][7]),spectrum_analyzer::heights[0][8]),spectrum_analyzer::heights[0][9]));
+	    maxvol=fmax(sy,fmax(fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][10],spectrum_analyzer::heights[0][11]),spectrum_analyzer::heights[0][12]),spectrum_analyzer::heights[0][13]),spectrum_analyzer::heights[0][14]),spectrum_analyzer::heights[0][15]));
+//	    logit("maxvol:%f",maxvol);
+
 	}
     };
     GLfloat spectrum_analyzer::heights[16][16];
@@ -902,10 +909,7 @@ void logit(const char * iFormat, ...)
 	    glPushMatrix();
 	    if(band==-1)
 	    {
-	    float sx=fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][0],spectrum_analyzer::heights[0][1]),spectrum_analyzer::heights[0][2]),spectrum_analyzer::heights[0][3]),spectrum_analyzer::heights[0][4]);
-	    float sy=fmax(sx,fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][5],spectrum_analyzer::heights[0][6]),spectrum_analyzer::heights[0][7]),spectrum_analyzer::heights[0][8]),spectrum_analyzer::heights[0][9]));
-	    float sz=fmax(sy,fmax(fmax(fmax(fmax(fmax(spectrum_analyzer::heights[0][10],spectrum_analyzer::heights[0][11]),spectrum_analyzer::heights[0][12]),spectrum_analyzer::heights[0][13]),spectrum_analyzer::heights[0][14]),spectrum_analyzer::heights[0][15]));
-	    glScalef(1+sz,1+sz,1+sz);
+	    glScalef(1+maxvol,1+maxvol,1);
 	    }
 	    else
 	    glScalef(1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band]);
@@ -1805,6 +1809,9 @@ void loadobjects(int online=0)
 	    #endif
 	    loado(comp,composite)
 	    loado(loggerface,logger)
+	    loado(d,flipflop)
+	    loado(d,nerverot)
+	    loado(d,spectrum_analyzer)
         }
     }
 }
@@ -1834,7 +1841,8 @@ void saveobjects(int online=0)
     endfor
     out << EndSeq;
     fout << out.c_str();
-    logit("L:%i",(strlen(out.c_str())));
+    logit("L:%i:",(strlen(out.c_str())));
+    logit("%s",out.c_str());
 }
 
 
@@ -2110,6 +2118,8 @@ void lemon (void)
 	glClear(GL_COLOR_BUFFER_BIT);
     #endif
     loadobjects();
+//	    objects.push_back(new spectrum_analyzer);
+
     if(!objects.size())
     {
     	objects.push_back(loggerface=new logger(-8,0,0,0,70,0));
@@ -2132,6 +2142,7 @@ void lemon (void)
 //	objects.push_back(new fontwatcher);
 	
     }
+    maxvol=0;
     int norm=0;
     int mousemoved=1;
     int mousejustmoved=0;

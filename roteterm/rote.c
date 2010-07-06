@@ -343,6 +343,7 @@ void rote_vt_write(RoteTerm *rt, const char *data, int len) {
       if (byteswritten < 0) {
          /* very ugly way to inform the error. Improvements welcome! */
          static char errormsg[] = "\n(ROTE: pty write() error)\n";
+         //rt->status=strdup(errormsg);
          rote_vt_inject(rt, errormsg, strlen(errormsg));
          return;
       }

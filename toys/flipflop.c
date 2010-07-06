@@ -31,6 +31,7 @@
 #define progname "flipflop"
 class flipflop: public obj
 {
+
 int board_x_size, board_y_size, board_avg_size;
 int numsquares, freesquares;
 float half_thick;
@@ -92,12 +93,24 @@ void predraw(void)
     glEnable(GL_COLOR_MATERIAL);
     
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
 
 }
 public:
+
+  SAVE(flipflop)
+    {
+	YAML_EMIT_PARENT_MEMBERS(out,obj)
+    }
+    LOAD
+    {
+    	YAML_LOAD_PARENT_MEMBERS(doc,obj)
+    }
+  
 /* draw board */
 void draw(int picking)
 {
@@ -106,6 +119,7 @@ void draw(int picking)
     if(!picking)
     {
 	int i;
+	energy = 40*maxvol+1;
 	for( i=0; i < (energy) ; i++ ) {
     	    randsheet_new_move();
 	}
@@ -145,8 +159,8 @@ flipflop()
     if (board_x_size * board_y_size <= numsquares) {
         fprintf (stderr,"%s: the number of elements ('-count') that you specified is too big \n for the dimensions of the board ('-size-x', '-size-y'). Nothing will move.\n", progname);
     }
-    flipspeed = 0.000003;
-    energy = 40;
+    flipspeed = 0.0003;
+    energy = 40*maxvol+1;
     randsheet_create(); 
     randsheet_initialize();
     lastticks=SDL_GetTicks();
