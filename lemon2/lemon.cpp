@@ -2118,8 +2118,7 @@ void lemon (void)
 	glClear(GL_COLOR_BUFFER_BIT);
     #endif
     loadobjects();
-//	    objects.push_back(new spectrum_analyzer);
-
+//    objects.push_back(new nerverot);
     if(!objects.size())
     {
     	objects.push_back(loggerface=new logger(-8,0,0,0,70,0));
@@ -2128,6 +2127,7 @@ void lemon (void)
 //	    for(int i=0;i<16;i++)
 //		objects.push_back(new nerverot(-10.0f+20.0f/16.0f*(float)i,0,0,i));
 //	    objects.push_back(new flipflop);
+	objects.push_back(new spectrum_analyzer);
 
 	    objects.push_back(comp = new composite);
 	#endif
