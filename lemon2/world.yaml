@@ -57,27 +57,6 @@
       y: 1
       z: 1
 -
-  Class: face
-  terminal:
-    obj:
-      t:
-        Class: v3d
-        x: 0
-        y: 0
-        z: 7
-      r:
-        Class: v3d
-        x: 0
-        y: 0
-        z: 0
-      s:
-        Class: v3d
-        x: 0.002
-        y: -0.005
-        z: 0.002
-    cols: 67
-    rows: 38
--
   Class: atlantis
   obj:
     t:
@@ -113,23 +92,25 @@
       x: 1
       y: 1
       z: 1
-  roty: 0
+  roty: -214
 -
-  Class: nerverot
-  obj:
-    t:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    r:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    s:
-      Class: v3d
-      x: 1
-      y: 1
-      z: 1
-  nerv->please_num: -1
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 6
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 0
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 147
+    rows: 28

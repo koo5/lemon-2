@@ -1,8 +1,9 @@
 /*
 s3d
 editor
+fix nerverot
 client server copying
-nerverot is backwards...
+rhytmbox visualization plugin
 share height data across windows
 */
 /*******************************************************************
@@ -178,7 +179,7 @@ void gle(void)
 	    else if(gl_error==GL_INVALID_OPERATION)
 		logit("INVALID OPERATION, PATIENT EXPLODED\n");
 	    else
-		logit("testgl: OpenGL error: 0x%X\n", gl_error );
+		logit("OpenGL error: 0x%X\n", gl_error );
 	}
     #endif
 }
@@ -224,23 +225,6 @@ struct v3d:public Serializable
     
     }
 };
-
-/*
-class LoUT
-{
-    friend istream & operator >> (istream &in, LoUT l);
-
-};
-    istream & operator >> (istream &in, LoUT l)
-    {
-	string s;
-	in>>s;
-	logit(s.c_str());
-	return in;
-    }
-
-LoUT lout;
-*/
 
 v3d cam;
 v3d look;
@@ -291,6 +275,7 @@ struct obj:public Serializable
     }
     virtual void activate(){
 	active=this;
+	logit("activating %u", this);
     }
     virtual void picked(int up, int b,vector<int>&v,int x,int y)
     {
@@ -328,13 +313,6 @@ struct obj:public Serializable
     }
     ~obj(){if(active==this)active=0;}
 };
-
-YAML::Emitter& operator<<(YAML::Emitter& out, const obj* &p)
-{
-    p->emit_yaml(out); return out;
-}
-
-
 
 struct terminal:public obj
 {
@@ -717,12 +695,22 @@ float maxvol;
 	SAVE(spectrum_analyzer)
 	{
 	    YAML_EMIT_PARENT_MEMBERS(out,obj)
+	    save(rotx)
 	    save(roty)
+	    save(rotz)
+	    save(rx)
+	    save(ry)
+	    save(rz)
 	}
 	LOAD
 	{
 	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
+	    load(rotx)
 	    load(roty)
+	    load(rotz)
+	    load(rx)
+	    load(ry)
+	    load(rz)
 	}
 	static GLfloat heights[16][16];
 	GLfloat  scale;
@@ -1127,7 +1115,7 @@ class composite_window:public obj
 	gle();
 	logit("%i hits",numhits=glRenderMode(GL_RENDER));
 	if(!numhits)return;
-	if(fuf[0]!=2)return;
+	if(fuf[0]<2)return;
 	xx=fuf[3];
 	yy=fuf[4];
 
@@ -1244,6 +1232,7 @@ class composite_window:public obj
 	glEnd();
 	
 	
+	{
 	glColor4f(0,1,0,0.3);
         glPushMatrix ();
         glLoadIdentity ();
@@ -1258,7 +1247,7 @@ class composite_window:public obj
 	glColor4f(1,0,0,0.3);
 	glCallList(dlist);
 	glPopMatrix();
-
+        }
 	
         if(picking)
     	    return;
@@ -2220,9 +2209,6 @@ void lemon (void)
 	    {
 		if(event.type!=SDL_MOUSEMOTION||!SDL_GetMouseState(0,0))
 		    dirty=1;
-		int key=event.key.keysym.sym;
-		int uni=event.key.keysym.unicode;
-		int mod=event.key.keysym.mod;
 		switch( event.type )
 		{
 		    case SDL_SYSWMEVENT:
@@ -2309,7 +2295,12 @@ d(WINDOWS) && !defined(OSX)
                gl_init.c           76                          break;   
     */
 		    case SDL_KEYDOWN:
+		    {
 			dirty=1;
+			int key=event.key.keysym.sym;
+			int uni=event.key.keysym.unicode;
+			int mod=event.key.keysym.mod;
+
 			if(escaped||(mod&KMOD_RCTRL)||(key==SDLK_RCTRL))
 			{
 			    escaped=0;
@@ -2469,6 +2460,7 @@ d(WINDOWS) && !defined(OSX)
 			else if(active)
 			    active->keyp(key,uni,mod);
 			break;
+			}
 		    case SDL_QUIT:
 		        done = 1;
 		        break;
