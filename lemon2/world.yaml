@@ -44,3 +44,8 @@
         z: 0.002
     cols: 110
     rows: 42
+-
+  Class: Settingz
+  line_antialiasing: 0
+  givehelp: 0
+  lv: 1

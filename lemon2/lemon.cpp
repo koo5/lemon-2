@@ -94,12 +94,40 @@ SDL_Surface* s;
 #ifdef SDLD
     #include "../sdldlines.c"
 #endif
-struct Settingz
+
+#define SAVE(class) 	YAML_SERIALIZABLE_AUTO(class)\
+			void emit_members(Emitter &out)const
+#define LOAD	void load_members(const Node& doc)
+#define save(x) YAML_EMIT_MEMBER(out, x);
+#define load(x) YAML_LOAD_MEMBER(doc, x);
+#define vsave(x) YAML_EMIT(out, x);
+#define vload(x) YAML_LOAD(doc, x);
+
+
+struct Settingz: public Serializable
 {
+    SAVE(Settingz)
+    {       
+	save(line_antialiasing)
+	save(givehelp)
+	save(lv)
+    }
+    LOAD
+    {
+	load(line_antialiasing)
+	load(givehelp)
+	load(lv)
+    }
     int32_t line_antialiasing;
     int32_t givehelp;
     double lv;//glLineWidth
-}settingz={0,1,1};//WTF
+    Settingz()
+    {
+	line_antialiasing=0;
+	givehelp=1;
+	lv=1;
+    }
+}settingz;
 
 void slogit(const char * iFormat, ...);
 void logit(const char * iFormat, ...);
@@ -196,14 +224,6 @@ void sdle(void)
 
 struct obj;
 
-#define SAVE(class) 	YAML_SERIALIZABLE_AUTO(class)\
-			void emit_members(Emitter &out)const
-
-#define LOAD	void load_members(const Node& doc)
-#define save(x) YAML_EMIT_MEMBER(out, x);
-#define load(x) YAML_LOAD_MEMBER(doc, x);
-#define vsave(x) YAML_EMIT(out, x);
-#define vload(x) YAML_LOAD(doc, x);
 struct v3d:public Serializable
 {
     SAVE(v3d)
@@ -1784,7 +1804,7 @@ if(online&&hasid) {\
     o->load_members(doc[i]); \
  endfor }\
 else\
- {  y=as x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }}
+ {  obj*o;y=as x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }}
 
 void loadobjects(int online=0)
 {
@@ -1805,9 +1825,8 @@ void loadobjects(int online=0)
 	    	    hasid=1;
 	    	}
 	    	catch(Exception){}
-	    if(runtimeid>obj::idcounter)
-		hasid=0;
-            obj * o = 0;
+	    if(!strcmp(n, "Settingz"))
+		doc[i]>>settingz;
             obj * d;//dummy
 	    loado(d,face)
 	    #ifdef has_atlantis
@@ -1845,6 +1864,7 @@ void saveobjects(int online=0)
 		out << *o;
 	}
     endfor
+    out << settingz;
     out << EndSeq;
     fout << out.c_str();
     logit("L:%i:",(strlen(out.c_str())));
