@@ -33,7 +33,13 @@ endif
                                                                        
 CC      =g++ -o $@ lemon.cpp -g -ggdb  $(GLLIBS) $(CFLIBS) -std=c++0x -W -Wall -Wextra  -pedantic
 
+have_pixelcity := $(wildcard ../fuzzyflakes-pixel-city-for-lemon)
 
+ifeq ($(strip $(have_pixelcity)),)
+eecho= "no pixelcity"
+else
+eecho ="we have pixelcity"
+endif
 
 TARGETS = lsdl lgl
 all: lgl

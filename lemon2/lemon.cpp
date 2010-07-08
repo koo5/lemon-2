@@ -172,6 +172,10 @@ int min(int a, int b)
 {
     return a < b ? a : b;
 }
+int max(int a, int b)
+{
+    return a > b ? a : b;
+}
 
 int in(int a, int b, int c)
 {
@@ -527,7 +531,7 @@ struct terminal:public obj
 	    if(key==SDLK_PAGEUP)
 		scroll+=9;
 	    if(key==SDLK_PAGEDOWN)
-	    	scroll=min(scroll-9,0);
+	    	scroll=max(scroll-9,0);
 	    if(key==SDLK_END)
 		scroll=0;
 	    if(key==SDLK_HOME)

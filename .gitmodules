@@ -1,0 +1,3 @@
+[submodule "fuzzyflakes-pixel-city-for-lemon"]
+	path = fuzzyflakes-pixel-city-for-lemon
+	url = git://gitorious.org/~fuzzyflake/pixel-city/fuzzyflakes-pixel-city-for-lemon.git
