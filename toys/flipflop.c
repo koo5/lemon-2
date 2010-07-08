@@ -355,7 +355,6 @@ int randsheet_new_move()
 void randsheet_move( float rot )
 {
     int i, j, index;
-    float tmp;
     for( index = 0 ; index < numsquares; index++ )
         {
             i = xpos[ index ];

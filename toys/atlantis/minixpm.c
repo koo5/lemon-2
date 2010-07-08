@@ -56,8 +56,6 @@ XImage *
 minixpm_to_ximage (Display *dpy, Visual *visual, Colormap colormap, int depth,
                    unsigned long transparent_color,
                    const char * const * data,
-                   int *width_ret, int *height_ret,
-                   unsigned long **pixels_ret, int *npixels_ret,
                    unsigned char **mask_ret)
 {
   int w, w8, h, ncolors, nbytes;

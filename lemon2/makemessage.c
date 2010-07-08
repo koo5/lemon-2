@@ -18,7 +18,7 @@ char *make_message(const char *fmt, ...) {
   n = vsnprintf(p, size, fmt, ap);
   va_end(ap);
 
-  if(n > -1 && n < size)
+  if(n > -1 && (unsigned int)n < size)
    return p;
 
   /* failed: have to try again, alloc more mem. */

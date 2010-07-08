@@ -1,80 +1,5 @@
 ---
 -
-  Class: flipflop
-  obj:
-    t:
-      Class: v3d
-      x: 0
-      y: -6
-      z: 0
-    r:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    s:
-      Class: v3d
-      x: 1
-      y: 1
-      z: 1
--
-  Class: logger
-  terminal:
-    obj:
-      t:
-        Class: v3d
-        x: -1.75
-        y: 0
-        z: 6
-      r:
-        Class: v3d
-        x: 0
-        y: 30
-        z: 0
-      s:
-        Class: v3d
-        x: 0.002
-        y: -0.005
-        z: 0.002
-    cols: 60
-    rows: 55
--
-  Class: composite
-  obj:
-    t:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    r:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    s:
-      Class: v3d
-      x: 1
-      y: 1
-      z: 1
--
-  Class: atlantis
-  obj:
-    t:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    r:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    s:
-      Class: v3d
-      x: 1
-      y: 1
-      z: 1
--
   Class: spectrum_analyzer
   obj:
     t:
@@ -92,7 +17,12 @@
       x: 1
       y: 1
       z: 1
-  roty: -214
+  rotx: 0
+  roty: 0
+  rotz: 0
+  rx: 0
+  ry: 0
+  rz: 0
 -
   Class: face
   terminal:
@@ -101,7 +31,7 @@
         Class: v3d
         x: 0
         y: 0
-        z: 6
+        z: 7
       r:
         Class: v3d
         x: 0
@@ -112,5 +42,5 @@
         x: 0.002
         y: -0.005
         z: 0.002
-    cols: 147
-    rows: 28
+    cols: 110
+    rows: 42

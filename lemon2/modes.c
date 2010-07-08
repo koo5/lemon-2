@@ -1,14 +1,3 @@
-#ifndef openbsd 
-long long strtonum(const char *nptr, long long minval, long long maxval, const char **errstr)
-{
-    return atoi(nptr);
-}
-#endif
-
-#ifndef HAVE_FGETLN
-#include "../more-mess/fgetln.c"
-#endif
-
 struct XY parsemodeline(char *r)
 {
     xy m;
@@ -32,9 +21,9 @@ struct XY parsemodeline(char *r)
 	*pos=0;
 	if(pos>ypos)ypos=pos+1;
     }
-    if((x=strtonum(r,1,65535,0)))
+    if((x=atoi(r)))
     {
-        if((y=strtonum(ypos,1,55555,0))){
+        if((y=atoi(ypos))){
 	    m.x=x;
 	    m.y=y;
 //	    printf("%iX%i\n",x,y);
@@ -51,7 +40,7 @@ void savemode(int w,int h,char*mdfl)
     FILE * fp = fopen(mdfl,"w");
     if (fp == NULL) 
 	return;
-    fprintf(fp,"%i %i",w,h);
+    fprintf(fp,"%i x %i",w,h);
     fclose(fp);
 }
 

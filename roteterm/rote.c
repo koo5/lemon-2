@@ -184,12 +184,12 @@ RoteTerm *rote_vt_create(int rows, int cols) {
 }
 
 void rote_vt_destroy(RoteTerm *rt) {
-   int i;
+   unsigned int i;
    if (!rt) return;
 
    free(rt->pd);
    free(rt->line_dirty);
-   for (i = 0; i < rt->rows; i++) free(rt->cells[i]);
+   for (i = 0; i < (unsigned int)rt->rows; i++) free(rt->cells[i]);
    free(rt->cells);
    if(rt->log)
    {
@@ -301,7 +301,7 @@ void rote_vt_update(RoteTerm *rt) {
    }
 }
 		    //?//
-void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) {
+void rote_vt_update_thready(char * buf, int buflen, int * br, RoteTerm *rt) {
    fd_set ifs;
    struct timeval tvzero;
 
@@ -317,7 +317,7 @@ void rote_vt_update_thready(char * buf, int bs, int * br, RoteTerm *rt) {
        return; /* nothing to read, or select() failed */
       /* read what we can. This is guaranteed not to block, since
        * select() told us there was something to read. */
-      bytesread = read(rt->pd->pty, buf, 512512);
+      bytesread = read(rt->pd->pty, buf, buflen);
       if((bytesread < 0) && (errno != EAGAIN))
       {
              errno=0;
@@ -458,7 +458,7 @@ void rotoclipout(char * x, RoteTerm *t, int selection)
 
 void clearscrollback(RoteTerm *t)
 {
-    for(int i=0;i<t->logl;i++)
+    for(unsigned int i=0;i<t->logl;i++)
 	if(t->log[i])free(t->log[i]);
     free(t->log);
     t->log=NULL;

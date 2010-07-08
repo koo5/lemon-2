@@ -47,7 +47,6 @@ share height data across windows
 #include "../more-mess/rdfl.c"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
-#include "../tpl/tpl.h"
 #include "SDL_syswm.h"
 #include "makemessage.c"
 #ifdef GL
@@ -65,7 +64,6 @@ share height data across windows
 #endif
 #include "initsdl.c"
 #include <dirent.h>
-#include "getexecname.c"
 #include "../roteterm/demo/sdlkeys.c"
 #include <iostream>
 #include <vector>
@@ -73,13 +71,13 @@ share height data across windows
 #include "serializable.h"
 #define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
 #define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!");}}
-#define CODE_DATA 0
+#define CODE_DATA 3
 #define CODE_TIMER 0
 #define CODE_QUIT 1
 #define CODE_FNFLCHANGED 2
 #define as dynamic_cast<
 #define is as
-#define for_each_object for(int i=0;i<objects.size();i++) { obj*o=objects.at(i);
+#define for_each_object for(unsigned int i=0;i<objects.size();i++) { obj*o=objects.at(i);
 #define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
 #define for_each_composite_window for_each_object if (as composite_window*>(o)){composite_window*c=as composite_window*>(o);
 #define endfor }
@@ -96,13 +94,16 @@ SDL_Surface* s;
 #ifdef SDLD
     #include "../sdldlines.c"
 #endif
-char *tpl_settingz="S(iii)";
 struct Settingz
 {
     int32_t line_antialiasing;
     int32_t givehelp;
     double lv;//glLineWidth
 }settingz={0,1,1};//WTF
+
+void slogit(const char * iFormat, ...);
+void logit(const char * iFormat, ...);
+
 #include "../gltext.c"
 char *fnfl;//font file
 char *stng;//settingz
@@ -160,8 +161,6 @@ float floabs(float x)
 {
     return x>0 ? x : -x;
 }
-void slogit(const char * iFormat, ...);
-void logit(const char * iFormat, ...);
 
 
 
@@ -262,6 +261,8 @@ struct obj:public Serializable
 	load(r)
 	load(s)
     }
+    unsigned int runtime_id;
+    static unsigned int idcounter;
     int dirty;
     int overlay;
     double alpha;
@@ -272,6 +273,7 @@ struct obj:public Serializable
 	s.x=s.y=s.z=1;
 	alpha=1;
 	overlay=0;
+	runtime_id=idcounter++;
     }
     virtual void activate(){
 	active=this;
@@ -280,8 +282,9 @@ struct obj:public Serializable
     virtual void picked(int up, int b,vector<int>&v,int x,int y)
     {
 	activate();
+	logit("activating, up=%i, button=%i, v.size=%u, x=%i. y=%i",up,b,v.size(),x,y);
     }
-    virtual void draw(int picking){};
+    virtual void draw(int picking){logit("drawing nothing, %i",picking);};
     virtual int getDirty(){return dirty;}
     virtual void setDirty(int d){dirty=d;}
     void translate_and_draw(int picking)
@@ -309,10 +312,13 @@ struct obj:public Serializable
 	#endif
     }
     virtual void keyp(int key,int uni,int mod)
-    {
+    {                                      
+	logit("default keyp handler, %i %i %i",key,uni,mod);
     }
     ~obj(){if(active==this)active=0;}
 };
+
+unsigned int obj::idcounter=0;
 
 struct terminal:public obj
 {
@@ -321,11 +327,11 @@ struct terminal:public obj
     Uint32 last_resize;
     int lastxresize;
     int lastyresize;
-    int scroll;
+    unsigned int scroll;
     int oldcrow, oldccol;
     Uint32 lastrotor;
     double rotor;
-    int selstartx,selstarty,selendx,selendy;
+    unsigned int selstartx,selstarty,selendx,selendy;
     int getDirty(){return dirty||t->dirty;}
     void setDirty(int d){t->dirty=d;obj::setDirty(d);}
     SAVE(terminal)
@@ -408,6 +414,7 @@ struct terminal:public obj
 	va_list argp;
 	va_start(argp, iFormat);
 	vsnprintf(s,99,iFormat, argp);
+	s[98]=0;
 	va_end(argp);
 	updatestatus(s);
     }
@@ -469,11 +476,13 @@ struct terminal:public obj
     }
     void keyp(int key,int uni,int mod)
     {
-    	if(mod&KMOD_RSHIFT&&(key==SDLK_INSERT))
+    	if((mod&KMOD_RSHIFT)&&(key==SDLK_INSERT))
+    	{
     	    if(mod&KMOD_RCTRL)
     		clipin(0,0);  //clipboard
     	    else
 		clipin(0,1);  //selection buffer
+	}
 	if(mod&KMOD_RCTRL)
 	{	
 	    Uint8*k = SDL_GetKeyState(0);
@@ -498,12 +507,11 @@ struct terminal:public obj
 	    if(key==SDLK_PAGEUP)
 		scroll+=9;
 	    if(key==SDLK_PAGEDOWN)
-	    	scroll-=9;
+	    	scroll=min(scroll-9,0);
 	    if(key==SDLK_END)
 		scroll=0;
 	    if(key==SDLK_HOME)
 		scroll=t->logl;
-	    if(scroll<0)scroll=0;
 	}
 	else
 	{
@@ -528,13 +536,13 @@ struct terminal:public obj
         int s=min(scroll,t->logl);
 	if(t->log)
 	{
-	    for (i=t->logl-s;i<t->logl;i++)
+	    for (i=t->logl-s;i<(int)t->logl;i++)
 	    {
 	        if(!t->log[i])break;
 	        lok.y=((i-t->rows/2.0)-t->logl+s)*26;
 	        if(t->logstart) lok.y-=100;
 		if(t->logstart) lok.x-=100;
-		for(j=0;j<t->log[i][0].ch;j++)
+		for(j=0;j<(int)t->log[i][0].ch;j++)//len
 	        {
 		    lok.x=(j-t->cols/2.0)*26;
 		    do_color(theme,ROTE_ATTR_XFG(t->log[i][j+1].attr),alpha);
@@ -571,11 +579,11 @@ struct terminal:public obj
 		}
 		if(t->cells[i][j].ch!=32)
 		    do_color(theme,ROTE_ATTR_XFG(t->cells[i][j].attr),alpha);
-		isundercursor=(!t->cursorhidden)&&((t->ccol==j)&&(t->crow==i));
+		isundercursor=(!t->cursorhidden)&&((t->ccol==(int)j)&&(t->crow==(int)i));
 		#ifdef GL
-		    if(isundercursor||(selstartx<=j&&selstarty<=i&&selendx>=j&&selendy>=i))
+		    if(isundercursor||((int)selstartx<=j&&(int)selstarty<=i&&(int)selendx>=j&&(int)selendy>=i))
 		    {
-			if((oldcrow!=t->crow)||(oldccol!=t->ccol))
+			if((oldcrow!=(int)t->crow)||(oldccol!=(int)t->ccol))
 			    rotor=0;//if cursor moved, reset letter rotor
 			//zspillit(lok,nums[0],2.4*f->scale);//draw cursor
 			glEnd();
@@ -662,6 +670,7 @@ void slogit(const char * iFormat, ...)
     va_list argp;
     va_start(argp, iFormat);
     vsnprintf(s,101,iFormat, argp);
+    s[100]=0;
     va_end(argp);
     if(loggerface)
 	loggerface->slogit(s);
@@ -673,6 +682,7 @@ void logit(const char * iFormat, ...)
     va_list argp;
     va_start(argp, iFormat);
     vsnprintf(s,10101010,iFormat, argp);
+    s[10101009]=0;
     va_end(argp);
     if(loggerface)
 	loggerface->logit(s);
@@ -705,12 +715,14 @@ float maxvol;
 	LOAD
 	{
 	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
+	    try{
 	    load(rotx)
 	    load(roty)
 	    load(rotz)
 	    load(rx)
 	    load(ry)
 	    load(rz)
+	    }catch(Exception){}
 	}
 	static GLfloat heights[16][16];
 	GLfloat  scale;
@@ -726,13 +738,16 @@ float maxvol;
 	void picked(int up, int  b,vector<int>&v,int x, int y)
 	{
 	    if(!up)
+	    {
 		if(b==SDL_BUTTON_LEFT)
 		    ry-=2;
 		else if (b==SDL_BUTTON_RIGHT)
 		    ry+=2;
 		else if(b==SDL_BUTTON_MIDDLE)
 		    rx=0;
-	    activate();
+		else
+		    obj::picked(up,b,v,x,y);
+	    }
 	}
 	void keyp(int key,int uni,int mod)
 	{
@@ -750,6 +765,8 @@ float maxvol;
 		case SDLK_RIGHT:
 		    rz+=0.2;
 		    break;
+		default:
+		    obj::keyp(key,uni,mod);
 	    }
         }
 	void draw_rectangle(GLfloat x1, GLfloat y1, GLfloat z1, GLfloat x2, GLfloat y2, GLfloat z2)
@@ -823,7 +840,7 @@ float maxvol;
 	{
 	
 	    FILE *f;
-	    if(f=fopen("/tmp/somefunnyname", "r"))
+	    if((f=fopen("/tmp/somefunnyname", "r")))
 	    {
 	    	int16_t buf[2][256];
 		fread(buf,256,2,f);
@@ -886,21 +903,30 @@ float maxvol;
 	{
 	    YAML_EMIT_PARENT_MEMBERS(out,obj)
 	    save(nerv->please_num)
+	    save(band)
 	}
 	LOAD
 	{
 	    YAML_LOAD_PARENT_MEMBERS(doc,obj)
-	    load(nerv->please_num)
+	    try
+	    {
+		load(nerv->please_num)
+		load(band)
+	    }catch(Exception){}
 	}
         void draw(int picking)
         {
 	    glPushMatrix();
-	    if(band==-1)
+	    if(band==-2)
 	    {
-	    glScalef(1+maxvol,1+maxvol,1);
+	    
+	    }
+	    else if(band==-1)
+	    {
+		glScalef(1+maxvol,1+maxvol,1);
 	    }
 	    else
-	    glScalef(1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band]);
+		glScalef(1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band],1+spectrum_analyzer::heights[0][band]);
 	    
     	    if(picking)
     		gluSphere(gluNewQuadric(),1,10,10);
@@ -932,7 +958,10 @@ float maxvol;
 		case SDLK_RIGHT:
 		    nerverot_cycleup(nerv);
 		    break;
+		default:
+		    obj::keyp(key,uni,mod);
 	    }
+	    
 	}
 	void picked(int up, int b,vector<int>&v,int x, int y)
 	{
@@ -947,7 +976,7 @@ float maxvol;
 		        break;
 		    case SDL_BUTTON_MIDDLE:
 		    default:
-		        activate();
+		        obj::picked(up,b,v,x,y);
 		}
 	}
 	int getDirty(){return 1;}
@@ -988,6 +1017,8 @@ class mplayer:public obj
 	    case SDLK_DOWN:
 	    pos++;
 	    break;
+	    default:
+	    obj::keyp(key,uni,mod);
 	}
     }
     void loadlist()
@@ -1152,7 +1183,6 @@ class composite_window:public obj
     {
 	unsigned int Z;
 	Window programming;
-	int sucks;
 	//real
 	//BAD
 	XGetGeometry(dpy, window, &programming,&X,&Y,&width,&height,&Z,&Z);
@@ -1336,7 +1366,7 @@ class composite:public obj
 //	objects.push_back(new composite_window(x+=2.5,0.8, dpy, root,scr));	
 	if(XGetWindowProperty(dpy, root, a, 0, (max_len+3)/4,0,AnyPropertyType, &aa, &af, &nitems, &bytes_after, (unsigned char**)&prop)==Success)
 	{
-            for(int j=0;j<nitems;j++)
+            for(unsigned int j=0;j<nitems;j++)
 	    {
 		//cout <<prop[j]<<"::"<<endl;
 		if(prop[j])
@@ -1547,6 +1577,7 @@ int fontwatcherthread(void *data)
 	char buf[1000];
 //	cout << reinterpret_cast<fontwatcher*>(data)->i << endl;
 	read(reinterpret_cast<fontwatcher*>(data)->i,&buf,1000);
+	//todo:check it wasnt "ignore"
 	reinterpret_cast<fontwatcher*>(data)->grow=0.1;
         SDL_Event e;
         e.type=SDL_USEREVENT;
@@ -1565,7 +1596,7 @@ void listdir(char *path, void func(char *, char *, void* ), void *data)
 	if(dir)
 	{	
 		path=strdup(path);
-		int maxsize = 50;
+		unsigned int maxsize = 50;
 		path=(char*)realloc(path, strlen(path)+maxsize+1);
 		char* n=strrchr(path, 0);
 		struct dirent *ent;
@@ -1589,7 +1620,7 @@ void listdir(char *path, void func(char *, char *, void* ), void *data)
 void erase(obj * o)
 {
     if(active==o)active=0;
-    for(int i=0;i<objects.size();i++)
+    for(unsigned int i=0;i<objects.size();i++)
 	if(objects.at(i)==o)
 	    objects.erase(objects.begin()+i);
 }
@@ -1663,9 +1694,9 @@ class buttons:public obj
     }
     void picked(int up, int b, vector<int> &v, int x, int y)
     {
-	if(!up&&b&&is face*>(active))
+	if(v.size()&&!up&&b&&is face*>(active))
 	{
-	    cout << v.at(0)<<endl;
+	    logit("%i %i",x,y);
 	    as face*>(active)->type(buttonz.at(v.at(0)).content.c_str());
 	    erase(this);
 	}
@@ -1729,17 +1760,9 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
 void lockterms(void)
 {
     #ifdef threaded
-	//logit("locking terms");
-	for(int i=0;i<objects.size();i++) 
-	{ 
-	    obj*o=objects.at(i);
-	    if (dynamic_cast< face*>(o))
-	    {
-		face*f=as face*>(o);
-		f->lock();
-	    }
-	}
-	//logit("done");
+	for_each_face
+	    f->lock();
+	endfor endfor
     #endif
 }
 void unlockterms(void)
@@ -1752,24 +1775,16 @@ void unlockterms(void)
 	//logit("done");
     #endif
 }
-void loadsettings(void)
-{
-    tpl_node *tn;
-    tn=tpl_map(tpl_settingz, &settingz);
-    if(!tpl_load(tn, TPL_FILE, stng))
-	tpl_unpack(tn,0);
-    tpl_free(tn);
-}
-void savesettings(void)
-{
-    tpl_node *tn;
-    tn=tpl_map(tpl_settingz, &settingz);
-    tpl_pack(tn,0);
-    tpl_dump(tn, TPL_FILE, stng);
-    tpl_free(tn);
-}
 
-#define loado(y,x) if(!strcmp(n , #x )) if(online) { if(id!=-1) if(is x*>(objects.at(id))) objects.at(id)->load_members(doc[i]); } else {  y=as x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }
+#define loado(y,x) if(!strcmp(n , #x )) {\
+if(online&&hasid) {\
+ for_each_object\
+  if(o->runtime_id==runtimeid)\
+   if(is x*>(o))\
+    o->load_members(doc[i]); \
+ endfor }\
+else\
+ {  y=as x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }}
 
 void loadobjects(int online=0)
 {
@@ -1781,15 +1796,17 @@ void loadobjects(int online=0)
             string nn;
             doc[i]["Class"]>>nn;
             const char *n=nn.c_str();
-            int id=-1;
+            unsigned int runtimeid=0;
+            int hasid=0;
             if(online)
         	try
         	{
-	    	    id = doc[i]["id"];
+	    	    runtimeid = doc[i]["runtime_id"];
+	    	    hasid=1;
 	    	}
 	    	catch(Exception){}
-	    if(id>objects.size())
-		id=-1;
+	    if(runtimeid>obj::idcounter)
+		hasid=0;
             obj * o = 0;
             obj * d;//dummy
 	    loado(d,face)
@@ -1820,7 +1837,7 @@ void saveobjects(int online=0)
 	        if (my_class_name.size()>0) {
 	          out << YAML::Key << CLASS_TAG << YAML::Value << my_class_name;
 	        }
-	        out<<Key<<"id"<<Value<<i;
+	        out<<Key<<"runtime_id"<<Value<<o->runtime_id;
 	        o->emit_members(out);
 		out << YAML::EndMap;
 	    }
@@ -1838,7 +1855,7 @@ void saveobjects(int online=0)
 #ifdef GL
 #include <limits>
 
-obj* pick(int up, int button, int x, int y)
+void pick(int up, int button, int x, int y)
 {         
 //    logit("picking objects...");
     GLuint fuf[500];
@@ -1858,10 +1875,10 @@ obj* pick(int up, int button, int x, int y)
 	o->translate_and_draw(1);
     endfor
     glPopMatrix();
-    int i,j, k;
+    unsigned int i,j, k;
     GLuint minz = std::numeric_limits<unsigned int>::max() ;
     int nearest=-1;
-    int numhits = glRenderMode(GL_RENDER);
+    unsigned int numhits = glRenderMode(GL_RENDER);
 //    logit("%i hits", numhits);
     vector<vector<int> > hits;
     for(i=0,k=0;i<numhits;i++)
@@ -1917,6 +1934,7 @@ Uint32 TimerCallback(Uint32 interval, void *param)
 	SDL_Event e;
 	e.type=SDL_USEREVENT;
 	e.user.code=CODE_TIMER;
+	e.user.data1=param;
 	SDL_PushEvent(&e);
 	return interval;
 }
@@ -1924,10 +1942,15 @@ Uint32 TimerCallback(Uint32 interval, void *param)
 void updatelinesmooth()
 {
     #ifdef GL
-	if(settingz.line_antialiasing)
+	if(settingz.line_antialiasing){
+	    logit("antialiasing");
 	    glEnable(GL_LINE_SMOOTH);
+	}
 	else
+	{
+	    logit("not antialiasing");
     	    glDisable(GL_LINE_SMOOTH);
+    	}
     #endif
 }
 void updatelinewidth()
@@ -1956,7 +1979,7 @@ int anything_dirty()
     }
     return 0;
 }
-int nothing_dirty()
+void  nothing_dirty()
 {
     for_each_object
 	o->setDirty(0);
@@ -2008,65 +2031,89 @@ void showfocus()
 void moveit(Uint8*k)
 {
 	if(k[SDLK_F1])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->r.x-=10;
 	    else
 		cam.x-=0.1;
+	}
 	if(k[SDLK_F2])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->t.x-=0.1;
 	    else
 	        look.x-=0.1;
+	}
 	if(k[SDLK_F3])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->t.x+=0.1;
 	    else
 		look.x+=0.1;
+	}
 	if(k[SDLK_F4])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->r.x+=10;
 	    else
 		cam.x+=0.1;
+	}
 	if(k[SDLK_F5])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->r.y-=10;
 	    else
 	        cam.y-=0.1;
+	}
 	if(k[SDLK_F6])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->t.y-=0.1;
 	    else
 		look.y-=0.1;
+	}
 	if(k[SDLK_F7])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->t.y+=0.1;
 	    else
 	        look.y+=0.1;
+	}
 	if(k[SDLK_F8])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->r.y+=10;
 	    else
 		cam.y+=0.1;
+	}
 	if(k[SDLK_F9])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->r.z-=10;
 	    else
 		cam.z-=0.1;
+	}
 	if(k[SDLK_F10])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->t.z-=0.1;
 	    else
 		look.z-=0.1;
+	}
 	if(k[SDLK_F11])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->t.z+=0.1;
 	    else
 	        look.z+=0.1;
+	}
 	if(k[SDLK_F12])
+	{
 	    if(active&&k[SDLK_RSHIFT])
 		active->r.z+=10;
 	    else
 		cam.z+=0.1;
+	}
 		
 	int x,y;
 	pick(0,SDL_GetMouseState(&x,&y),x,y);
@@ -2075,7 +2122,6 @@ void lemon (void)
 {
     cam.z=10;
     cam.x=cam.y=0;
-    int normalize;
     xy ss;
     ss.x=-1;
     {
@@ -2221,7 +2267,7 @@ void lemon (void)
 				
 				XEvent ee = event.syswm.msg->event.xevent;
 				XDamageNotifyEvent* eee = (XDamageNotifyEvent*)&ee;
-				for(int i=0;i<objects.size();i++)
+				for(unsigned int i=0;i<objects.size();i++)
 				{
 //				cout <<"damaged"<<endl;
 				    if(is composite_window*>(objects[i])&&(as composite_window*>(objects[i])->window==(eee->drawable)))
@@ -2237,8 +2283,8 @@ void lemon (void)
 			    {
 				
 				XEvent ee = event.syswm.msg->event.xevent;
-				XConfigureEvent* eee = (XConfigureEvent*)&ee;
-				for(int i=0;i<objects.size();i++)
+//				XConfigureEvent* eee = (XConfigureEvent*)&ee;
+				for(unsigned int i=0;i<objects.size();i++)
 				{
 //				cout <<"damaged"<<endl;
 				    if(is composite_window*>(objects[i]))//&&(as composite_window*>(objects[i])->window==(eee->window)))
@@ -2250,7 +2296,7 @@ void lemon (void)
 				
 				XEvent ee = event.syswm.msg->event.xevent;
 				XDestroyWindowEvent* eee = (XDestroyWindowEvent*)&ee;
-				for(int i=0;i<objects.size();i++)
+				for(unsigned int i=0;i<objects.size();i++)
 				{
 
 				    if(is composite_window*>(objects[i])&&(as composite_window*>(objects[i])->window==(eee->window)))
@@ -2277,12 +2323,12 @@ void lemon (void)
 		        break;
 		    case SDL_MOUSEBUTTONDOWN:
 		    {
-			pick(0,event.button.button,event.button.x,event.button.y);
+			pick(0,event.button.button,event.button.x,h-event.button.y);
 			break;
 		    }
 		    case SDL_MOUSEBUTTONUP:
 		    {
-			pick(1,event.button.button,event.button.x,event.button.y);
+			pick(1,event.button.button,event.button.x,h-event.button.y);
 			break;
 		    }
 		    
@@ -2607,7 +2653,7 @@ d(WINDOWS) && !defined(OSX)
 			if(s->flags & SDL_FULLSCREEN )
 			{
 			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
-			    #ifdef linux
+			    #ifdef LINUX
 			    if(norm&1)
 				system("wmctrl -r :ACTIVE: -b remove,maximized_horz");
 			    if(norm&2)
@@ -2616,17 +2662,17 @@ d(WINDOWS) && !defined(OSX)
 			}
 			else
 			{
-			    #ifdef linux
+			    #ifdef LINUX
 			    SDL_SysWMinfo i;
 			    SDL_VERSION(&i.version)
 			    if(SDL_GetWMInfo(&i))
 			    {
 				char *c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_VERT", i.info.x11.window);
 				norm=!system(c);
-				//free(c);
-				c==make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_HORZ", i.info.x11.window);
+				free(c);
+				c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_HORZ", i.info.x11.window);
 				norm&=(!system(c))<<1;
-				//free(c);
+				free(c);
 			    }
 			    //system("wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz");
 			    #endif
@@ -2653,6 +2699,7 @@ d(WINDOWS) && !defined(OSX)
 	SDL_Quit( );
 }                      
 
+#include "getexecname.c"
 int main(int argc, char *argv[])
 {
 	logit("hi");
@@ -2666,7 +2713,7 @@ int main(int argc, char *argv[])
 	    }
 	    
 	char *path;
-	path=getexepath(argv[0]);
+	path=getexepath();
 	if(path)
 	{
 		logit("path:%s", path);
@@ -2680,13 +2727,13 @@ int main(int argc, char *argv[])
 		fcfl=strdup(strcat(path, "faces"));		*n=0;
 		btns=strdup(strcat(path, "buttons/"));		*n=0;
 	}
-	loadsettings();
+	//loadsettings();
 	clipout=rote_vt_create(10,10);
 	clipout2=rote_vt_create(10,10);
 	lemon();
 	rote_vt_destroy(clipout);
 	rote_vt_destroy(clipout2);
-	savesettings();
+	//savesettings();
 	logit("finished.bye.\n");
 	return 0;
 }

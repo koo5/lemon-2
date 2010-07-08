@@ -298,12 +298,12 @@ static void interpret_csi_DECSTBM(RoteTerm *rt, int param[], int pcount) {
    rt->scrollbottom = newbottom;
 }
          
-static void interpret_csi_SAVECUR(RoteTerm *rt, int param[], int pcount) {
+static void interpret_csi_SAVECUR(RoteTerm *rt){//, int param[], int pcount) {
    rt->pd->saved_x = rt->ccol;
    rt->pd->saved_y = rt->crow;
 }
 
-static void interpret_csi_RESTORECUR(RoteTerm *rt, int param[], int pcount) {
+static void interpret_csi_RESTORECUR(RoteTerm *rt){//, int param[], int pcount) {
    rt->ccol = rt->pd->saved_x;
    rt->crow = rt->pd->saved_y;
    rt->curpos_dirty = true;
@@ -396,9 +396,9 @@ void rote_es_interpret_csi(RoteTerm *rt) {
       case 'r': /* set scrolling region */
          interpret_csi_DECSTBM(rt, rt->pd->csiparam, param_count); break;
       case 's': /* save cursor location */
-         interpret_csi_SAVECUR(rt, rt->pd->csiparam, param_count); break;
+         interpret_csi_SAVECUR(rt);/*, rt->pd->csiparam, param_count);*/ break;
       case 'u': /* restore cursor location */
-         interpret_csi_RESTORECUR(rt, rt->pd->csiparam, param_count); break;
+         interpret_csi_RESTORECUR(rt);/*, rt->pd->csiparam, param_count);*/ break;
 //      #ifdef DEBUG
       default: 
          fprintf(stderr, "Unrecogized CSI: <%s>\n", rt->pd->esbuf); break;

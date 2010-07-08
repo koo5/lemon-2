@@ -12,10 +12,10 @@ moomoo;
 	while(1)
     	{
 	    moomoo * d = (moomoo *)data;
-	    char buf[512512];
+	    char buf[123456];
 	    int br=-1;
 	    //logit("UNLOCKED SELECT\n");
-	    rote_vt_update_thready(buf, 512512, &br, d->t);
+	    rote_vt_update_thready(buf, 123456, &br, d->t);
 	    //logit("*end SELECT, locking %i*\n", d->lock);
 	    _mutexP(d->lock);
 	    //logit("LOCKED\n");

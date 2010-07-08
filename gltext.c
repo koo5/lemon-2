@@ -50,10 +50,10 @@ string prepare(string y)
     {
         tokens.clear();
 	tokenize(y,tokens);
-	for(int i=0;i<tokens.size();i++)
+	for(unsigned int i=0;i<tokens.size();i++)
 	{
 	    char* endptr=0;
-	    int b=strtol(tokens.at(i).c_str(),&endptr,10);
+	    unsigned int b=strtol(tokens.at(i).c_str(),&endptr,10);
 	    if(!endptr)
     	    {
     		if(font.size()<b)
@@ -74,9 +74,8 @@ void _spillit(xy lok, const char*x, float offset)
     #ifdef SDLD
 	have_first=0;
     #endif
-    int xdot,ydot;
-    float fxdot;
-    float fydot;
+    int xdot;
+    int ydot;
     while ((*x)&&(*(x+1)))
     {
         if (((*x)==' ')&&(*(x+1)==' ')) // 2 spaces
@@ -152,6 +151,7 @@ xy drawchar(xy lok, unsigned int i)
 	}
     }
     spillit(lok,"ZZZ~~~~ZZZ~~Z~~Z");
+    logit("unknown char: %u",i);
     nlok.x+=26;
     return nlok;
 }
@@ -189,8 +189,8 @@ void sizes(glyph&g)
     {
 	g.left=26;
 	g.right=0;
-	for(int i=0; i<g.s.length();i+=2)
-	    if(g.s[i]!=' ')
+	for(unsigned int i=0; i<g.s.length();i+=2)
+	    if(g.s[i]!=(unsigned char)' ')
 	    {
 		if(g.left>g.s.c_str()[i]-'a')
 		    g.left=g.s.c_str()[i]-'a';
@@ -221,8 +221,8 @@ void loadfont(char * fln)
     string x;
     while(getline(ff,x))
 	font.push_back(glyph(x));
-    for(int i=0;i<font.size();i++)
+    for(unsigned int i=0;i<font.size();i++)
 	font.at(i).s=prepare(font.at(i).s);
-    for(int i=0;i<font.size();i++)
+    for(unsigned int i=0;i<font.size();i++)
 	sizes(font.at(i));
 }

@@ -31,7 +31,7 @@ Copyright (c) 2004 Bruno T. C. de Oliveira
 void appendlog(RoteTerm *rt)
 {
    void* neww;
-   int loglen=20000;
+   unsigned int loglen=20000;
    if(rt->logl<loglen)
    {
 	neww = realloc(rt->log,(rt->logl+2)*sizeof(RoteCell*));

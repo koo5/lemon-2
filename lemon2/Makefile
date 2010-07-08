@@ -10,7 +10,7 @@ CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
         -I/usr/local/include/vte -lncurses -L/usr/X11R6/lib \
           ../roteterm/inject_csi.c ../roteterm/inject.c\
            ../roteterm/rote_keymap.c ../roteterm/rote.c \
-           ../roteterm/wtf.c -lncurses  ../tpl/tpl.c \
+           ../roteterm/wtf.c -lncurses  \
            ../yaml-cpp-0.2.5/libyaml-cpp.so
 
 pl=$(shell uname)
@@ -30,8 +30,8 @@ CFLIBS += -DWINDOWS -I/usr/include/ncurses -I/usr/local/include/SDL -I/usr/inclu
 
 endif
 
-
-CC      =g++ -o $@ lemon.cpp -g -ggdb  $(GLLIBS) $(CFLIBS) -std=c++0x
+                                                                       
+CC      =g++ -o $@ lemon.cpp -g -ggdb  $(GLLIBS) $(CFLIBS) -std=c++0x -W -Wall -Wextra  -pedantic
 
 
 

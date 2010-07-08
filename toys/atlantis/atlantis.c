@@ -153,7 +153,7 @@ class atlantis: public obj
 
 void InitFishs()
 {
-	int         i;
+	unsigned int         i;
 
 	for (i = 0; i < sharks.size(); i++) {
 		sharks[i].x = 70000.0 + NRAND(sharksize);
@@ -199,8 +199,6 @@ void predraw(int picking)
 	static const float mat_ambient[]    = {0.0, 0.1, 0.2, 1.0};
 	static const float lmodel_ambient[] = {0.4, 0.4, 0.4, 1.0};
 	static const float lmodel_localviewer[] = {0.0};
-
-	float        fblue = 0.0, fgreen;
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glFrontFace(GL_CCW);
@@ -485,9 +483,9 @@ SharkPilot(fishRec * fish, float sharkspeed)
 }
 
 void
-SharkMiss(int i)
+SharkMiss(unsigned int i)
 {
-	int         j;
+	unsigned int         j;
 	float       avoid, thetal;
 	float       X, Y, Z, R;
 
@@ -516,7 +514,7 @@ SharkMiss(int i)
 void
 Animate()
 {
-	int         i;
+	unsigned int         i;
 
 	for (i = 0; i < sharks.size(); i++) {
 		SharkPilot(&(sharks[i]), sharkspeed);
@@ -532,7 +530,7 @@ Animate()
 
 void AllDisplay()
 {
-	int         i;
+	unsigned int         i;
 
 	for (i = 0; i < sharks.size(); i++) {
 		glPushMatrix();
@@ -577,7 +575,7 @@ atlantis(float asp = 1)
 	    XWindowAttributes wgwa;
 	    XGetWindowAttributes( dpy, root, &wgwa );
 	    texture = minixpm_to_ximage (dpy,wgwa.visual,wgwa.colormap,wgwa.depth,
-	    BlackPixelOfScreen(wgwa.screen), sea_texture,0,0,0,0,0);
+	    BlackPixelOfScreen(wgwa.screen), sea_texture,0);
 	    inittexture();
 	}
 	aspect=asp;
@@ -595,9 +593,9 @@ atlantis(float asp = 1)
         setwire(wire);
 }
 
-void setwire(int w)
+void setwire(unsigned int w)
 {
-    	for (int i = 0; i < sharks.size(); i++) {
+    	for (unsigned int i = 0; i < sharks.size(); i++) {
     		sharks[i].wire=w;
     	}
     	momWhale.wire=w;
@@ -617,6 +615,7 @@ virtual void keyp(int key,int uni,int mod)
 	do_texture=!do_texture;
     else if(uni=='g')
 	ghost=!ghost;
+    else obj::keyp(key,uni,mod);
     
 }
 /*
