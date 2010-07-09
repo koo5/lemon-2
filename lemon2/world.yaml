@@ -1,5 +1,27 @@
 ---
 -
+  Class: pixel_city
+  obj:
+    t:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    r:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    s:
+      Class: v3d
+      x: 1
+      y: 1
+      z: 1
+  ini:
+    Effect: 1
+    SetDefaults: 1
+    ShowFog: 1
+-
   Class: spectrum_analyzer
   obj:
     t:
@@ -49,3 +71,22 @@
   line_antialiasing: 0
   givehelp: 0
   lv: 1
+  w: 1280
+  h: 776
+  znear: 1
+  zfar: 20
+  cam:
+    Class: v3d
+    x: 0
+    y: 0
+    z: 8.7
+  look:
+    Class: v3d
+    x: 0
+    y: 0
+    z: 0
+  cr:
+    Class: v3d
+    x: 0
+    y: 0
+    z: 0

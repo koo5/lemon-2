@@ -1,5 +1,5 @@
 
-DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/* ../sdl/lib/libSDL.so ../yaml-cpp-0.2.5/libyaml-cpp.so
+DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/* ../sdl/lib/libSDL.so ../yaml-cpp-0.2.5/libyaml-cpp.so ../fuzzyflakes-pixel-city-for-lemon/lemon-pixel-city.c
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -31,21 +31,22 @@ CFLIBS += -DWINDOWS -I/usr/include/ncurses -I/usr/local/include/SDL -I/usr/inclu
 endif
 
                                                                        
-CC      =g++ -o $@ lemon.cpp -g -ggdb  $(GLLIBS) $(CFLIBS) -std=c++0x -W -Wall -Wextra  -pedantic
+CC      =g++ -o $@ lemon.cpp -g -ggdb  $(GLLIBS) $(CFLIBS) -std=c++0x -W -Wall -Wextra  -pedantic \
+	-pg -Dlibpng -lpng -Dnerve -lGLU  -lm -Wno-write-strings  -lXcomposite -lXdamage -lXfixes -lXrender -lX11 
 
-have_pixelcity := $(wildcard ../fuzzyflakes-pixel-city-for-lemon)
 
-ifeq ($(strip $(have_pixelcity)),)
-eecho= "no pixelcity"
-else
-eecho ="we have pixelcity"
-endif
+
+#pixelcity
+CC += -D_lemon -Dhas_pixel_city -I../fuzzyflakes-pixel-city-for-lemon ../fuzzyflakes-pixel-city-for-lemon/*cpp
+
+
+
 
 TARGETS = lsdl lgl
 all: lgl
 a: $(TARGETS)
 lgl$(EXE): $(DEPS)
-	$(CC) -pg -Dlibpng -lpng -Dnerve -lGLU  -lm -Wno-write-strings  -lXcomposite -lXdamage -lXfixes -lXrender -lX11 
+	$(CC) 
 
 test :
 	g++ -o test test.cpp  
@@ -69,4 +70,7 @@ clean:
 	cmake CMakeLists.txt &&\
 	make
 
-
+../fuzzyflakes-pixel-city-for-lemon/lemon-pixel-city.c:
+	cd ../&&\
+	git submodule init&&\
+	git submodule update

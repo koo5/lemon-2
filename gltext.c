@@ -155,6 +155,10 @@ xy drawchar(xy lok, unsigned int i)
     nlok.x+=26;
     return nlok;
 }
+void flush_text()
+{
+
+}
 
 
 void draw_text(const char *a)

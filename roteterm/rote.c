@@ -430,8 +430,8 @@ char * rotoclipin(int sel)
     else
         rote_vt_forkpty(t, "xclip -o",0,0);
     int br=0;
-    buf=(char*)malloc(512513);
-    rote_vt_update_thready(buf, 6, &br,t);
+    buf=(char*)malloc(1512513);
+    rote_vt_update_thready(buf, 1512513, &br,t);
     //?
     if(br)buf[br]=0;
     rote_vt_forsake_child(t);

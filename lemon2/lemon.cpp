@@ -43,7 +43,6 @@ share height data across windows
 #include <X11/Xlib.h>
 #include <../roteterm/rote.h>
 #include "../XY.h"
-#include "modes.c"
 #include "../more-mess/rdfl.c"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
@@ -86,6 +85,8 @@ using namespace YAML;
 
 
 
+int w = 1280;
+int h = 800;
 
 float znear=1;
 float zfar=20;
@@ -99,9 +100,35 @@ SDL_Surface* s;
 			void emit_members(Emitter &out)const
 #define LOAD	void load_members(const Node& doc)
 #define save(x) YAML_EMIT_MEMBER(out, x);
-#define load(x) YAML_LOAD_MEMBER(doc, x);
+#define load(x) try{YAML_LOAD_MEMBER(doc, x);}catch(...){}
 #define vsave(x) YAML_EMIT(out, x);
-#define vload(x) YAML_LOAD(doc, x);
+#define vload(x) try{YAML_LOAD(doc, x);}catch(...){}
+
+
+struct v3d:public Serializable
+{
+    SAVE(v3d)
+    {
+	save(x)
+	save(y)
+	save(z)
+    }
+    LOAD
+    {
+	load(x)
+	load(y)
+	load(z)
+    }
+    double x,y,z;
+    v3d()
+    {
+    
+    }
+};
+
+v3d cam;
+v3d look;
+v3d cr;
 
 
 struct Settingz: public Serializable
@@ -111,12 +138,26 @@ struct Settingz: public Serializable
 	save(line_antialiasing)
 	save(givehelp)
 	save(lv)
+	vsave(w)
+	vsave(h)
+	vsave(znear)
+	vsave(zfar)
+	vsave(cam)
+	vsave(look)
+	vsave(cr)
     }
     LOAD
     {
 	load(line_antialiasing)
 	load(givehelp)
 	load(lv)
+	vload(w)
+	vload(h)
+	vload(znear)
+	vload(zfar)
+	vload(cam)
+	vload(look)
+	vload(cr)
     }
     int32_t line_antialiasing;
     int32_t givehelp;
@@ -228,30 +269,6 @@ void sdle(void)
 
 struct obj;
 
-struct v3d:public Serializable
-{
-    SAVE(v3d)
-    {
-	save(x)
-	save(y)
-	save(z)
-    }
-    LOAD
-    {
-	load(x)
-	load(y)
-	load(z)
-    }
-    double x,y,z;
-    v3d()
-    {
-    
-    }
-};
-
-v3d cam;
-v3d look;
-v3d cr;
 
 void viewmatrix()
 {
@@ -341,8 +358,11 @@ struct obj:public Serializable
     }
     ~obj(){if(active==this)active=0;}
 };
-
 unsigned int obj::idcounter=0;
+
+#ifdef has_pixel_city
+#include "../fuzzyflakes-pixel-city-for-lemon/lemon-pixel-city.c"
+#endif
 
 struct terminal:public obj
 {
@@ -1829,18 +1849,34 @@ void loadobjects(int online=0)
 	    	    hasid=1;
 	    	}
 	    	catch(Exception){}
-	    if(!strcmp(n, "Settingz"))
-		doc[i]>>settingz;
             obj * d;//dummy
 	    loado(d,face)
 	    #ifdef has_atlantis
             loado(d,atlantis)
+	    #endif
+	    #ifdef has_pixel_city
+	    loado(d,pixel_city)
 	    #endif
 	    loado(comp,composite)
 	    loado(loggerface,logger)
 	    loado(d,flipflop)
 	    loado(d,nerverot)
 	    loado(d,spectrum_analyzer)
+        }
+    }
+}
+void loadsettingz()
+{
+    std::ifstream fin(wrld);
+    YAML::Parser parser(fin);
+    YAML::Node doc;
+    while(parser.GetNextDocument(doc)) {
+        for(unsigned int i=0;i<doc.size();i++) {
+            string nn;
+            doc[i]["Class"]>>nn;
+            const char *n=nn.c_str();
+	    if(!strcmp(n, "Settingz"))
+		doc[i]>>settingz;
         }
     }
 }
@@ -1871,7 +1907,6 @@ void saveobjects(int online=0)
     out << settingz;
     out << EndSeq;
     fout << out.c_str();
-    logit("L:%i:",(strlen(out.c_str())));
     logit("%s",out.c_str());
 }
 
@@ -1982,18 +2017,8 @@ void updatelinewidth()
     #ifdef GL
 	glLineWidth(settingz.lv);
     #endif
-}							    
+}
 
-//int RunGLTest (void)
-	int restartup=1;
-	int bpp=8;
-	int w = 1280;
-	int h = 800;
-	int done = 0;
-	int shrink=0;
-	int grow=0;
-	int gofullscreen=0;
-	int escaped = 0;
 
 int anything_dirty()
 {
@@ -2049,8 +2074,9 @@ void showfocus()
 	    glEnd();
 	    glPopMatrix();
 	}
-    }
-#endif
+    #endif
+}
+
 
 void moveit(Uint8*k)
 {
@@ -2144,16 +2170,13 @@ void moveit(Uint8*k)
 }
 void lemon (void)
 {
+    int bpp=8;
+    int done = 0;
+    int gofullscreen=0;
+    int escaped = 0;
     cam.z=10;
     cam.x=cam.y=0;
-    xy ss;
-    ss.x=-1;
-    {
-	char *x=GetFileIntoCharPointer1("mode");
-	if(x)
-	    ss = parsemodeline(x);
-    }
-    if (ss.x!=-1){w=ss.x;h=ss.y;};
+    loadsettingz();
     #ifdef GL
 	s=initsdl(w,h,&bpp,SDL_OPENGL
     #else
@@ -2713,7 +2736,6 @@ d(WINDOWS) && !defined(OSX)
 		    }
 		    else
 		    {
-			savemode(w,h,mdfl);
 			saveobjects();
 		    }
 		}
@@ -2751,13 +2773,11 @@ int main(int argc, char *argv[])
 		fcfl=strdup(strcat(path, "faces"));		*n=0;
 		btns=strdup(strcat(path, "buttons/"));		*n=0;
 	}
-	//loadsettings();
 	clipout=rote_vt_create(10,10);
 	clipout2=rote_vt_create(10,10);
 	lemon();
 	rote_vt_destroy(clipout);
 	rote_vt_destroy(clipout2);
-	//savesettings();
 	logit("finished.bye.\n");
 	return 0;
 }
