@@ -131,45 +131,6 @@ v3d look;
 v3d cr;
 
 
-struct Settingz: public Serializable
-{
-    SAVE(Settingz)
-    {       
-	save(line_antialiasing)
-	save(givehelp)
-	save(lv)
-	vsave(w)
-	vsave(h)
-	vsave(znear)
-	vsave(zfar)
-	vsave(cam)
-	vsave(look)
-	vsave(cr)
-    }
-    LOAD
-    {
-	load(line_antialiasing)
-	load(givehelp)
-	load(lv)
-	vload(w)
-	vload(h)
-	vload(znear)
-	vload(zfar)
-	vload(cam)
-	vload(look)
-	vload(cr)
-    }
-    int32_t line_antialiasing;
-    int32_t givehelp;
-    double lv;//glLineWidth
-    Settingz()
-    {
-	line_antialiasing=0;
-	givehelp=1;
-	lv=1;
-    }
-}settingz;
-
 void slogit(const char * iFormat, ...);
 void logit(const char * iFormat, ...);
 
@@ -235,7 +196,12 @@ float floabs(float x)
     return x>0 ? x : -x;
 }
 
-
+void resetviewport(void)
+{
+    #ifdef GL
+	glViewport( 0, 0, SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h );
+    #endif
+}
 
 void gle(void)
 {
@@ -246,10 +212,12 @@ void gle(void)
 	{
 	    if(gl_error==GL_STACK_UNDERFLOW)
 		logit("QUACK QUACK QUACK, UNDERFLOVING STACK\n");
-	    if(gl_error==GL_STACK_OVERFLOW)
+	    else if(gl_error==GL_STACK_OVERFLOW)
 		logit("QUACK QUACK QUACK, OVERFLOVING STACK\n");
 	    else if(gl_error==GL_INVALID_OPERATION)
 		logit("INVALID OPERATION, PATIENT EXPLODED\n");
+	    else if(gl_error==GL_INVALID_VALUE)
+		logit("GL_INVALID_VALUE");
 	    else
 		logit("OpenGL error: 0x%X\n", gl_error );
 	}
@@ -364,6 +332,54 @@ unsigned int obj::idcounter=0;
 #include "../fuzzyflakes-pixel-city-for-lemon/lemon-pixel-city.c"
 #endif
 
+struct Settingz: public Serializable
+{
+    SAVE(Settingz)
+    {       
+	save(line_antialiasing)
+	save(givehelp)
+	save(lv)
+	vsave(w)
+	vsave(h)
+	vsave(znear)
+	vsave(zfar)
+	vsave(cam)
+	vsave(look)
+	vsave(cr)
+#ifdef has_pixel_city
+	vsave(pixel_city_ini)
+#endif
+    }
+    LOAD
+    {
+	load(line_antialiasing)
+	load(givehelp)
+	load(lv)
+	vload(w)
+	vload(h)
+	vload(znear)
+	vload(zfar)
+	vload(cam)
+	vload(look)
+	vload(cr)
+#ifdef has_pixel_city
+	vload(pixel_city_ini)
+#endif
+    }
+    int32_t line_antialiasing;
+    int32_t givehelp;
+    double lv;//glLineWidth
+    Settingz()
+    {
+	line_antialiasing=0;
+	givehelp=1;
+	lv=1;
+    }
+}settingz;
+
+
+
+
 struct terminal:public obj
 {
     char *status;
@@ -390,7 +406,8 @@ struct terminal:public obj
     LOAD
     {
     	YAML_LOAD_PARENT_MEMBERS(doc,obj)
-    	int cols, rows;
+    	int cols=100;
+    	int rows=100;
     	vload(cols)
     	vload(rows)
         cout << cols<<" "<<rows<<endl;
@@ -590,7 +607,7 @@ struct terminal:public obj
 	        {
 		    lok.x=(j-t->cols/2.0)*26;
 		    do_color(theme,ROTE_ATTR_XFG(t->log[i][j+1].attr),alpha);
-	    	    drawchar(lok,t->log[i][j+1].ch);
+	    	    drawmonospace(lok,t->log[i][j+1].ch);
 		}	
 	    }
         }
@@ -672,7 +689,7 @@ struct terminal:public obj
     			glRotatef(SDL_GetTicks()/10,0,1,0);
 			glBegin(GL_LINE_STRIP);
 			xy molok;molok.x=-13;molok.y=-13;
-			drawchar(molok,t->cells[i][j].ch);
+			drawmonospace(molok,t->cells[i][j].ch);
 			glEnd();
 			glPopMatrix();
 			glPopMatrix();
@@ -685,7 +702,7 @@ struct terminal:public obj
 			spillit(lok, "aaazzazz");
 	        #endif
 	        if(ROTE_ATTR_XFG(t->cells[i][j].attr)!=ROTE_ATTR_XBG(t->cells[i][j].attr))
-		    drawchar(lok,t->cells[i][j].ch);
+		    drawmonospace(lok,t->cells[i][j].ch);
 	    }
 	}
 	#ifdef GL
@@ -1785,12 +1802,6 @@ void resetmatrices(void)
         glLoadIdentity();
     #endif
 }
-void resetviewport(void)
-{
-    #ifdef GL
-	glViewport( 0, 0, SDL_GetVideoSurface()->w,SDL_GetVideoSurface()->h );
-    #endif
-}
 SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
 {
     static SDL_Rect xx ;
@@ -2197,7 +2208,7 @@ void lemon (void)
         glClearColor( 0.0, 0.0, 0.0, 0.0 );
         updatelinewidth();
 	updatelinesmooth();
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     #endif
     loadobjects();
 //    objects.push_back(new nerverot);
@@ -2258,7 +2269,7 @@ void lemon (void)
 		if( o->overlay)o->translate_and_draw(0);}
 	    gle();
 	   // if((escaped||k[SDLK_RCTRL]))
-	    	showfocus();
+	    //	showfocus();
 
 	    #ifdef GL
 	    gle();
@@ -2287,7 +2298,7 @@ void lemon (void)
 	#ifdef threaded
 	    if(dirty)
 	#endif
-		x= SDL_AddTimer(55, TimerCallback, 0);
+		x= SDL_AddTimer(5, TimerCallback, 0);
         dirty=0;
 	unlockterms();
 	//logit("---------unlocked wating\n");

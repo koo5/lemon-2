@@ -155,6 +155,22 @@ xy drawchar(xy lok, unsigned int i)
     nlok.x+=26;
     return nlok;
 }
+void drawmonospace(xy lok, unsigned int i)
+{
+    xy nlok;
+    nlok.x=nlok.y=0;
+    if (i<font.size())
+    {
+	if(font[i].s.length())
+	{
+    	    spillit(lok,font[i].s.c_str());
+	    return;
+	}
+    }
+    spillit(lok,"ZZZ~~~~ZZZ~~Z~~Z");
+    logit("unknown char: %u",i);
+    return;
+}
 void flush_text()
 {
 
