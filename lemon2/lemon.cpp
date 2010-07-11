@@ -1,8 +1,3 @@
-/*
-fix picking
-finish compositing
-make it usable again
-*/
 /*******************************************************************
 * Description:
 * Author: koom,,, <>
