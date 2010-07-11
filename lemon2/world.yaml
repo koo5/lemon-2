@@ -67,8 +67,8 @@
     Flat: 0
     Letterbox: 0
     SetDefaults: 1
-    ShowFPS: 1
+    ShowFPS: 0
     ShowFog: 1
     Wireframe: 0
     cam_auto: 1
-    camera_behavior: 6
+    camera_behavior: 5
