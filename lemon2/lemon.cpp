@@ -1,10 +1,7 @@
 /*
-s3d
-editor
-fix nerverot
-client server copying
-rhytmbox visualization plugin
-share height data across windows
+fix picking
+finish compositing
+make it usable again
 */
 /*******************************************************************
 * Description:
@@ -1927,7 +1924,8 @@ void saveobjects(int online=0)
 
 void pick(int up, int button, int x, int y)
 {         
-//    logit("picking objects...");
+    logit("picking objects...");
+    y=h-y;
     GLuint fuf[500];
     GLint viewport[4];
     glGetIntegerv (GL_VIEWPORT, viewport);
@@ -1949,17 +1947,17 @@ void pick(int up, int button, int x, int y)
     GLuint minz = std::numeric_limits<unsigned int>::max() ;
     int nearest=-1;
     unsigned int numhits = glRenderMode(GL_RENDER);
-//    logit("%i hits", numhits);
+    logit("%i hits", numhits);
     vector<vector<int> > hits;
     for(i=0,k=0;i<numhits;i++)
     {
 	GLuint numnames=fuf[k++];
-//	logit("%i names", numnames);
-//	logit("%d minz", fuf[k]);
-//	logit("%d maxz", fuf[k+1]);
+	logit("%i names", numnames);
+	logit("%d minz", fuf[k]);
+	logit("%d maxz", fuf[k+1]);
 	if(fuf[k]<minz)
 	{
-//	    logit("%u < %u, nearest = %i", fuf[k],minz,i);
+	    logit("%u < %u, nearest = %i", fuf[k],minz,i);
 	    nearest = i;
 	    minz = fuf[k];
 	}
@@ -2176,8 +2174,8 @@ void moveit(Uint8*k)
 		cam.z+=0.1;
 	}
 		
-	int x,y;
-	pick(0,SDL_GetMouseState(&x,&y),x,y);
+//	int x,y;
+	//pick(0,SDL_GetMouseState(&x,&y),x,y);
 }
 void lemon (void)
 {
@@ -2269,7 +2267,7 @@ void lemon (void)
 		if( o->overlay)o->translate_and_draw(0);}
 	    gle();
 	   // if((escaped||k[SDLK_RCTRL]))
-	    //	showfocus();
+	    	showfocus();
 
 	    #ifdef GL
 	    gle();
@@ -2381,12 +2379,12 @@ void lemon (void)
 		        break;
 		    case SDL_MOUSEBUTTONDOWN:
 		    {
-			pick(0,event.button.button,event.button.x,h-event.button.y);
+			pick(0,event.button.button,event.button.x,event.button.y);
 			break;
 		    }
 		    case SDL_MOUSEBUTTONUP:
 		    {
-			pick(1,event.button.button,event.button.x,h-event.button.y);
+			pick(1,event.button.button,event.button.x,event.button.y);
 			break;
 		    }
 		    
@@ -2703,7 +2701,7 @@ d(WINDOWS) && !defined(OSX)
 		    {
 			int x,y;
 			SDL_GetMouseState(&x,&y);
-			pick(0,0,x,h-y);
+			pick(0,0,x,y);
 			mousejustmoved=0;
 		    }
 		    if(gofullscreen)

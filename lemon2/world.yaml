@@ -37,12 +37,12 @@
         y: -0.005
         z: 0.002
     cols: 147
-    rows: 60
+    rows: 53
 -
   Class: Settingz
   line_antialiasing: 0
   givehelp: 0
-  lv: 1
+  lv: 2
   w: 1280
   h: 776
   znear: 1
@@ -50,12 +50,12 @@
   cam:
     Class: v3d
     x: 0
-    y: 0
-    z: 4
+    y: -0.2
+    z: 4.5
   look:
     Class: v3d
     x: 0
-    y: 0
+    y: -0.2
     z: 0
   cr:
     Class: v3d
@@ -71,4 +71,4 @@
     ShowFog: 1
     Wireframe: 0
     cam_auto: 1
-    camera_behavior: 6
+    camera_behavior: 5
