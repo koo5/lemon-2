@@ -2266,7 +2266,7 @@ void lemon (void)
 	    for_each_object
 		if( o->overlay)o->translate_and_draw(0);}
 	    gle();
-	   // if((escaped||k[SDLK_RCTRL]))
+	    if((escaped||k[SDLK_RCTRL]))
 	    	showfocus();
 
 	    #ifdef GL
