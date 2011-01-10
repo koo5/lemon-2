@@ -1,3 +1,16 @@
+
+
+#define _mutexV( d ) {if(SDL_mutexV( d )) {logit("SDL_mutexV!");}}
+#define _mutexP( d ) {if(SDL_mutexP( d )) {logit("SDL_mutexP!");}}
+#define CODE_DATA 3
+#define CODE_TIMER 0
+#define CODE_QUIT 1
+#define CODE_FNFLCHANGED 2
+#define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
+
+
+
+
 typedef struct
 {
     RoteTerm* t;
@@ -120,10 +133,7 @@ struct face:public terminal
     {
 	logit("adding terminal");
 	t = rote_vt_create(r,c);
-	if(originalldpreload)
-	    rote_vt_forkpty((RoteTerm*) t, run, "LD_PRELOAD", originalldpreload);
-	else
-	    rote_vt_forkpty((RoteTerm*) t, run, 0, 0);
+	rote_vt_forkpty((RoteTerm*) t, run, "LD_PRELOAD", "");
 	#ifdef threaded
 	    upd_t_data.lock=SDL_CreateMutex();
 	    upd_t_data.t=t;
@@ -152,3 +162,21 @@ struct face:public terminal
     }
 };
 
+void lockterms(void)
+{
+    #ifdef threaded
+	for_each_face
+	    f->lock();
+	endf
+    #endif
+}
+void unlockterms(void)
+{
+    #ifdef threaded
+	//logit("unlocking terms");
+	for_each_face
+	    f->unlock();
+	endf
+	//logit("done");
+    #endif
+}

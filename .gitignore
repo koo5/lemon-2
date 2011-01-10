@@ -31,3 +31,15 @@ yaml-cpp-0.2.5/util/Makefile
 yaml-cpp-0.2.5/util/cmake_install.cmake
 yaml-cpp-0.2.5/util/parse
 yaml-cpp-0.2.5/yaml-cpp.pc
+spectrum-analyzer/audaciousplugin/Makefile
+spectrum-analyzer/audaciousplugin/config.h
+spectrum-analyzer/audaciousplugin/config.log
+spectrum-analyzer/audaciousplugin/config.status
+spectrum-analyzer/audaciousplugin/libtool
+spectrum-analyzer/audaciousplugin/src/.deps/
+spectrum-analyzer/audaciousplugin/src/.libs/
+spectrum-analyzer/audaciousplugin/src/Makefile
+spectrum-analyzer/audaciousplugin/src/libexample2.la
+spectrum-analyzer/audaciousplugin/src/plugin_main.lo
+spectrum-analyzer/audaciousplugin/src/plugin_main.o
+spectrum-analyzer/audaciousplugin/stamp-h1

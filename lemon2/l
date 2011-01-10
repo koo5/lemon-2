@@ -1,12 +1,5 @@
 #!/bin/bash
 export SDL_VIDEO_ALLOW_SCREENSAVER=1
 DIR=$(dirname  $0)
-
-if [ $1 ]
-then
-cd "$1"
-fi
 SCRIPT="${DIR}/lgl"
-ORIGINALLDPRELOAD="${LD_PRELOAD}"
-echo X${DIR}X
-LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so:${DIR}/../SDL-1.2.14/build/.libs/libSDL.so $SCRIPT -originalldpreload ${ORIGINALLDPRELOAD}
+LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so:${DIR}/../SDL-1.2.14/build/.libs/libSDL.so $SCRIPT $1

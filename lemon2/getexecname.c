@@ -181,3 +181,15 @@ char *getexepath(void)
 	}
     return 0;
 }
+
+char *needexepath(void)
+{
+	char *path = getexepath();
+	if(!path)
+	{
+		std::cout << "cant get executables path" << std::endl;
+		abort();
+	}
+	return path;
+}
+

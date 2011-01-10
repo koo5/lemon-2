@@ -1,5 +1,5 @@
 
-DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/* ../sdl/lib/libSDL.so ../yaml-cpp-0.2.5/libyaml-cpp.so ../fuzzyflakes-pixel-city-for-lemon/lemon-pixel-city.c
+DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/* ../sdl/lib/libSDL.so ../yaml-cpp-0.2.5/libyaml-cpp.so
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -36,9 +36,11 @@ CC      =g++ -o $@ lemon.cpp -g -ggdb $(GLLIBS) $(CFLIBS) -std=c++0x -W -Wall -W
 
 
 
-#pixelcity
-CC += -D_lemon -Dhas_pixel_city -I../fuzzyflakes-pixel-city-for-lemon ../fuzzyflakes-pixel-city-for-lemon/*cpp
-
+#pixelcity:
+PCSRCS    = $(wildcard ../fuzzyflakes-pixel-city-for-lemon/*.cpp)
+PCOBJS    = $(patsubst %.cpp,%.o,$(PCSRCS))
+CC += -Dhas_pixel_city -I../fuzzyflakes-pixel-city-for-lemon/ ../fuzzyflakes-pixel-city-for-lemon/*.o
+DEPS += $(PCOBJS)
 
 
 
@@ -70,7 +72,10 @@ clean:
 	cmake CMakeLists.txt &&\
 	make
 
-../fuzzyflakes-pixel-city-for-lemon/lemon-pixel-city.c:
+../fuzzyflakes-pixel-city-for-lemon/lemon/%.cpp:
 	cd ../&&\
 	git submodule init&&\
 	git submodule update
+
+../fuzzyflakes-pixel-city-for-lemon/%.o: ../fuzzyflakes-pixel-city-for-lemon/%.cpp
+	${CXX} -D_lemon  -Wno-write-strings  -c -o $@ $^
