@@ -1,48 +1,33 @@
-# On branch master
-# Changes to be committed:
-#   (use "git reset HEAD <file>..." to unstage)
-#
-#	modified:   lemon2/world.yaml
-#
-# Changed but not updated:
-#   (use "git add <file>..." to update what will be committed)
-#   (use "git checkout -- <file>..." to discard changes in working directory)
-#
-#	modified:   SDL-1.2.14/include/SDL_config.h
-#	modified:   SDL-1.2.14/sdl.pc
-#
-# Untracked files:
-#   (use "git add <file>..." to include in what will be committed)
-#
-#	.gitignore
-#	SDL-1.2.14/Makefile
-#	SDL-1.2.14/SDL.qpg
-#	SDL-1.2.14/build-deps
-#	SDL-1.2.14/build/
-#	SDL-1.2.14/config.log
-#	SDL-1.2.14/config.status
-#	SDL-1.2.14/libtool
-#	SDL-1.2.14/sdl-config
-#	lemon2/.#lemon.cpp
-#	lemon2/fulllemonscreenshot.png
-#	lemon2/lgl
-#	sdl/
-#	yaml-cpp-0.2.5/CMakeCache.txt
-#	yaml-cpp-0.2.5/CMakeFiles/
-#	yaml-cpp-0.2.5/CTestTestfile.cmake
-#	yaml-cpp-0.2.5/Makefile
-#	yaml-cpp-0.2.5/cmake_install.cmake
-#	yaml-cpp-0.2.5/libyaml-cpp.so
-#	yaml-cpp-0.2.5/libyaml-cpp.so.0.2
-#	yaml-cpp-0.2.5/libyaml-cpp.so.0.2.5
-#	yaml-cpp-0.2.5/test/CMakeFiles/
-#	yaml-cpp-0.2.5/test/CTestTestfile.cmake
-#	yaml-cpp-0.2.5/test/Makefile
-#	yaml-cpp-0.2.5/test/cmake_install.cmake
-#	yaml-cpp-0.2.5/test/run-tests
-#	yaml-cpp-0.2.5/util/CMakeFiles/
-#	yaml-cpp-0.2.5/util/CTestTestfile.cmake
-#	yaml-cpp-0.2.5/util/Makefile
-#	yaml-cpp-0.2.5/util/cmake_install.cmake
-#	yaml-cpp-0.2.5/util/parse
-#	yaml-cpp-0.2.5/yaml-cpp.pc
+SDL-1.2.14/include/SDL_config.h
+SDL-1.2.14/sdl.pc
+SDL-1.2.14/Makefile
+SDL-1.2.14/SDL.qpg
+SDL-1.2.14/build-deps
+SDL-1.2.14/build/
+SDL-1.2.14/config.log
+SDL-1.2.14/config.status
+SDL-1.2.14/libtool
+SDL-1.2.14/sdl-config
+lemon2/.#lemon.cpp
+lemon2/fulllemonscreenshot.png
+lemon2/lgl
+sdl/
+yaml-cpp-0.2.5/CMakeCache.txt
+yaml-cpp-0.2.5/CMakeFiles/
+yaml-cpp-0.2.5/CTestTestfile.cmake
+yaml-cpp-0.2.5/Makefile
+yaml-cpp-0.2.5/cmake_install.cmake
+yaml-cpp-0.2.5/libyaml-cpp.so
+yaml-cpp-0.2.5/libyaml-cpp.so.0.2
+yaml-cpp-0.2.5/libyaml-cpp.so.0.2.5
+yaml-cpp-0.2.5/test/CMakeFiles/
+yaml-cpp-0.2.5/test/CTestTestfile.cmake
+yaml-cpp-0.2.5/test/Makefile
+yaml-cpp-0.2.5/test/cmake_install.cmake
+yaml-cpp-0.2.5/test/run-tests
+yaml-cpp-0.2.5/util/CMakeFiles/
+yaml-cpp-0.2.5/util/CTestTestfile.cmake
+yaml-cpp-0.2.5/util/Makefile
+yaml-cpp-0.2.5/util/cmake_install.cmake
+yaml-cpp-0.2.5/util/parse
+yaml-cpp-0.2.5/yaml-cpp.pc
