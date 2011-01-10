@@ -1,6 +1,51 @@
 ---
 -
-  Class: pixel_city
+  Class: spectrum_analyzer
+  obj:
+    t:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    r:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    s:
+      Class: v3d
+      x: 1
+      y: 1
+      z: 1
+  rotx: 0
+  roty: 0
+  rotz: 0
+  rx: 0
+  ry: 0
+  rz: 0
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 0
+      s:
+        Class: v3d
+        x: 0.0041
+        y: -0.0225
+        z: 0.002
+    cols: 170
+    rows: 30
+-
+  Class: atlantis
   obj:
     t:
       Class: v3d
@@ -18,44 +63,23 @@
       y: 1
       z: 1
 -
-  Class: face
-  terminal:
-    obj:
-      t:
-        Class: v3d
-        x: 0
-        y: 0.1
-        z: 0
-      r:
-        Class: v3d
-        x: 0
-        y: 0
-        z: 0
-      s:
-        Class: v3d
-        x: 0.002
-        y: -0.005
-        z: 0.002
-    cols: 164
-    rows: 65
--
   Class: Settingz
   line_antialiasing: 0
   givehelp: 0
   lv: 1
   w: 1280
-  h: 776
+  h: 800
   znear: 1
   zfar: 20
   cam:
     Class: v3d
     x: 0
-    y: 0.1
-    z: 4.5
+    y: 0
+    z: 10
   look:
     Class: v3d
     x: 0
-    y: 0.1
+    y: 0
     z: 0
   cr:
     Class: v3d
@@ -63,12 +87,4 @@
     y: 0
     z: 0
   pixel_city_ini:
-    Effect: 0
-    Flat: 0
-    Letterbox: 0
-    SetDefaults: 1
-    ShowFPS: 0
-    ShowFog: 1
-    Wireframe: 0
-    cam_auto: 1
-    camera_behavior: 5
+    {}
