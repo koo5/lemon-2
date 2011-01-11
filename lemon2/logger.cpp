@@ -32,11 +32,15 @@ class logger:public terminal
     {
 	rote_vt_write(t, s, strlen(s)+1);
 	rote_vt_write(t,"\n",1);
+	dirty = 1;
     }
     
     void slogit(char *s)
     {
+	if(!strcmp(s,status))
+	    dirty = 1;
 	updatestatus(s);
     }
 };
+
 

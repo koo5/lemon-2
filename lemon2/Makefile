@@ -1,7 +1,7 @@
 
 DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/* ../sdl/lib/libSDL.so ../yaml-cpp-0.2.5/libyaml-cpp.so
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
-CFLIBS =  -Dthreaded -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
+CFLIBS =  -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
  -L/usr/lib -L/usr/X11R6/lib  -lutil -L/usr/local/lib  \
     -L/usr/local/lib   `pkg-config --libs x11`\

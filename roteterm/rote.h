@@ -106,6 +106,7 @@ typedef struct RoteTerm_ {
                                  * this (a segfault is about all you will 
                                  * accomplish). */
     int stoppedscrollback;
+    int scroll;
     unsigned int logstart;
     unsigned int logl;
    RoteCell **log;         

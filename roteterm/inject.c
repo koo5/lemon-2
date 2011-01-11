@@ -64,6 +64,8 @@ static void cursor_line_down(RoteTerm *rt) {
    rt->dirty=true;
    if (rt->crow <= rt->scrollbottom) return;
 
+    if(rt->stoppedscrollback)
+	rt->scroll++;
     appendlog(rt);
    /* must scroll the scrolling region up by 1 line, and put cursor on 
     * last line of it */
@@ -353,5 +355,6 @@ void rote_vt_inject(RoteTerm *rt, const char *data, int len) {
          put_normal_char(rt, *data);
 	}
    }
+   rt->dirty=1;
 }
 

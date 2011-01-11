@@ -59,8 +59,7 @@
 #define as dynamic_cast<
 #define is as
 #define for_each_object for(unsigned int i=0;i<objects.size();i++) { obj*o=objects.at(i);
-#define endfor }
-#define endf }}
+#define endf }
 using namespace std;
 using namespace YAML;
 
@@ -203,7 +202,6 @@ struct obj:public Serializable
     unsigned int runtime_id;
     static unsigned int idcounter;
     int dirty;
-    int overlay;
     double alpha;
     v3d t,r,s;
     obj()
@@ -211,7 +209,6 @@ struct obj:public Serializable
 	t.x=t.y=t.z=r.x=r.y=r.z=dirty=0;
 	s.x=s.y=s.z=1;
 	alpha=1;
-	overlay=0;
 	runtime_id=idcounter++;
     }
     virtual void activate(){
@@ -223,9 +220,9 @@ struct obj:public Serializable
 	activate();
 	logit("activating, up=%i, button=%i, v.size=%u, x=%i. y=%i",up,b,v.size(),x,y);
     }
-    virtual void draw(int picking){logit("drawing nothing, %i",picking);};
+    virtual void draw(int picking){logit("drawing nothing, picking: %i",picking);};
     virtual int getDirty(){return dirty;}
-    virtual void setDirty(int d){dirty=d;}
+    virtual void setClean(){dirty=0;}
     void translate_and_draw(int picking)
     {
 	#ifdef GL
@@ -354,14 +351,14 @@ float maxvol;
 #endif
 //#include <string>
 //#include "mplayer.cpp"
-#include "compositing.cpp"
+//#include "compositing.cpp"
 #ifdef fontwatcher
 #include <sys/inotify.h>
 #include "fontwatcher.cpp"
 #endif
 //#include "listdir.c"
 //#include "buttons.cpp"
-
+#include "ggg.cpp"
 
 void erase(obj * o)
 {
@@ -393,7 +390,7 @@ if(online&&hasid) {\
   if(o->runtime_id==runtimeid)\
    if(is x*>(o))\
     o->load_members(doc[i]); \
- endfor }\
+ endf }\
 else\
  {  obj*o;y=as x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }}
 
@@ -424,11 +421,11 @@ void loadobjects(int online=0)
 	    #ifdef has_pixel_city
 	    loado(d,pixel_city)
 	    #endif
-	    loado(comp,composite)
 	    loado(loggerface,logger)
 	    loado(d,flipflop)
 	    loado(d,nerverot)
 	    loado(d,spectrum_analyzer)
+	    loado(d,ggg)
         }
     }
 }
@@ -454,23 +451,20 @@ void saveobjects(int online=0)
     Emitter out;
     out << BeginSeq;
     for_each_object
-	if(!is composite_window*>(o))
+	if(online)
 	{
-	    if(online)
-	    {
-		out << YAML::BeginMap;
-	        std::string my_class_name = o->class_name();
-	        if (my_class_name.size()>0) {
-	          out << YAML::Key << CLASS_TAG << YAML::Value << my_class_name;
-	        }
-	        out<<Key<<"runtime_id"<<Value<<o->runtime_id;
-	        o->emit_members(out);
-		out << YAML::EndMap;
+	    out << YAML::BeginMap;
+	    std::string my_class_name = o->class_name();
+	    if (my_class_name.size()>0) {
+	      out << YAML::Key << CLASS_TAG << YAML::Value << my_class_name;
 	    }
-	    else
-		out << *o;
+	    out<<Key<<"runtime_id"<<Value<<o->runtime_id;
+	    o->emit_members(out);
+		out << YAML::EndMap;
 	}
-    endfor
+	else
+	    out << *o;
+    endf
     out << settingz;
     out << EndSeq;
     fout << out.c_str();
@@ -500,7 +494,7 @@ void pick(int up, int button, int x, int y)
     for_each_object
         glLoadName(i);
 	o->translate_and_draw(1);
-    endfor
+    endf
     glPopMatrix();
     unsigned int i,j, k;
     GLuint minz = std::numeric_limits<unsigned int>::max() ;
@@ -550,7 +544,7 @@ void vispick()
 
     for_each_object
 	o->translate_and_draw(2);
-    endfor
+    endf
     glPopMatrix();
 }
                           
@@ -580,12 +574,6 @@ void updatelinesmooth()
     	}
     #endif
 }
-void updatelinewidth()
-{
-    #ifdef GL
-	glLineWidth(settingz.lv);
-    #endif
-}
 
 
 int anything_dirty()
@@ -593,157 +581,226 @@ int anything_dirty()
     for_each_object
 	if(o->getDirty())
 	    return 1;
-    }
+    endf
     return 0;
 }
 void  nothing_dirty()
 {
     for_each_object
-	o->setDirty(0);
-    }
+	o->setClean();
+    endf
 }
 
-
-void showfocus()
+void showhelp(bool unfold)
 {
-    #ifdef GL
-	if(active)
-	{
+	if(settingz.givehelp)
+	{	
 	    glPushMatrix();
-	    glTranslated(active->t.x,active->t.y,active->t.z);
-	    glRotated(active->r.x,1,0,0);
-	    glRotated(active->r.y,0,1,0);
-	    glRotated(active->r.z,0,0,1);
-//	    glScalef(active->s.x,active->s.y,active->s.z);
-	    glColor3f(1,1,1);
-	    glBegin(GL_LINE_STRIP);
-	    glVertex3f(-1,1,0.2);
-	    glVertex3f(-1,1,1);
-	    glVertex3f(-1,-1,1);
-	    glVertex3f(-1,-1,0.2);
-	    glEnd();
-	    glBegin(GL_LINE_STRIP);
-	    glVertex3f(1,1,0.2);
-	    glVertex3f(1,1,1);
-	    glVertex3f(1,-1,1);
-	    glVertex3f(1,-1,0.2);
-	    glEnd();
-	    glBegin(GL_LINE_STRIP);
-	    glVertex3f(-1,1,-0.2);
-	    glVertex3f(-1,1,-1);
-	    glVertex3f(-1,-1,-1);
-	    glVertex3f(-1,-1,-0.2);
-	    glEnd();
-	    glBegin(GL_LINE_STRIP);
-	    glVertex3f(1,1,-0.2);
-	    glVertex3f(1,1,-1);
-	    glVertex3f(1,-1,-1);
-	    glVertex3f(1,-1,-0.2);
-	    glEnd();
+	    glLoadIdentity();
+    	    glOrtho(0,1200,1200,0,0,1);
+	    if(!unfold)
+	    
+		draw_text("\npress right ctrl for more fun...");
+	    else
+		draw_text("\nnow press h to hide help");
 	    glPopMatrix();
 	}
-    #endif
 }
 
 
-void moveit(Uint8*k)
+Uint8 * k;
+int bpp;
+int dirty;
+int done;
+int gofullscreen;
+int escaped;
+int mousejustmoved;
+int lastmousemoved;
+int afterglow;
+
+
+void process_event(SDL_Event event)
 {
-	if(k[SDLK_F1])
+	switch( event.type )
 	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->r.x-=10;
-	    else
-		cam.x-=0.1;
+	    case SDL_MOUSEMOTION:
+		lastmousemoved=SDL_GetTicks();
+		mousejustmoved=1;
+	        break;
+	    case SDL_KEYDOWN:
+	    {
+		int key=event.key.keysym.sym;
+		int uni=event.key.keysym.unicode;
+		int mod=event.key.keysym.mod;
+
+		if(escaped||(mod&KMOD_RCTRL)||(key==SDLK_RCTRL))
+		{
+		    escaped=0;
+		    switch (key)
+		    {
+			case SDLK_TAB:
+			    for_each_object
+				if(active==o)
+			        {
+				    if(++i==objects.size())
+				        i=0;
+				    objects.at(i)->activate();
+				    break;
+				}
+			    endf
+			    if(!active&&objects.size()) objects.at(0)->activate();
+			    break;
+			case SDLK_f:
+			    if(mod&KMOD_RSHIFT)
+			    {
+			        if(as face*>(active))
+			        {
+				    face *f = as face*>(active);
+				    rote_vt_resize(f->t,28,160);
+				}
+			    }
+			    else
+				gofullscreen=1;
+			    break;
+			case SDLK_s:
+			    saveobjects(1);
+			    break;
+			case SDLK_l:
+			    loadobjects(1);
+			    break;
+			case SDLK_r:
+		    	    loadfont(fnfl);
+		    	    break;
+			case SDLK_p:
+			    #ifdef libpng
+			        saveScreenshot();
+			    #endif
+			    break;
+			case SDLK_n:
+			    objects.push_back(new face);
+			    active=objects.at(objects.size()-1);
+			    break;
+			#ifdef GL
+			    case SDLK_t:
+				if(is face*>(active))
+				{
+				    face *f = as face*>(active);
+				    int step=1;
+				    int c=70;
+				    f->obj::t.x=-step;
+				    rote_vt_resize(f->t,28,c);
+				    objects.push_back(new face(step,0,c,28));
+				}
+				break;
+			    case SDLK_v:
+				cr.y+=3.4;
+				break;             
+			    case SDLK_c:
+				cr.y-=3.4;
+				break;
+			    case SDLK_EQUALS:
+				if(active)
+				{
+				    active->alpha+=0.05;
+				    if(active->alpha>1) active->alpha=1;
+				    break;
+				}
+				break;
+			    case SDLK_MINUS:
+				if(active)
+				{
+				    active->alpha-=0.05;
+				    if(active->alpha<0) active->alpha=0;
+				    break;
+				}
+				break;
+			#endif
+			case SDLK_h:
+			    settingz.givehelp=!settingz.givehelp;
+			    break;
+			case SDLK_RCTRL:
+			    escaped=1;
+			    break;
+			default:
+			    if(active)
+				active->keyp(key,uni,mod|KMOD_RCTRL);//escaped
+		    }
+		}
+		else if(active)
+		    active->keyp(key,uni,mod);
+		break;
+	    }
+	    case SDL_QUIT:
+	        done = 1;
+	        break;
+	    case SDL_VIDEOEXPOSE:
+		dirty=1;
+		break;
+	    case SDL_VIDEORESIZE:
+		w=event.resize.w;h=event.resize.h;
+                logit("videoresize %ix%i", w,h);
+		dirty=1;
+		s=SDL_SetVideoMode( w,h, bpp, s->flags);
+		resetviewport();
+		dirty=1;
+		break;
+	    case SDL_USEREVENT:
+		if(event.user.code==CODE_QUIT)
+		{
+		    for_each_face
+			if (f->t == event.user.data1)
+			    erase(i);
+		    endf endf
+		    dirty=1;
+		}
+		else if(event.user.code==CODE_FNFLCHANGED)
+		    loadfont(fnfl);
+		else if(event.user.code==CODE_DATA)
+		{
+		    //do nothing. be happy that we broke out of WaitEvent and could redraw ourselves
+		}
+		break;
 	}
-	if(k[SDLK_F2])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->t.x-=0.1;
-	    else
-	        look.x-=0.1;
-	}
-	if(k[SDLK_F3])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->t.x+=0.1;
-	    else
-		look.x+=0.1;
-	}
-	if(k[SDLK_F4])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->r.x+=10;
-	    else
-		cam.x+=0.1;
-	}
-	if(k[SDLK_F5])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->r.y-=10;
-	    else
-	        cam.y-=0.1;
-	}
-	if(k[SDLK_F6])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->t.y-=0.1;
-	    else
-		look.y-=0.1;
-	}
-	if(k[SDLK_F7])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->t.y+=0.1;
-	    else
-	        look.y+=0.1;
-	}
-	if(k[SDLK_F8])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->r.y+=10;
-	    else
-		cam.y+=0.1;
-	}
-	if(k[SDLK_F9])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->r.z-=10;
-	    else
-		cam.z-=0.1;
-	}
-	if(k[SDLK_F10])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->t.z-=0.1;
-	    else
-		look.z-=0.1;
-	}
-	if(k[SDLK_F11])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->t.z+=0.1;
-	    else
-	        look.z+=0.1;
-	}
-	if(k[SDLK_F12])
-	{
-	    if(active&&k[SDLK_RSHIFT])
-		active->r.z+=10;
-	    else
-		cam.z+=0.1;
-	}
-		
-//	int x,y;
-	//pick(0,SDL_GetMouseState(&x,&y),x,y);
 }
+
+
+void draw()
+{
+    #ifdef GL
+	glLoadIdentity();
+        viewmatrix();
+        if(SDL_GetMouseState(0,0)||afterglow)
+    	    vispick();
+    	gle();
+    #else
+	SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
+    #endif
+    for_each_object
+	o->translate_and_draw(0);
+    endf
+    gle();
+
+    #ifdef GL
+	showhelp(escaped||k[SDLK_RCTRL]);
+	SDL_GL_SwapBuffers( );
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    #else
+	SDL_UpdateRect(s,0,0,0,0);
+    #endif
+    gle();
+}
+
+
 void lemon (void)
 {
-    int bpp=8;
-    int done = 0;
-    int gofullscreen=0;
-    int escaped = 0;
+    bpp=8;
+    done = 0;
+    dirty=1;
     cam.z=10;
     cam.x=cam.y=0;
+    gofullscreen=0;
+    mousejustmoved=0;
+    escaped = 0;
     loadsettingz();
     #ifdef GL
 	s=initsdl(w,h,&bpp,SDL_OPENGL
@@ -763,7 +820,6 @@ void lemon (void)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         glClearColor( 0.0, 0.0, 0.0, 0.0 );
-        updatelinewidth();
 	updatelinesmooth();
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     #endif
@@ -779,12 +835,12 @@ void lemon (void)
 //	    objects.push_back(new flipflop);
 	objects.push_back(new spectrum_analyzer);
 
-	    objects.push_back(comp = new composite);
 	#endif
 	objects.push_back(active=new face("bash"));
 #ifdef has_atlantis
         objects.push_back(new atlantis);
 #endif
+        objects.push_back(new ggg);
 
 //	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
 //	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
@@ -794,508 +850,87 @@ void lemon (void)
     }
     maxvol=0;
     int norm=0;
-    int mousemoved=1;
-    int mousejustmoved=0;
+    afterglow=1;
     int lastmousemoved=SDL_GetTicks();
     while( !done )
     {
-	int dirty=1;
-
-	lockterms();
-	Uint8 * k=SDL_GetKeyState(NULL);
-	if(k[SDLK_RCTRL])moveit(k);
-	if(dirty|=anything_dirty())
-	{
-
-	    nothing_dirty();
-	    #ifdef GL
-                gle();
-        	glLoadIdentity();
-        	gle();
-	        viewmatrix();
-	        gle();
-	        if(SDL_GetMouseState(0,0)||mousemoved)
-	    	    vispick();
-	    	gle();
-	    #else
-		SDL_FillRect    ( s, NULL, SDL_MapRGB( s->format, 0,0,0) );
-	    #endif
-	    for_each_object
-		if(!o->overlay)o->translate_and_draw(0);}
-	    for_each_object
-		if( o->overlay)o->translate_and_draw(0);}
-	    gle();
-	    if((escaped||k[SDLK_RCTRL]))
-	    	showfocus();
-
-	    #ifdef GL
-	    gle();
-		if(settingz.givehelp)
-		{	
-		    glPushMatrix();
-		    glLoadIdentity();
-	    	    glOrtho(0,1200,1200,0,0,1);
-		    if(!(escaped||k[SDLK_RCTRL]))
-		    
-			draw_text("\npress right ctrl for more fun...");
-		    else
-			draw_text("\nnow press f12 to zoom out,\nf9 to zoom in\ndel end home and pgdn to resize terminal...\nh to hide help");
-		    glPopMatrix();
-		}
-		SDL_GL_SwapBuffers( );
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	    #else
-		SDL_UpdateRect(s,0,0,0,0);
-	    #endif
-	    gle();
-	}
-	sdle();
-	SDL_Event event;
 	SDL_TimerID x=0;
-	#ifdef threaded
-	    if(dirty)
-	#endif
+	lockterms();
+	k=SDL_GetKeyState(NULL);
+	if(dirty||anything_dirty())
+	{
+	    draw();
+	    nothing_dirty();
+    	    dirty=0;
+	    if(anything_dirty())
 		x= SDL_AddTimer(5, TimerCallback, 0);
-        dirty=0;
+	}
+
 	unlockterms();
-	//logit("---------unlocked wating\n");
+	//logit("---------unlocked waiting\n");
+    	SDL_Event event;
 	if(SDL_WaitEvent( &event ))
 	{
-	    if(SDL_GetTicks()-lastmousemoved>300)mousemoved=0;
+	    if(SDL_GetTicks()-lastmousemoved>300)afterglow=0;
 	    lockterms();
 	    //logit("---------locked goooin %i\n", event.type);
-	    if(x)SDL_RemoveTimer(x);
-	    x=0;
+	    if(x)SDL_RemoveTimer(x);x=0;
 	    do
 	    {
-		if(event.type!=SDL_MOUSEMOTION||!SDL_GetMouseState(0,0))
-		    dirty=1;
-		switch( event.type )
-		{
-		    case SDL_SYSWMEVENT:
-
-			if(comp)
-			{
-			
-			    if(event.syswm.msg->event.xevent.type==comp->damage_event)
-			    {
-				
-				XEvent ee = event.syswm.msg->event.xevent;
-				XDamageNotifyEvent* eee = (XDamageNotifyEvent*)&ee;
-				for(unsigned int i=0;i<objects.size();i++)
-				{
-//				cout <<"damaged"<<endl;
-				    if(is composite_window*>(objects[i])&&(as composite_window*>(objects[i])->window==(eee->drawable)))
-				    {
-					as composite_window*>(objects[i])->damaged=1;
-
-					break;
-				    }
-
-				}
-			    }
-			    if(event.syswm.msg->event.xevent.type==ConfigureNotify)
-			    {
-				
-				XEvent ee = event.syswm.msg->event.xevent;
-//				XConfigureEvent* eee = (XConfigureEvent*)&ee;
-				for(unsigned int i=0;i<objects.size();i++)
-				{
-//				cout <<"damaged"<<endl;
-				    if(is composite_window*>(objects[i]))//&&(as composite_window*>(objects[i])->window==(eee->window)))
-					as composite_window*>(objects[i])->needsreconf=1;
-				}
-			    }
-			    if(event.syswm.msg->event.xevent.type==DestroyNotify)
-			    {
-				
-				XEvent ee = event.syswm.msg->event.xevent;
-				XDestroyWindowEvent* eee = (XDestroyWindowEvent*)&ee;
-				for(unsigned int i=0;i<objects.size();i++)
-				{
-
-				    if(is composite_window*>(objects[i])&&(as composite_window*>(objects[i])->window==(eee->window)))
-				    {
-				    	cout <<"destroyyyed"<<endl;
-					objects.erase(objects.begin()+i);
-					break;
-				    }
-				}
-			    }
-			    if(event.syswm.msg->event.xevent.type==CreateNotify)
-			    {
-				cout << "created" << endl;
-				comp->regetwindows();
-			    }
-			    
-			}
-			break;
-			
-		    case SDL_MOUSEMOTION:
-			mousemoved=1;
-			lastmousemoved=SDL_GetTicks();
-			mousejustmoved=1;
-		        break;
-		    case SDL_MOUSEBUTTONDOWN:
-		    {
-			pick(0,event.button.button,event.button.x,event.button.y);
-			break;
-		    }
-		    case SDL_MOUSEBUTTONUP:
-		    {
-			pick(1,event.button.button,event.button.x,event.button.y);
-			break;
-		    }
-		    
-/*
-d(WINDOWS) && !defined(OSX)                                                                                              
-   framebuffer.h       72                  case SDL_SYSWMEVENT:                                                                                                
-      frustum.c           73                                                                                                                                      
-         gamewin.c           74                          if(event->syswm.msg->event.xevent.type == SelectionNotify)                                                  
-            gamewin.h           75                                  finishpaste(event->syswm.msg->event.xevent.xselection);                                             
-               gl_init.c           76                          break;   
-    */
-		    case SDL_KEYDOWN:
-		    {
-			dirty=1;
-			int key=event.key.keysym.sym;
-			int uni=event.key.keysym.unicode;
-			int mod=event.key.keysym.mod;
-
-			if(escaped||(mod&KMOD_RCTRL)||(key==SDLK_RCTRL))
-			{
-			    escaped=0;
-			    switch (key)
-			    {
-				case SDLK_TAB:
-				    for_each_object
-					if(active==o)
-				        {
-					    if(++i==objects.size())
-					        i=0;
-					    objects.at(i)->activate();
-					    break;
-					}
-				    }
-				    if(!active&&objects.size())objects.at(0)->activate();
-				    break;
-				case SDLK_f:
-				    if(mod&KMOD_RSHIFT)
-				    {
-				        if(as face*>(active))
-				        {
-					    face *f = as face*>(active);
-					    rote_vt_resize(f->t,28,160);
-					}
-				    }
-				    else
-					gofullscreen=1;
-				    break;
-				case SDLK_s:
-				    saveobjects(1);
-				    break;
-				case SDLK_l:
-				    loadobjects(1);
-				    break;
-				case SDLK_r:
-			    	    loadfont(fnfl);
-			    	    break;
-/*			    	case SDLK_F9:
-			    	    activeface->scale-=0.1;
-						    if(activeface->t)
-							rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
-							    dirty=1;
-
-
-							break;
-							case SDLK_F10:
-							    activeface->scale+=0.1;
-							    if(activeface->t)
-								rote_vt_resize(activeface->t, h/26/activeface->scale,w/13/activeface->scale);
-							    dirty=1;
-
-							break;
-					*/
-				case SDLK_p:
-				    #ifdef libpng
-				        saveScreenshot();
-				    #endif
-				    break;
-				case SDLK_n:
-				    objects.push_back(new face);
-				    active=objects.at(objects.size()-1);
-				    break;
-				#ifdef GL
-				    case SDLK_t:
-					if(is face*>(active))
-					{
-					    face *f = as face*>(active);
-					    int step=1;
-					    int c=70;
-					    f->obj::t.x=-step;
-					    rote_vt_resize(f->t,28,c);
-					    objects.push_back(new face(step,0,c,28));
-					}
-					break;
-				    case SDLK_v:
-					cr.y+=3.4;
-					break;             
-				    case SDLK_c:
-					cr.y-=3.4;
-					break;
-				    case SDLK_EQUALS:
-					{
-					if(mod&KMOD_RSHIFT)
-					    if(active)
-					    {
-						active->alpha+=0.05;
-						if(active->alpha>1) active->alpha=1;
-						break;
-					    }
-				        settingz.line_antialiasing?settingz.lv+=0.1:settingz.lv++;
-				        /*GLint max=10;
-				        if(settingz.line_antialiasing)
-					    glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE,&max);
-					else
-					    glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE,&max); 
-					if(settingz.lv>max)settingz.lv=max;
-					cout << "max:" << max <<endl;*/
-					updatelinewidth();
-					break;
-					}
-				    case SDLK_MINUS:
-					if(mod&KMOD_RSHIFT)
-					    if(active)
-					    {
-						active->alpha-=0.05;
-						if(active->alpha<0) active->alpha=0;
-						break;
-					    }
-				        settingz.line_antialiasing?settingz.lv-=0.1:settingz.lv--;
-				        if(settingz.lv<=0)settingz.lv=settingz.line_antialiasing?0.1:1;
-					updatelinewidth();
-					break;
-				    case SDLK_a:
-				        settingz.line_antialiasing=!settingz.line_antialiasing;
-				        updatelinesmooth();
-				        break;
-				#endif
-				case 44:
-				    znear-=0.2;
-				    break;
-				case 107:
-				    znear+=0.2;
-				    break;
-				case 105:
-				    zfar-=2;
-				    break;
-				case 56:
-				    zfar+=2;
-				    break;
-				case SDLK_h:
-				    settingz.givehelp=!settingz.givehelp;
-				    break;
-				case SDLK_RCTRL:
-				    escaped=1;
-				    break;
-				default:
-				    if(active)
-					active->keyp(key,uni,mod|KMOD_RCTRL);//escaped
-			    }
-			}
-			else if(active)
-			    active->keyp(key,uni,mod);
-			break;
-			}
-		    case SDL_QUIT:
-		        done = 1;
-		        break;
-			    /*
-			case SDL_MOUSEBUTTONDOWN:
-			{
-				    if(activeface->t)
-				    {
-					#ifdef GL
-					int b;
-					if(showbuttons&&(b=testbuttonpress(event.button.x,h-event.button.y,0))!=-1)
-					{
-						logit("pressed %i\n",b);
-						if(!strncmp(buttons[b], "!python", 7))
-						{
-						#ifdef python
-							PyRun_SimpleString(&buttons[b][8]);
-						#endif
-                                                }
-						else
-							type(activeface, buttons[b]);
-						showbuttons=0;
-					}
-					dirty=1;
-					#endif
-					{
-						int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
-						int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
-						logit("docellmoyuse: %i", activeface->t->docellmouse);
-						if(event.button.button==SDL_BUTTON_LEFT&&(!activeface->t->docellmouse||k[SDLK_RSHIFT]||k[SDLK_LSHIFT]))
-						{
-						    if(clicksphase==0)
-						    {
-							if(lastclicktime+dblclick>SDL_GetTicks())
-							{
-							    clicksphase++;
-							    selendx=activeface->t->cols;
-							    selstartx=activeface->t->ccol;
-							    selendy=ty;
-							    selstarty=ty;
-							    selface=activeface;
-							}	
-							else
-							{
-							    selface=0;
-							    selstartx=tx;
-							    selstarty=ty;
-							    lastclicktime=SDL_GetTicks();
-							}
-						    }
-						    else
-						    {
-							if(lastclicktime+dblclick>SDL_GetTicks())
-							{
-							    selface=activeface;
-							    clicksphase++;
-							    selendx=activeface->t->cols;
-							    selstartx=0;
-							    selendy=ty;
-							    selstarty=ty;
-							}	
-							else
-							{
-							    selface=0;
-							    clicksphase=0;
-							    selstartx=tx;
-							    selstarty=ty;
-							    lastclicktime=SDL_GetTicks();
-							}
-						    }
-						}
-						else if(event.button.button==SDL_BUTTON_MIDDLE&&(!activeface->t->docellmouse||k[SDLK_RSHIFT]||k[SDLK_LSHIFT]))
-						{
-							clipin(activeface, 0,0);
-						}
-						else
-						{
-						    rote_vt_mousedown(activeface->t,tx,ty);
-						    logit("mousedown");
-						}
-						logit("%i %i\n", tx,ty);
-					}
-				    }
-				    break;
-				}
-				case SDL_MOUSEBUTTONUP:
-				{
-				    if(activeface->t)
-				    {
-					int tx=-1+(event.button.x-cam.x-activeface->x)/activeface->scale/13;
-					int ty=(event.button.y-cam.y-activeface->y)/activeface->scale/26;
-					rote_vt_mouseup  (activeface->t,tx,ty);
-					logit("mouseup");
-				    }
-				    break;
-				}*/
-				case SDL_VIDEOEXPOSE:
-					dirty=1;
-					break;
-				case SDL_VIDEORESIZE:
-				    {
-					w=event.resize.w;h=event.resize.h;
-                                        logit("videoresize %ix%i bpp %i", w,h,bpp);
-					dirty=1;
-					s=SDL_SetVideoMode( w,h, bpp, s->flags);
-					resetviewport();
-				    }
-				    //if(is face>active)
-				//	rote_vt_resize(as face>active, h/26/activeface->scale,w/13/activeface->scale);
-				    dirty=1;
-				break;
-				case SDL_USEREVENT:
-					if(event.user.code==CODE_QUIT)
-					{
-					    for_each_face
-						if (f->t == event.user.data1)
-						    erase(i);
-					    }}
-					    dirty=1;
-					}
-					else if(event.user.code==CODE_FNFLCHANGED)
-					    loadfont(fnfl);
-					else if(event.user.code==CODE_DATA)
-                                            if(reinterpret_cast<RoteTerm*>(event.user.data1)->stoppedscrollback)
-                                            	for_each_face
-                                            	    if(f->t==reinterpret_cast<RoteTerm*>(event.user.data1))
-							f->scroll=f->t->logl;
-						endfor endfor
-
-				
-					break;
-			}
-		    }
-		    while (SDL_PollEvent(&event));
-		    if(mousejustmoved)
-		    {
-			int x,y;
-			SDL_GetMouseState(&x,&y);
-			pick(0,0,x,y);
-			mousejustmoved=0;
-		    }
-		    if(gofullscreen)
-		    {
-			if(s->flags & SDL_FULLSCREEN )
-			{
-			    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
-			    #ifdef LINUX
-			    if(norm&1)
-				system("wmctrl -r :ACTIVE: -b remove,maximized_horz");
-			    if(norm&2)
-				system("wmctrl -r :ACTIVE: -b remove,maximized_vert");
-			    #endif
-			}
-			else
-			{
-			    #ifdef LINUX
-			    SDL_SysWMinfo i;
-			    SDL_VERSION(&i.version)
-			    if(SDL_GetWMInfo(&i))
-			    {
-				char *c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_VERT", i.info.x11.window);
-				norm=!system(c);
-				free(c);
-				c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_HORZ", i.info.x11.window);
-				norm&=(!system(c))<<1;
-				free(c);
-			    }
-			    //system("wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz");
-			    #endif
-			    SDL_Surface *ns;
-			    ns=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
-			    if(ns)s=ns;
-			}
-			gofullscreen=0;
-		    }
-		    if(!done)
-		    {
-			unlockterms();
-			updateterminals();
-		    }
-		    else
-		    {
-			saveobjects();
-		    }
-		}
+		process_event(event);
+	    }
+	    while (SDL_PollEvent(&event));
 	}
-	objects.clear();
-	font.clear();
-	SDL_Quit( );
+	
+	if(mousejustmoved)
+	{
+		int x,y;
+		SDL_GetMouseState(&x,&y);
+		pick(0,0,x,y);
+		mousejustmoved=0;
+	}
+	if(gofullscreen)
+	{
+		if(s->flags & SDL_FULLSCREEN )
+		{
+		    s=SDL_SetVideoMode( w,h, bpp, (s->flags & ~SDL_FULLSCREEN ));
+		    #ifdef LINUX
+		    if(norm&1)
+			system("wmctrl -r :ACTIVE: -b remove,maximized_horz");
+		    if(norm&2)
+			system("wmctrl -r :ACTIVE: -b remove,maximized_vert");
+		    #endif
+		}
+		else
+		{
+		    #ifdef LINUX
+		    SDL_SysWMinfo i;
+		    SDL_VERSION(&i.version)
+		    if(SDL_GetWMInfo(&i))
+		    {
+			char *c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_VERT", i.info.x11.window);
+			norm=!system(c);
+			free(c);
+			c=make_message("xprop -id %u |grep _NET_WM_STATE_MAXIMIZED_HORZ", i.info.x11.window);
+			norm&=(!system(c))<<1;
+			free(c);
+		    }
+		    //system("wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz");
+		    #endif
+		    SDL_Surface *ns;
+		    ns=SDL_SetVideoMode( w,h, bpp, (s->flags | SDL_FULLSCREEN ));
+		    if(ns)s=ns;
+		}
+		gofullscreen=0;
+	}
+	if(!done)
+		unlockterms();
+	else
+		saveobjects();
+    }
+    objects.clear();
+    font.clear();
+    SDL_Quit( );
 }                      
 
 #include "getexecname.c"
@@ -1306,9 +941,9 @@ int main(int argc, char *argv[])
 	if(argc==2)
 		world = argv[1];
 
-	path=(char*)realloc(path, 100+strlen(path)+strlen(world));
+	path=(char*)realloc(path, 10+strlen(path)+strlen(world));
 	char* n=strrchr(path, 0);
-	wrld=strdup(strcat(strcat(path, world),".yaml"));*n=0;
+	wrld=strdup(strcat(path, world));		*n=0;
 	fnfl=strdup(strcat(path, "l1"));		*n=0;
 	clfl=strdup(strcat(path, "colors"));		*n=0;
 	stng=strdup(strcat(path, "settings"));		*n=0;
@@ -1319,9 +954,5 @@ int main(int argc, char *argv[])
 	lemon();
 	return 0;
 }
-
-
-
-
 
 

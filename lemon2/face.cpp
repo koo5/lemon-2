@@ -19,11 +19,10 @@ typedef struct
 }
 moomoo;
 
-#ifdef threaded
-    int update_terminal(void *data)
-    {
-	while(1)
-    	{
+int update_terminal(void *data)
+{
+	while(20)
+	{
 	    moomoo * d = (moomoo *)data;
 	    char buf[123456];
 	    int br=-1;
@@ -42,22 +41,22 @@ moomoo;
 	        e.user.code=CODE_DATA;
 	        e.user.data1=d->t;
 	        SDL_PushEvent(&e);
+	        //wake up main thread.
 	    }
 	    if(!d->t->childpid)
-	    {
+	    {	//our child died
 	        SDL_Event e;
 	        e.type=SDL_USEREVENT;
 	        e.user.code=CODE_QUIT;
 	        e.user.data1=d->t;
 	        SDL_PushEvent(&e);
 	        _mutexV(d->lock);
-	        return 1;
+	        return 666;
 	    }
 	    _mutexV(d->lock);
 	}
-	return 1;
-    }
-#endif
+	return 69;
+}
 
 
 
@@ -104,42 +103,20 @@ struct face:public terminal
     }
     ~face()
     {
-	#ifdef threaded
-	    SDL_DestroyMutex(upd_t_data.lock);
-	    SDL_KillThread(upd_t_data.thr);
-	#endif
-	logit(" terminal destroyed");
+	SDL_DestroyMutex(upd_t_data.lock);
+	SDL_KillThread(upd_t_data.thr);
+	logit(" terminal destroyed.");
     }
-
-    #ifndef threaded
-	void updateterminal()
-	{
-    	    rote_vt_update(t);
-    	    if(d->t->stoppedscrollback)
-	    	scroll=t->logl;
-
-    	    if(!t->childpid)
-    	    {
-	        SDL_Event e;
-	        e.type=SDL_USEREVENT;
-	        e.user.code=CODE_QUIT;
-	        e.user.data1=t;
-	        SDL_PushEvent(&e);
-	    }
-	}
-    #endif
 
     void add_term(int c,int r,const char *run)
     {
 	logit("adding terminal");
 	t = rote_vt_create(r,c);
 	rote_vt_forkpty((RoteTerm*) t, run, "LD_PRELOAD", "");
-	#ifdef threaded
-	    upd_t_data.lock=SDL_CreateMutex();
-	    upd_t_data.t=t;
-	    logit("upd_t_data.lock=%i",upd_t_data.lock);
-	    upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&upd_t_data);
-	#endif
+	upd_t_data.lock=SDL_CreateMutex();
+	upd_t_data.t=t;
+	logit("upd_t_data.lock=%i",upd_t_data.lock);
+	upd_t_data.thr=SDL_CreateThread(update_terminal, (void *)&upd_t_data);
     }
     void add_terminal(const char *run)
     {
@@ -150,33 +127,25 @@ struct face:public terminal
 
     void lock()
     {
-        #ifdef threaded
-    	    _mutexP(upd_t_data.lock);
-	#endif
+    	_mutexP(upd_t_data.lock);
     }
     void unlock()
     {
-        #ifdef threaded
-	    _mutexV(upd_t_data.lock);
-	#endif
+	_mutexV(upd_t_data.lock);
     }
 };
 
 void lockterms(void)
 {
-    #ifdef threaded
 	for_each_face
 	    f->lock();
-	endf
-    #endif
+	endf endf
 }
 void unlockterms(void)
 {
-    #ifdef threaded
 	//logit("unlocking terms");
 	for_each_face
 	    f->unlock();
-	endf
+	endf endf
 	//logit("done");
-    #endif
 }

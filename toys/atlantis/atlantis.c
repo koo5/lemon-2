@@ -589,6 +589,7 @@ atlantis(float asp = 1)
 	whalespeed = 250;
 	wire = 0;
 	ghost=0;
+	dirty = 1;
         InitFishs();
         setwire(wire);
 }
@@ -656,6 +657,7 @@ void draw(int picking)
 	YAML_LOAD_PARENT_MEMBERS(doc,obj)
     }
 
+    void setClean(){}
 
 
 };

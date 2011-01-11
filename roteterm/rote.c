@@ -144,6 +144,7 @@ RoteTerm *rote_vt_create(int rows, int cols) {
 
    rt->log=0;
    rt->logl=0;
+   rt->scroll=0;
    rt->logstart=0;
    rt->cursorhidden=0;
    rt->stoppedscrollback=0;//this is just informational, for teh UI
@@ -320,9 +321,9 @@ void rote_vt_update_thready(char * buf, int buflen, int * br, RoteTerm *rt) {
       bytesread = read(rt->pd->pty, buf, buflen);
       if((bytesread < 0) && (errno != EAGAIN))
       {
-             errno=0;
+            errno=0;
     	    rote_vt_forsake_child(rt);
-//    	    printf("dfsdfdfsHAHA!/n");
+    	    printf("my child!/n");
       }
       if (bytesread <= 0) return;
       *br=bytesread;
