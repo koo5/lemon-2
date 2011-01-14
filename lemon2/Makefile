@@ -17,7 +17,7 @@ pl=$(shell uname)
 
 ifeq ($(pl),Linux)
 PYLIBS = -Dpython `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
-CFLIBS += -DLINUX -pthread `../sdl/bin/sdl-config --libs --cflags` 
+CFLIBS += -DLINUX -pthread `../sdl/bin/sdl-config --libs --cflags` `curl-config --libs` `curl-config --cflags`
 GLLIBS += -lGL
 # -lSDL_ttf 
 

@@ -428,6 +428,7 @@ void loadobjects(int online=0)
 	    loado(d,ggg)
         }
     }
+    active = objects.back();
 }
 void loadsettingz()
 {
@@ -836,11 +837,11 @@ void lemon (void)
 	objects.push_back(new spectrum_analyzer);
 
 	#endif
-	objects.push_back(active=new face("bash"));
+	objects.push_back(new face("bash"));
 #ifdef has_atlantis
         objects.push_back(new atlantis);
 #endif
-        objects.push_back(new ggg);
+        objects.push_back(active=new ggg);
 
 //	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
 //	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));

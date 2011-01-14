@@ -1,5 +1,26 @@
 ---
 -
+  Class: logger
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: -8
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 70
+        z: 0
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 30
+    rows: 100
+-
   Class: spectrum_analyzer
   obj:
     t:
@@ -39,10 +60,10 @@
         z: 0
       s:
         Class: v3d
-        x: 0.0041
-        y: -0.0225
+        x: 0.002
+        y: -0.005
         z: 0.002
-    cols: 170
+    cols: 147
     rows: 30
 -
   Class: atlantis
@@ -63,12 +84,32 @@
       y: 1
       z: 1
 -
+  Class: ggg
+  gggw:
+    obj:
+      t:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 0
+      s:
+        Class: v3d
+        x: 0.01
+        y: -0.03
+        z: 0.002
+    url: root.cz
+-
   Class: Settingz
   line_antialiasing: 0
-  givehelp: 0
+  givehelp: 1
   lv: 1
-  w: 1273
-  h: 748
+  w: 1278
+  h: 753
   znear: 1
   zfar: 20
   cam:
