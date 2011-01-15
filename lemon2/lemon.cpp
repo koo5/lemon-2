@@ -23,6 +23,8 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include <v8.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -56,13 +58,13 @@
 #include <vector>
 #include "../yaml-cpp-0.2.5/include/yaml.h"
 #include "serializable.h"
+
 #define as dynamic_cast<
 #define is as
 #define for_each_object for(unsigned int i=0;i<objects.size();i++) { obj*o=objects.at(i);
 #define endf }
-using namespace std;
 using namespace YAML;
-
+using namespace std;
 int w = 1280;
 int h = 800;
 
@@ -84,6 +86,7 @@ SDL_Surface* s;
 #define vload(x) try{YAML_LOAD(doc, x);}catch(...){}
 
 #include "v3d.cpp"
+
 v3d cam;
 v3d look;
 v3d cr;
@@ -93,6 +96,8 @@ void logit(const char * iFormat, ...);
 
 #include "../gltext.c"
 
+vector<v8::Persistent<v8::Function>>afterstart;
+
 char *fnfl;//font file
 char *stng;//settingz
 char *mdfl;//modes
@@ -100,6 +105,7 @@ char *fcfl;//faces
 char *clfl;//colors
 char *btns;//buttons/
 char *wrld;//world yaml
+string dmps, jsv8;
 
 int min(int a, int b)
 {
@@ -119,6 +125,7 @@ float floabs(float x)
 {
     return x>0 ? x : -x;
 }
+
 
 void resetviewport(void)
 {
@@ -924,6 +931,13 @@ void lemon (void)
 		}
 		gofullscreen=0;
 	}
+	if(afterstart.size())
+	{
+		v8::Handle<v8::Value>* args = NULL;
+		for (unsigned i=0;i<afterstart.size();i++)
+			afterstart[i]->Call(afterstart[i],0,args);
+		afterstart.clear();
+	}
 	if(!done)
 		unlockterms();
 	else
@@ -933,6 +947,39 @@ void lemon (void)
     font.clear();
     SDL_Quit( );
 }                      
+
+string tostring(const v8::String::Utf8Value& value) {
+  return *value ? string(*value): string("<string conversion failed>");
+}
+
+
+v8::Handle<v8::Value> LogCallback(const v8::Arguments& args)
+{
+    if (args.Length() < 1) return v8::Undefined();
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> arg = args[0];
+    v8::String::Utf8Value value(arg);
+    cout << tostring (value)<<endl;
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> registerAfterStart(const v8::Arguments& args)
+{
+    if (args.Length() < 1) return v8::Undefined();
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> arg = args[0];
+    if (!arg->IsFunction())
+    {
+	cout << "must register a function" <<endl;
+	return v8::Undefined();
+    }
+    v8::Handle<v8::Function> fun = v8::Handle<v8::Function>::Cast(arg);
+    afterstart.push_back(v8::Persistent<v8::Function>::New(fun));
+    cout << "registered."<<endl;
+    return v8::Undefined();
+}
+
+
 
 #include "getexecname.c"
 int main(int argc, char *argv[])
@@ -951,8 +998,28 @@ int main(int argc, char *argv[])
 	mdfl=strdup(strcat(path, "mode"));		*n=0;
 	fcfl=strdup(strcat(path, "faces"));		*n=0;
 	btns=strdup(strcat(path, "buttons/"));		*n=0;
+
+	dmps=string(path) + "errdumps/";
+	jsv8=string(path) + "javascript.js";
+	
+	v8::HandleScope handle_scope;
+	v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
+	global->Set(v8::String::New("log"), v8::FunctionTemplate::New(LogCallback));
+	global->Set(v8::String::New("registerafterstart"), v8::FunctionTemplate::New(registerAfterStart));
+	v8::Persistent<v8::Context> context = v8::Context::New(NULL, global);
+	v8::Context::Scope context_scope(context);
+	ifstream in(jsv8);
+	if(!in.fail())
+	{
+		string iin;
+		in >> iin;
+		v8::Handle<v8::String> source = v8::String::New(iin.c_str());
+		v8::Handle<v8::Script> script = v8::Script::Compile(source);
+		v8::Handle<v8::Value> result = script->Run();
+	}
 	
 	lemon();
+	context.Dispose();
 	return 0;
 }
 

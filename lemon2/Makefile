@@ -1,5 +1,5 @@
 
-DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/* ../sdl/lib/libSDL.so ../yaml-cpp-0.2.5/libyaml-cpp.so
+DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/*  ../yaml-cpp-0.2.5/libyaml-cpp.so 
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -17,7 +17,7 @@ pl=$(shell uname)
 
 ifeq ($(pl),Linux)
 PYLIBS = -Dpython `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
-CFLIBS += -DLINUX -pthread `../sdl/bin/sdl-config --libs --cflags` `curl-config --libs` `curl-config --cflags`
+CFLIBS += -DLINUX -pthread `sdl-config --libs --cflags` `curl-config --libs` `curl-config --cflags` -L/usr/lib/libv8.so -lv8
 GLLIBS += -lGL
 # -lSDL_ttf 
 

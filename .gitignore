@@ -43,3 +43,4 @@ spectrum-analyzer/audaciousplugin/src/libexample2.la
 spectrum-analyzer/audaciousplugin/src/plugin_main.lo
 spectrum-analyzer/audaciousplugin/src/plugin_main.o
 spectrum-analyzer/audaciousplugin/stamp-h1
+lemon2/errdumps
