@@ -105,6 +105,8 @@ struct ggg:public gggw
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &write_raw_callback);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)this);
 	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "lemon-ggg/0.01");
+	raw.clear();
+	raw.str("");
 	curl_easy_perform(curl_handle);
 	curl_easy_cleanup(curl_handle);
 	curl_global_cleanup();
@@ -112,19 +114,22 @@ struct ggg:public gggw
     void keyp(int key,int uni,int mod)
     {
 	go();
-	cout << raw.str() << endl;
+	//cout << raw.str() << endl;
 	ostringstream f;
 	f << dmps << runtime_id << ".html";
 	string fn(f.str());
 	ofstream o(fn);
-	o << raw;
+	o << raw.str();
 	o.close();
 	string cmd;
 	cmd = "links -dump "+fn+" || w3m -dump " +fn+ " || lynx -dump -force_html " +fn+ " || cat " +fn;
 	redi::ipstream in(cmd);
 	string str;
-	while (in >> str) {
-        std::cout << str << std::endl;
+	raw.clear();
+	raw.str("");
+	string x;
+	while (getline(in, x)) {
+        raw << x<<endl;
 	}
     }
 };

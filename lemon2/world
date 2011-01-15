@@ -40,7 +40,7 @@
       z: 5
   rotx: -467.2
   roty: 0
-  rotz: 8454.26
+  rotz: 12097.4
   rx: -3.27826e-08
   ry: 0
   rz: 0.4
@@ -102,14 +102,14 @@
         x: 0.01
         y: -0.03
         z: 0.002
-    url: root.cz
+    url: http://root.cz
 -
   Class: Settingz
   line_antialiasing: 0
   givehelp: 1
   lv: 1
-  w: 1278
-  h: 753
+  w: 1022
+  h: 748
   znear: 1
   zfar: 20
   cam:
