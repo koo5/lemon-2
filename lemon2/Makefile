@@ -1,5 +1,5 @@
 
-DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/*  ../yaml-cpp-0.2.5/libyaml-cpp.so 
+DEPS  =  ../roteterm/* lemon.cpp ../* ../toys/atlantis/* ../toys/nerverot/*  ../yaml-cpp-0.2.5/libyaml-cpp.so  ../json/lib/libjson.so
 GLLIBS  =  -DGL -DHAVE_OPENGL -lGL
 CFLIBS =  -D_REENTRANT -D_XTHREADS -DREENTRANT -DXTHREADS \
   -I/usr/local/include \
@@ -17,7 +17,7 @@ pl=$(shell uname)
 
 ifeq ($(pl),Linux)
 PYLIBS = -Dpython `/usr/bin/python2.6-config --cflags`  `/usr/bin/python2.6-config --libs ` 
-CFLIBS += -DLINUX -pthread `sdl-config --libs --cflags` `curl-config --libs` `curl-config --cflags` -L/usr/lib/libv8.so -lv8
+CFLIBS += -DLINUX -pthread `sdl-config --libs --cflags` `curl-config --libs` `curl-config --cflags` -L/usr/lib/libv8.so -lv8 `pkg-config ../json/lib/pkgconfig/json.pc --cflags --libs`
 GLLIBS += -lGL
 # -lSDL_ttf 
 
@@ -79,3 +79,8 @@ clean:
 
 ../fuzzyflakes-pixel-city-for-lemon/%.o: ../fuzzyflakes-pixel-city-for-lemon/%.cpp
 	${CXX} -D_lemon  -Wno-write-strings  -c -o $@ $^
+
+../json/lib/libjson.so:
+	cd ../json-c-0.9&&\
+	./configure --prefix=`pwd`/../json &&\
+	make&&make install

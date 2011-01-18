@@ -1,2 +1,2 @@
-export LD_PRELOAD=../yaml-cpp-0.2.5/libyaml-cpp.so:../SDL-1.2.14/build/.libs/libSDL.so
+export LD_PRELOAD=../yaml-cpp-0.2.5/libyaml-cpp.so:../SDL-1.2.14/build/.libs/libSDL.so:../json/lib/libjson.so
 

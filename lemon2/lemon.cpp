@@ -59,8 +59,6 @@
 #include "../yaml-cpp-0.2.5/include/yaml.h"
 #include "serializable.h"
 
-#define as dynamic_cast<
-#define is as
 #define for_each_object for(unsigned int i=0;i<objects.size();i++) { obj*o=objects.at(i);
 #define endf }
 using namespace YAML;
@@ -345,6 +343,23 @@ void logit(const char * iFormat, ...)
     free(s);
 }
 
+void logit(string iFormat, ...)
+{
+    char* s=(char*)malloc(10101010);
+    va_list argp;
+    va_start(argp, iFormat);
+    vsnprintf(s,10101010,iFormat.c_str(), argp);
+    s[10101009]=0;
+    va_end(argp);
+    if(loggerface)
+	loggerface->logit(s);
+    else
+	printf("%s\n",s);
+    free(s);
+}
+
+
+
 float maxvol;
 
 
@@ -395,11 +410,11 @@ SDL_Rect *SDLRect(Uint16 x,Uint16 y,Uint16 w,Uint16 h)
 if(online&&hasid) {\
  for_each_object\
   if(o->runtime_id==runtimeid)\
-   if(is x*>(o))\
+   if(dynamic_cast< x*>(o))\
     o->load_members(doc[i]); \
  endf }\
 else\
- {  obj*o;y=as x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }}
+ {  obj*o;y=dynamic_cast< x*>(o=new x); o->load_members(doc[i]); objects.push_back(o); }}
 
 void loadobjects(int online=0)
 {
@@ -419,7 +434,7 @@ void loadobjects(int online=0)
 	    	    runtimeid = doc[i]["runtime_id"];
 	    	    hasid=1;
 	    	}
-	    	catch(Exception){}
+	    	catch(YAML::Exception){}
             obj * d;//dummy
 	    loado(d,face)
 	    #ifdef has_atlantis
@@ -435,7 +450,8 @@ void loadobjects(int online=0)
 	    loado(d,ggg)
         }
     }
-    active = objects.back();
+    if(objects.size())
+	active = objects.back();
 }
 void loadsettingz()
 {
@@ -661,9 +677,9 @@ void process_event(SDL_Event event)
 			case SDLK_f:
 			    if(mod&KMOD_RSHIFT)
 			    {
-			        if(as face*>(active))
+			        if(dynamic_cast< face*>(active))
 			        {
-				    face *f = as face*>(active);
+				    face *f = dynamic_cast< face*>(active);
 				    rote_vt_resize(f->t,28,160);
 				}
 			    }
@@ -690,9 +706,9 @@ void process_event(SDL_Event event)
 			    break;
 			#ifdef GL
 			    case SDLK_t:
-				if(is face*>(active))
+				if(dynamic_cast< face*>(active))
 				{
-				    face *f = as face*>(active);
+				    face *f = dynamic_cast< face*>(active);
 				    int step=1;
 				    int c=70;
 				    f->obj::t.x=-step;
@@ -953,6 +969,27 @@ string tostring(const v8::String::Utf8Value& value) {
 }
 
 
+v8::Handle<v8::Value> goCallback(const v8::Arguments& args)
+{
+    v8::HandleScope scope;
+
+    for_each_object
+	if(dynamic_cast<ggg*>(o))
+	{
+	    ggg*g=dynamic_cast<ggg*>(o);
+	    if (args.Length() == 1)
+	    {
+		v8::Handle<v8::Value> arg = args[0];
+		v8::String::Utf8Value value(arg);
+		logit(tostring (value));
+		g->url=tostring(value);
+	    }
+	    g->go();
+	}
+    }
+    return v8::Undefined();
+}
+
 v8::Handle<v8::Value> LogCallback(const v8::Arguments& args)
 {
     if (args.Length() < 1) return v8::Undefined();
@@ -1004,6 +1041,7 @@ int main(int argc, char *argv[])
 	
 	v8::HandleScope handle_scope;
 	v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
+	global->Set(v8::String::New("go"), v8::FunctionTemplate::New(goCallback));
 	global->Set(v8::String::New("log"), v8::FunctionTemplate::New(LogCallback));
 	global->Set(v8::String::New("registerafterstart"), v8::FunctionTemplate::New(registerAfterStart));
 	v8::Persistent<v8::Context> context = v8::Context::New(NULL, global);

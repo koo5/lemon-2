@@ -1,1 +1,1 @@
-registerafterstart(function(){log("hey")})
+registerafterstart(function(){log("hey");go();})

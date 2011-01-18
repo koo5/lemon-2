@@ -6,7 +6,7 @@
 #define CODE_TIMER 0
 #define CODE_QUIT 1
 #define CODE_FNFLCHANGED 2
-#define for_each_face for_each_object if (as face*>(o)){face*f=as face*>(o);
+#define for_each_face for_each_object if (dynamic_cast< face*>(o)){face*f=dynamic_cast< face*>(o);
 
 
 

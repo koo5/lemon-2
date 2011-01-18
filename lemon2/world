@@ -1,26 +1,5 @@
 ---
 -
-  Class: logger
-  terminal:
-    obj:
-      t:
-        Class: v3d
-        x: -8
-        y: 0
-        z: 0
-      r:
-        Class: v3d
-        x: 0
-        y: 70
-        z: 0
-      s:
-        Class: v3d
-        x: 0.002
-        y: -0.005
-        z: 0.002
-    cols: 30
-    rows: 100
--
   Class: spectrum_analyzer
   obj:
     t:
@@ -35,15 +14,15 @@
       z: 0
     s:
       Class: v3d
-      x: 5
-      y: 5
-      z: 5
-  rotx: -467.2
+      x: 1
+      y: 1
+      z: 1
+  rotx: 2.35203e-37
   roty: 0
-  rotz: 12097.4
-  rx: -3.27826e-08
+  rotz: 0
+  rx: 2.41149e-41
   ry: 0
-  rz: 0.4
+  rz: 0
 -
   Class: face
   terminal:
@@ -66,31 +45,13 @@
     cols: 147
     rows: 30
 -
-  Class: atlantis
-  obj:
-    t:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    r:
-      Class: v3d
-      x: 0
-      y: 0
-      z: 0
-    s:
-      Class: v3d
-      x: 1
-      y: 1
-      z: 1
--
   Class: ggg
   gggw:
     obj:
       t:
         Class: v3d
-        x: 0
-        y: 0
+        x: -10
+        y: 10
         z: 0
       r:
         Class: v3d
@@ -99,17 +60,20 @@
         z: 0
       s:
         Class: v3d
-        x: 0.01
-        y: -0.03
+        x: 0.003
+        y: -0.01
         z: 0.002
     url: http://root.cz
+    down: 25.5
+    side: 85.5
+    morph: http://localhost/?input=&output=json&data-uri[]=
 -
   Class: Settingz
   line_antialiasing: 0
-  givehelp: 1
+  givehelp: 0
   lv: 1
-  w: 1022
-  h: 748
+  w: 1278
+  h: 726
   znear: 1
   zfar: 20
   cam:

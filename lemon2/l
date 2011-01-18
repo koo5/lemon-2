@@ -2,4 +2,4 @@
 export SDL_VIDEO_ALLOW_SCREENSAVER=1
 DIR=$(dirname  $0)
 SCRIPT="${DIR}/lgl"
-LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so $SCRIPT $1
+LD_PRELOAD=${DIR}/../yaml-cpp-0.2.5/libyaml-cpp.so:${DIR}/../json/lib/libjson.so $SCRIPT $1
