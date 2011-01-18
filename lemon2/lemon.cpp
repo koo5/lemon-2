@@ -196,22 +196,24 @@ struct obj:public Serializable
     {
 	save(t)
 	save(r)
+	save(spin)
 	save(s)
     }
     LOAD
     {
 	load(t)
 	load(r)
+	load(spin)
 	load(s)
     }
     unsigned int runtime_id;
     static unsigned int idcounter;
     int dirty;
     double alpha;
-    v3d t,r,s;
+    v3d t,r,spin,s;
     obj()
     {
-	t.x=t.y=t.z=r.x=r.y=r.z=dirty=0;
+	t.x=t.y=t.z=r.x=r.y=r.z=spin.x=spin.y=spin.z=dirty=0;
 	s.x=s.y=s.z=1;
 	alpha=1;
 	runtime_id=idcounter++;
@@ -251,6 +253,12 @@ struct obj:public Serializable
 	#ifdef GL
 	    glPopMatrix();
 	#endif
+    }
+    void physics(int t)
+    {
+	r.x += spin.x*t;
+	r.y += spin.y*t;
+	r.z += spin.z*t;
     }
     virtual void keyp(int key,int uni,int mod)
     {                                      
@@ -599,11 +607,16 @@ void updatelinesmooth()
     #endif
 }
 
-
+void physics(int t)
+{
+    for_each_object
+	o->physics(t);
+    endf
+}
 int anything_dirty()
 {
     for_each_object
-	if(o->getDirty())
+	if(o->getDirty()||o->spin.x||o->spin.y||o->spin.z)
 	    return 1;
     endf
     return 0;
@@ -716,6 +729,14 @@ void process_event(SDL_Event event)
 				    objects.push_back(new face(step,0,c,28));
 				}
 				break;
+			    case SDLK_LEFT:
+				if(active)
+				    active->spin.z+=0.03;
+				break;             
+			    case SDLK_RIGHT:
+				if(active)
+				    active->spin.z-=0.03;
+				break;             
 			    case SDLK_v:
 				cr.y+=3.4;
 				break;             
@@ -876,6 +897,7 @@ void lemon (void)
     int norm=0;
     afterglow=1;
     int lastmousemoved=SDL_GetTicks();
+    int lastphysics=SDL_GetTicks();
     while( !done )
     {
 	SDL_TimerID x=0;
@@ -889,7 +911,6 @@ void lemon (void)
 	    if(anything_dirty())
 		x= SDL_AddTimer(5, TimerCallback, 0);
 	}
-
 	unlockterms();
 	//logit("---------unlocked waiting\n");
     	SDL_Event event;
@@ -958,6 +979,9 @@ void lemon (void)
 		unlockterms();
 	else
 		saveobjects();
+	int t= SDL_GetTicks();
+	physics(t-lastphysics);
+	lastphysics=t;
     }
     objects.clear();
     font.clear();

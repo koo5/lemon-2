@@ -169,7 +169,7 @@ struct terminal:public obj
 	}
 	else
 	{
-	    if((active==this)&&!t->cursorhidden)ghost();
+	    //if((active==this)&&!t->cursorhidden)ghost();
     	    draw_terminal();
     	}
     }

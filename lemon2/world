@@ -11,39 +11,49 @@
       Class: v3d
       x: 0
       y: 0
-      z: 0
+      z: -11626.5
+    spin:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -0
     s:
       Class: v3d
       x: 1
       y: 1
       z: 1
-  rotx: 2.35203e-37
+  rotx: 1.75727e-36
   roty: 0
-  rotz: 0
+  rotz: 71131.6
   rx: 2.41149e-41
   ry: 0
-  rz: 0
+  rz: 1.8
 -
   Class: face
   terminal:
     obj:
       t:
         Class: v3d
-        x: 0
+        x: 3
         y: 0
         z: 0
       r:
         Class: v3d
         x: 0
         y: 0
+        z: 1799.58
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
         z: 0
       s:
         Class: v3d
-        x: 0.002
-        y: -0.005
+        x: 0.0036
+        y: -0.02
         z: 0.002
     cols: 147
-    rows: 30
+    rows: 36
 -
   Class: ggg
   gggw:
@@ -54,6 +64,11 @@
         y: 10
         z: 0
       r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 361.11
+      spin:
         Class: v3d
         x: 0
         y: 0
@@ -73,7 +88,7 @@
   givehelp: 0
   lv: 1
   w: 1278
-  h: 726
+  h: 700
   znear: 1
   zfar: 20
   cam:
