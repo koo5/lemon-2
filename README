@@ -1,5 +1,5 @@
 sudo aptitude update
-sudo aptitude install libgl-dev libglu-dev libglut3-dev libpng-dev libxcomposite-dev libxdamage-dev libxrender-dev make cmake g++ libncurses-dev  git-core xclip pkg-config libcurl-dev libcurl libjson-dev # libboost-dbg libboost-dev 
+sudo aptitude install clang++-4.0 libgl-dev libglu-dev libglut3-dev libpng-dev libxcomposite-dev libxdamage-dev libxrender-dev make cmake libncurses-dev  git-core xclip pkg-config libcurl-dev libcurl libjson-dev # libboost-dbg libboost-dev  libcurl4-gnutls-dev freeglut3-dev  libsdl1.2-dev
 cd lemon2
 make
 ./l
