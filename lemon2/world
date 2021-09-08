@@ -11,23 +11,23 @@
       Class: v3d
       x: 0
       y: 0
-      z: -11626.5
+      z: -27774.8
     spin:
       Class: v3d
       x: 0
       y: 0
-      z: -0
+      z: -0.09
     s:
       Class: v3d
       x: 1
       y: 1
       z: 1
-  rotx: 1.79212e-36
+  rotx: 2.16868e-36
   roty: 0
-  rotz: 73737.1
+  rotz: 103268
   rx: 2.41149e-41
   ry: 0
-  rz: 1.8
+  rz: 2
 -
   Class: face
   terminal:
@@ -41,12 +41,12 @@
         Class: v3d
         x: 0
         y: 0
-        z: 1799.58
+        z: -8225.13
       spin:
         Class: v3d
         x: 0
         y: 0
-        z: 0
+        z: -0.06
       s:
         Class: v3d
         x: 0.0036
@@ -67,12 +67,12 @@
         Class: v3d
         x: 0
         y: 0
-        z: 361.11
+        z: -9649.14
       spin:
         Class: v3d
         x: 0
         y: 0
-        z: 0
+        z: -0.06
       s:
         Class: v3d
         x: 0.003
@@ -95,7 +95,485 @@
         Class: v3d
         x: 0
         y: 0
+        z: -4577.88
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
         z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10529.6
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5158.86
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5173.53
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5170.98
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 0
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5168.34
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 441
+    rows: 82
+-
+  Class: spectrum_analyzer
+  obj:
+    t:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    r:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -16787
+    spin:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -0.03
+    s:
+      Class: v3d
+      x: 1
+      y: 1
+      z: 1
+  rotx: 2.01226e-36
+  roty: 0
+  rotz: 90194.7
+  rx: 2.41149e-41
+  ry: 0
+  rz: 1.8
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: -1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -3384.78
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.0036
+        y: -0.02
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: ggg
+  gggw:
+    obj:
+      t:
+        Class: v3d
+        x: -10
+        y: 10
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -4817.64
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.003
+        y: -0.01
+        z: 0.002
+    url: http://root.cz
+    down: 25.5
+    side: 85.5
+    morph: http://localhost/?input=&output=json&data-uri[]=
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5184.27
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5221.47
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5219.76
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5213.67
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5206.71
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: spectrum_analyzer
+  obj:
+    t:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    r:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -16826.7
+    spin:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -0.03
+    s:
+      Class: v3d
+      x: 1
+      y: 1
+      z: 1
+  rotx: 2.01074e-36
+  roty: 0
+  rotz: 90081.5
+  rx: 2.41149e-41
+  ry: 0
+  rz: 1.8
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: -1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -3391.92
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.0036
+        y: -0.02
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: ggg
+  gggw:
+    obj:
+      t:
+        Class: v3d
+        x: -10
+        y: 10
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -4820.49
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.003
+        y: -0.01
+        z: 0.002
+    url: http://root.cz
+    down: 25.5
+    side: 85.5
+    morph: http://localhost/?input=&output=json&data-uri[]=
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -5171.91
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.03
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -747
       spin:
         Class: v3d
         x: 0
@@ -121,7 +599,7 @@
         Class: v3d
         x: 0
         y: 0
-        z: 0
+        z: -749.04
       spin:
         Class: v3d
         x: 0
@@ -147,12 +625,12 @@
         Class: v3d
         x: 0
         y: 0
-        z: 0
+        z: -5659.71
       spin:
         Class: v3d
         x: 0
         y: 0
-        z: 0
+        z: -0.03
       s:
         Class: v3d
         x: 0.002
@@ -173,12 +651,121 @@
         Class: v3d
         x: 0
         y: 0
-        z: 0
+        z: -10439.3
       spin:
         Class: v3d
         x: 0
         y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: spectrum_analyzer
+  obj:
+    t:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    r:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -22043.9
+    spin:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -0.06
+    s:
+      Class: v3d
+      x: 1
+      y: 1
+      z: 1
+  rotx: 2.00836e-36
+  roty: 0
+  rotz: 89903.6
+  rx: 2.41149e-41
+  ry: 0
+  rz: 1.8
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: -1
+        y: 0
         z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -8600.34
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.0036
+        y: -0.02
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: ggg
+  gggw:
+    obj:
+      t:
+        Class: v3d
+        x: -10
+        y: 10
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10022.9
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.003
+        y: -0.01
+        z: 0.002
+    url: http://root.cz
+    down: 25.5
+    side: 85.5
+    morph: http://localhost/?input=&output=json&data-uri[]=
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10366.8
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
       s:
         Class: v3d
         x: 0.002
@@ -199,12 +786,459 @@
         Class: v3d
         x: 0
         y: 0
-        z: 0
+        z: -10350.5
       spin:
         Class: v3d
         x: 0
         y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
         z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10336
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10318.4
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10304
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: spectrum_analyzer
+  obj:
+    t:
+      Class: v3d
+      x: 0
+      y: 0
+      z: 0
+    r:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -21914.9
+    spin:
+      Class: v3d
+      x: 0
+      y: 0
+      z: -0.06
+    s:
+      Class: v3d
+      x: 1
+      y: 1
+      z: 1
+  rotx: 2.00199e-36
+  roty: 0
+  rotz: 89427.4
+  rx: 2.41149e-41
+  ry: 0
+  rz: 1.8
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: -1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -8474.13
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.0036
+        y: -0.02
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: ggg
+  gggw:
+    obj:
+      t:
+        Class: v3d
+        x: -10
+        y: 10
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -9896.22
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.003
+        y: -0.01
+        z: 0.002
+    url: http://root.cz
+    down: 25.5
+    side: 85.5
+    morph: http://localhost/?input=&output=json&data-uri[]=
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10240.9
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10225.7
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10210.1
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10174.6
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10155.7
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: -1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -10064.7
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.06
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -16464.6
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.09
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -16378.4
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.09
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -16321.4
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.09
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -16258.1
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.09
+      s:
+        Class: v3d
+        x: 0.002
+        y: -0.005
+        z: 0.002
+    cols: 70
+    rows: 28
+-
+  Class: face
+  terminal:
+    obj:
+      t:
+        Class: v3d
+        x: 1
+        y: 0
+        z: 0
+      r:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -16206.5
+      spin:
+        Class: v3d
+        x: 0
+        y: 0
+        z: -0.09
       s:
         Class: v3d
         x: 0.002
@@ -215,7 +1249,7 @@
 -
   Class: Settingz
   line_antialiasing: 0
-  givehelp: 0
+  givehelp: 1
   lv: 1
   w: 3840
   h: 2142
@@ -234,7 +1268,7 @@
   cr:
     Class: v3d
     x: 0
-    y: 360.4
+    y: 673.2
     z: 0
   pixel_city_ini:
     {}

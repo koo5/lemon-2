@@ -308,12 +308,12 @@ struct Settingz: public Serializable
     }
     int32_t line_antialiasing;
     int32_t givehelp;
-    double lv;//glLineWidth
+    double lv = 5;//glLineWidth
     Settingz()
     {
 	line_antialiasing=0;
 	givehelp=1;
-	lv=1;
+	lv=5;
     }
 }settingz;
 
@@ -597,7 +597,7 @@ void updatelinesmooth()
     #ifdef GL
 	if(settingz.line_antialiasing){
 	    logit("antialiasing");
-	    glEnable(GL_LINE_SMOOTH);
+//	    glEnable(GL_LINE_SMOOTH);
 	}
 	else
 	{
@@ -870,14 +870,14 @@ void lemon (void)
     #endif
     loadobjects();
 //    objects.push_back(new nerverot);
-    if(!objects.size())
+//    if(!objects.size())
     {
     	objects.push_back(loggerface=new logger(-8,0,0,0,70,0));
 	#ifdef GL
-//	    objects.push_back(new spectrum_analyzer);
-//	    for(int i=0;i<16;i++)
-//		objects.push_back(new nerverot(-10.0f+20.0f/16.0f*(float)i,0,0,i));
-//	    objects.push_back(new flipflop);
+	    objects.push_back(new spectrum_analyzer);
+	    for(int i=0;i<16;i++)
+			objects.push_back(new nerverot(-10.0f+20.0f/16.0f*(float)i,0,0,i));
+	    objects.push_back(new flipflop);
 	objects.push_back(new spectrum_analyzer);
 
 	#endif
@@ -887,10 +887,10 @@ void lemon (void)
 #endif
         objects.push_back(active=new ggg);
 
-//	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
+	objects.push_back(active=new face("bash",1.0,0.0,3.0,0.0,90.0,0.0));
 //	objects.push_back(active=new face("bash",0.0,0.0,6.0,0,180.0,0.0));
 //	objects.push_back(active=new face("bash",-1.0,0.0,3.0,0.0,270.0,0.0));
-//	objects.push_back(new fontwatcher);
+	objects.push_back(new fontwatcher);
 	
     }
     maxvol=0;
