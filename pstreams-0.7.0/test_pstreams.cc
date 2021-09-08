@@ -1,22 +1,11 @@
-/*
-PStreams - POSIX Process I/O for C++
-Copyright (C) 2002-2008 Jonathan Wakely
+// PStreams - POSIX Process I/O for C++
 
-This file is part of PStreams.
-
-PStreams is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
-
-PStreams is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+//        Copyright (C) 2001 - 2020 Jonathan Wakely
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+//
+// SPDX-License-Identifier: BSL-1.0
 
 #include <cassert>
 
@@ -61,8 +50,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # endif
 #endif
 
-using namespace std;
 using namespace redi;
+using std::clog;
+using std::cout;
+using std::wcout;
+using std::endl;
 
 #if 0
 // specialise basic_pstreambuf<char>::sync() to add a delay, allowing
@@ -96,15 +88,15 @@ namespace  // anon
     // helper functions for printing test results
 
     void
-    test_type(istream const&, char& c, int& i)
+    test_type(std::istream const&, char& c, int& i)
     { static int count=0; c='r'; i=++count; }
 
     void
-    test_type(ostream const&, char& c, int& i)
+    test_type(std::ostream const&, char& c, int& i)
     { static int count=0; c='w'; i=++count; }
 
     void
-    test_type(iostream const&, char& c, int& i)
+    test_type(std::iostream const&, char& c, int& i)
     { static int count=0; c='b'; i=++count; }
 
     void
@@ -112,13 +104,13 @@ namespace  // anon
     { static int count=0; c='x'; i=++count; }
 
     template <typename T>
-    string
+    std::string
     test_id(T const& s)
     {
         char label = '?';
         int count = 0;
         test_type(s, label, count);
-        ostringstream buf;
+        std::ostringstream buf;
         buf << label << count;
         return buf.str();
     }
@@ -127,7 +119,7 @@ namespace  // anon
     void
     print_result(T const& s, bool result)
     {
-        clog << "Test " << setw(4) << test_id(s) << ": "
+        clog << "Test " << std::setw(4) << test_id(s) << ": "
             << (result ? "Pass" : "Fail!")
             << endl;
         exit_status += !result;
@@ -159,12 +151,15 @@ extern "C" void my_sig_handler(int) { ++sig_counter; }
 
 int main()
 {
-    ios_base::sync_with_stdio();
+    std::ios_base::sync_with_stdio();
 
     const pstreams::pmode all3streams =
         pstreams::pstdin|pstreams::pstdout|pstreams::pstderr;
 
-    string str;
+    std::string str;
+
+    //std::string badcmd = "hgfhdgf";
+    const std::string badcmd = "hgfhdgf 2>/dev/null";
 
     clog << "# Testing basic I/O\n";
 
@@ -198,6 +193,20 @@ int main()
     }
 
     {
+        // test execve() style construction
+        //
+        // This should read the strings on stdin and print them on stdout
+        // prefixed by "STDIN: "
+
+        pstreams::argv_type argv;
+        argv.push_back("sed");
+        argv.push_back("s/^/STDIN: /");
+        opstream os(argv);
+
+        check_pass(os << "Tragic Donkey\n");
+    }
+
+    {
         // test unformatted output
         //
         // This should read the strings on stdin and print them on stdout
@@ -205,7 +214,7 @@ int main()
 
         opstream sed("sed 's/^/STDIN: /'");
         str = "Monkey Magic\n";
-        for (string::const_iterator i = str.begin(); i!=str.end(); ++i)
+        for (std::string::const_iterator i = str.begin(); i!=str.end(); ++i)
             sed.put(*i);
         check_pass(sed);
     }
@@ -226,14 +235,47 @@ int main()
 
     {
         // test unformatted input
-        // should print hostname on stdout, prefixed by "STDOUT: "
+        // should print date on stdout, prefixed by "STDOUT: "
         ipstream host("date");
         str.clear();
         char c;
         while (host.get(c))  // extracts up to EOF (including newline)
             str += c;
-        cout << "STDOUT:  " << str << flush;
+        cout << "STDOUT:  " << str << std::flush;
         print_result(host, host.eof());
+    }
+
+    {
+        // test execve() style construction
+        // should print date on stdout, prefixed by "STDOUT: "
+
+        pstreams::argv_type argv;
+        argv.push_back("date");
+        ipstream is1(argv[0], argv);
+        ipstream is2(argv);
+        std::string s1, s2;
+        getline(is1, s1);
+        getline(is2, s2);
+        cout << "STDOUT:  " << s1 << endl;
+        print_result(is1, !s1.empty());
+        print_result(is2, s1 == s2);
+    }
+
+    {
+        // test execve() style construction
+        // should print error on stdout, prefixed by "STDERR: "
+
+        pstreams::argv_type argv;
+        argv.push_back("cat");
+        argv.push_back("/nosuchdir/nosuchfile");
+        ipstream is1(argv[0], argv, pstreams::pstderr);
+        ipstream is2(argv, pstreams::pstderr);
+        std::string s1, s2;
+        getline(is1, s1);
+        getline(is2, s2);
+        cout << "STDERR:  " << s1 << endl;
+        print_result(is1, !s1.empty());
+        print_result(is2, s1 == s2);
     }
 
     {
@@ -248,7 +290,7 @@ int main()
         // open after construction, then read
         ipstream is;
         is.open("hostname");
-        string s;
+        std::string s;
         is >> s;
         cout << "STDOUT: " << s << endl;
         check_pass(is);
@@ -273,7 +315,7 @@ int main()
     {
         // test reading from bidirectional pstream
 
-        const string cmd = "grep '^127' /etc/hosts /no/such/file /dev/stdin";
+        const std::string cmd = "grep '^127' /etc/hosts /no/such/file /dev/stdin";
 
         pstream ps(cmd, all3streams);
 
@@ -283,7 +325,7 @@ int main()
 
         ps << "127721\n" << peof;
 
-        string buf;
+        std::string buf;
         while (getline(ps.out(), buf))
             cout << "STDOUT: " << buf << endl;
         check_fail(ps);
@@ -298,7 +340,7 @@ int main()
         // test input on bidirectional pstream
         // and test child moves onto next file after peof on stdin
 
-        const string cmd = "grep fnord /etc/hosts /dev/stdin";
+        const std::string cmd = "grep fnord /etc/hosts /dev/stdin";
 
         pstream ps(cmd, all3streams);
 
@@ -308,7 +350,7 @@ int main()
         ps << "12345\nfnord\n0000" << peof;
         // manip calls ps.rdbuf()->peof();
 
-        string buf;
+        std::string buf;
         getline(ps.out(), buf);
 
         do
@@ -322,7 +364,7 @@ int main()
 
     {
         // test signals
-        const string cmd = "grep 127 -- -";
+        const std::string cmd = "grep 127 -- -";
         pstream ps(cmd, all3streams);
 
         ps << "fnord";  // write some output to buffer
@@ -347,7 +389,7 @@ int main()
 
     {
         // test killing and checking for exit
-        const string cmd = "grep '^127' -- -";
+        const std::string cmd = "grep '^127' -- -";
         pstream ps(cmd, all3streams);
 
         print_result(ps, ps.is_open());
@@ -360,7 +402,7 @@ int main()
         print_result(ps, ps.rdbuf()->exited());
         print_result(ps, !ps.is_open());
 
-        string buf;
+        std::string buf;
         while (getline(ps.out(), buf))
             cout << "STDOUT: " << buf << endl;
         check_fail(ps);
@@ -374,7 +416,7 @@ int main()
     clog << "# Testing pstreambuf::exited()" << endl;
     {
         // test streambuf::exited() works sanely
-        const string cmd = "cat";
+        const std::string cmd = "cat";
         opstream ps;
         pstreambuf* pbuf = ps.rdbuf();
 
@@ -398,9 +440,6 @@ int main()
     }
 
     clog << "# Testing behaviour with bad commands" << endl;
-
-    //string badcmd = "hgfhdgf";
-    const string badcmd = "hgfhdgf 2>/dev/null";
 
     {
         // check is_open() works 
@@ -439,7 +478,7 @@ int main()
         // does not show failure: print_result(ofail, !ofail.is_open());
         pstreambuf* buf = ofail.rdbuf();
         print_result(ofail, buf->exited());
-        int status = buf->status();
+        int status = ofail.close();
         print_result( ofail,
                 WIFEXITED(status) && WEXITSTATUS(status) == sh_cmd_not_found );
     }
@@ -473,26 +512,26 @@ int main()
     clog << "# Testing other member functions\n";
 
     {
-        const string cmd("grep re");
+        const std::string cmd("grep re");
         opstream s(cmd);
         print_result(s, cmd == s.command());
     }
 
     {
-        const string cmd("grep re");
+        const std::string cmd("grep re");
         opstream s;
         s.open(cmd);
         print_result(s, cmd == s.command());
     }
 
     {
-        const string cmd("/bin/ls");
+        const std::string cmd("/bin/ls");
         ipstream s(cmd);
         print_result(s, cmd == s.command());
     }
 
     {
-        const string cmd("/bin/ls");
+        const std::string cmd("/bin/ls");
         ipstream s;
         s.open(cmd);
         print_result(s, cmd == s.command());
@@ -503,7 +542,7 @@ int main()
         // testing streambuf::in_avail()
         ipstream in("{ printf 'this is ' ; sleep 2 ; printf 'hardcore' ; }");
         sleep(1);
-        streamsize avail = in.rdbuf()->in_avail();
+        std::streamsize avail = in.rdbuf()->in_avail();
         print_result(in, avail > 0);
         print_result(in, size_t(avail) == strlen("this is "));
 
@@ -521,7 +560,7 @@ int main()
                 buf.resize(avail);
                 in.readsome(&buf.front(), avail);
                 cout << "STDOUT: " << avail << " characters: "
-                    << string(buf.begin(), buf.end()) << endl;
+                    << std::string(buf.begin(), buf.end()) << endl;
             }
             else
                 ++tries;
@@ -553,7 +592,7 @@ int main()
     {
         pstream p("tr '[:lower:]' '[:upper:]'");
         p << "newline\neof" << peof;
-        string s;
+        std::string s;
         check_pass(std::getline(p.out(),s));
         print_result(p, s.size()>0);
         cout << "STDOUT: " << s << endl;
@@ -568,7 +607,7 @@ int main()
     {
         rpstream rs("tr '[:lower:]' '[:upper:]'");
         rs << "foo\n" << peof;
-        string s;
+        std::string s;
         check_pass(std::getline(rs.out(),s));
         print_result(rs, s.size()>0);
         cout << "STDOUT: " << s << endl;
@@ -590,7 +629,7 @@ int main()
     clog << "# Testing read position tracked correctly\n";
     {
         ipstream in("echo 'abc' >&2 && echo '123'", all3streams);
-        string s;
+        std::string s;
         s += in.out().get();
         s += in.err().get();
         s += in.out().get();
@@ -598,7 +637,7 @@ int main()
         s += in.out().get();
         s += in.err().get();
 
-        const string s_expected = "1a2b3c";
+        const std::string s_expected = "1a2b3c";
         cout << s << " == " << s_expected << endl;
         print_result(in, s == s_expected);
 
@@ -614,9 +653,9 @@ int main()
     clog << "# Testing initial pmode set correctly\n";
     {
         char c;
-        string s;
+        std::string s;
         ipstream in("echo 'abc' >&2", pstreambuf::pstderr);
-        print_result(in, getline(in, s));
+        print_result(in, (bool)getline(in, s));
         print_result(in, s == "abc");
         check_fail(in.get(c));
         in.close();
@@ -624,7 +663,7 @@ int main()
         s.erase();
 
         in.open("echo 'abc'", pstreambuf::pstdout);
-        print_result(in, getline(in, s));
+        print_result(in, (bool)getline(in, s));
         print_result(in, s == "abc");
         check_fail(in.get(c));
         in.close();
@@ -632,7 +671,7 @@ int main()
         s.erase();
 
         in.open("echo 'abc' >&2", pstreambuf::pstderr);
-        print_result(in, getline(in, s));
+        print_result(in, (bool)getline(in, s));
         print_result(in, s == "abc");
         check_fail(in.get(c));
         in.close();
@@ -655,7 +694,7 @@ int main()
     }
 
     {
-        string cmd = "ls /etc/hosts /no/such/file";
+        std::string cmd = "ls /etc/hosts /no/such/file";
         ipstream is(cmd, pstreambuf::pstdout|pstreambuf::pstderr);
         FILE *in, *out, *err;
         size_t res = is.fopen(in, out, err);
@@ -676,7 +715,7 @@ int main()
     }
 
     {
-        string cmd = "grep 127 -- - /etc/hosts /no/such/file";
+        std::string cmd = "grep 127 -- - /etc/hosts /no/such/file";
         pstream ps(cmd, all3streams);
         FILE *in, *out, *err;
         size_t res = ps.fopen(in, out, err);
@@ -785,16 +824,16 @@ int main()
         class pguard
         {
         public:
-            explicit pguard(ipstream& in, int signal=SIGKILL)
-            : buf_(*in.rdbuf()), signal_(signal) { }
+            explicit pguard(ipstream& istr, int signal=SIGKILL)
+            : buf_(*istr.rdbuf()), signal_(signal) { }
 
-          ~pguard() { if (signal_) buf_.kill(signal_); }
+            ~pguard() { if (signal_) buf_.kill(signal_); }
 
-          void release() { signal_ = 0; }
+            void release() { signal_ = 0; }
 
         private:
-          pstreambuf& buf_;
-          int signal_;
+            pstreambuf& buf_;
+            int signal_;
         };
 
         in.clear();
@@ -811,23 +850,47 @@ int main()
             pguard pg(in, SIGTERM);  // should kill child
             throw 0;
         } catch(...) {
-            in.close();  // should return immediately if child killed
+            int status = in.close();  // should return immediately if child killed
             print_result(in, alarm(0) > 0 && sig_counter == 0);
             sigaction(SIGALRM, &oldact, 0);
 
-            int status = in.rdbuf()->status();
             print_result(in, WIFSIGNALED(status) && WTERMSIG(status)==SIGTERM);
         }
+    }
+
+    clog << "# Testing process groups\n";
+    {
+        pstreams::argv_type args;
+        args.push_back("/bin/sleep");
+        args.push_back("10");
+        ipstream in(args);
+        void* p = in.rdbuf()->killpg(SIGKILL);
+        print_result(in, !p);
+        print_result(in, in.rdbuf()->error() == EPERM);
+        in.rdbuf()->kill(SIGTERM);
+        int status = in.close();
+        print_result(in, WIFSIGNALED(status) && WTERMSIG(status)==SIGTERM);
+    }
+    {
+        pstreams::argv_type args;
+        args.push_back("/bin/sleep");
+        args.push_back("10");
+        ipstream in(args, pstreams::newpg);
+        void* p = in.rdbuf()->killpg(SIGKILL);
+        print_result(in, p);
+        print_result(in, in.rdbuf()->error() == 0);
+        int status = in.close();
+        print_result(in, WIFSIGNALED(status) && WTERMSIG(status)==SIGKILL);
     }
 
     clog << "# Testing wide chars\n";
     {
         ipstream dummy("true");
         basic_ipstream<wchar_t> in("cat ./pstreams.wout");
-        wstring s;
+        std::wstring s;
         in >> s;
         wcout << s;
-        print_result(dummy, in);
+        print_result(dummy, (bool)in);
 
         wchar_t wc;
         int count=0, gcount=0;
@@ -843,9 +906,109 @@ int main()
         wcout << L"Read: " << gcount << L" chars." << endl;
     }
 
+#if __cplusplus >= 201103L
+    clog << "# Testing move semantics\n";
+    {
+      ipstream is("echo foo bar baz & echo oof rab zab >&2",
+                  pstreams::pstdout|pstreams::pstderr);
+      is >> str;
+      ipstream is2 = std::move(is);
+      print_result(is2, str == "foo");
+      check_fail(is >> str);
+      is2 >> str;
+      print_result(is2, str == "bar");
+      is2.err();
+      is2 >> str;
+      print_result(is2, str == "oof");
+      is = std::move(is2);
+      check_fail(is2 >> str);
+      is >> str;
+      print_result(is, str == "rab");
+      is.out();
+      is >> str;
+      print_result(is, str == "baz");
+      swap(is, is2);
+      check_fail(is2 >> str);
+      is2.clear();
+      is2.err();
+      is2 >> str;
+      print_result(is2, str == "zab");
 
+      // Check moved-from stream can be re-opened and re-used
+      is.clear();
+      is.open("echo xyzzy >&2", pstreams::pstderr);
+      is >> str;
+      print_result(is, str == "xyzzy");
+      check_fail(is >> str);
 
+      is2.close();
+      swap(is, is2);
+      is.clear();
+      is.open("echo fnord");
+      is >> str;
+      clog << str << '\n';
+      print_result(is, str == "fnord");
+      check_fail(is >> str);
+    }
+
+    {
+      opstream os("awk 'END { if (NR < 3) exit(1) }'");
+      os << "1\n";
+      opstream os2 = std::move(os);
+      check_fail(os << 1);
+      check_pass(os2 << "2\n");
+      os = std::move(os2);
+      check_fail(os2 << 2);
+      check_pass(os << "3\n" << peof);
+      int ex = os.close();
+      print_result(os, ex == 0);
+
+      // Check moved-from stream can be re-opened and re-used
+      os2.clear();
+      os2.open("grep needle >/dev/null");
+      os2 << "hhhaaayyyssstttaaaccckkkneedlehaystack";
+      ex = os2.close();
+      print_result(os2, ex == 0);
+    }
+
+    {
+      pstream ps("sort");
+      ps << "one\n";
+      pstream ps2 = std::move(ps);
+      check_fail(ps << 1);
+      ps2 << "two\n";
+      check_pass(ps2);
+      ps = std::move(ps2);
+      check_fail(ps2 << 1);
+      ps << "three\n";
+      check_pass(ps);
+      swap(ps, ps2);
+      check_fail(ps << 1);
+      ps2 << "four\n";
+      check_pass(ps2);
+      swap(ps, ps2);
+      ps << peof;
+      str.assign(std::istreambuf_iterator<char>(ps), {});
+      check_pass(ps, str == "four\none\nthree\ntwo\n");
+    }
+#endif
 
     return exit_status;
 }
 
+#if __cplusplus >= 201103L
+using std::is_constructible;
+using std::initializer_list;
+static_assert(is_constructible<ipstream, initializer_list<char*>>::value,
+    "initializer-list constructor accepts string-like types");
+static_assert(is_constructible<opstream, initializer_list<char*>>::value,
+    "initializer-list constructor accepts string-like types");
+static_assert(is_constructible<pstream, initializer_list<char*>>::value,
+    "initializer-list constructor accepts string-like types");
+static_assert(!is_constructible<ipstream, initializer_list<int>>::value,
+    "initializer-list constructor doesn't accept bogus types");
+static_assert(!is_constructible<opstream, initializer_list<int>>::value,
+    "initializer-list constructor doesn't accept bogus types");
+static_assert(!is_constructible<pstream, initializer_list<int>>::value,
+    "initializer-list constructor doesn't accept bogus types");
+#endif

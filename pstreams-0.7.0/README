@@ -18,7 +18,7 @@ Inter-Process Communication. PStreams is a tool. Not the most efficient or
 flexible method of IPC, but fairly simple and IOStream-based, with all the
 advantages that provides. I hope you find it useful.
 
-PStreams is free software, see the file COPYING.LIB for copying permission.
+PStreams is free software, see the file LICENSE_1_0.txt for copying permission.
 The latest version can be found at http://pstreams.sourceforge.net/ and
 frequently asked questions at http://pstreams.sourceforge.net/faq.html
 The author can be contacted at pstreams@kayari.org
@@ -33,18 +33,47 @@ be some notes here that aren't covered in the API documentation, but see
 those docs for most questions about usage (or at least, how things _should_
 work).
 
-PStreams has mostly been tested with gcc so far, if you have problems (or
-better still - solutions) with PStreams and other compilers please let
-me know.
-
-To use PStreams with the alpha cxx compiler you must not use strict_ansi
-mode and define __USE_STD_IOSTREAM to use the standard IOStream classes.
-
 To run the test program compile and run test_pstreams.cc
-This can be done with "make test_pstreams" if you have GNU or BSD make
+This can be done with "make check" if you have GNU or BSD make.
 The Makefile doesn't work with Solaris make, and probably other versions
 of make.
 
+Release notes for PStreams 1.0.1
+================================
+
+The library is now licensed under the Boost Software License instead of
+the GNU LGPL. There are no other changes in this release.
+
+Release notes for PStreams 1.0.0
+================================
+
+The only significant change since the 0.8.1 release is a workaround for a
+bug in older versions of the GCC C++ standard library which allowed null
+pointers to be passed to the memmove() function.
+
+Release notes for PStreams 0.8.1
+================================
+
+The change in version 0.8.0 that caused the child process to be put in
+a new process group could prevent the child from exiting when the parent
+process was killed by a signal. In version 0.8.1 it is still possible to
+create a new process group for the child, but that must be explicitly
+requested by setting the pstreams::newpg flag in the pmode argument
+used to create the new process.
+
+Release notes for PStreams 0.8.0
+================================
+
+The child process will now switch to a new process group, with the
+process group ID the same as the PID.  The basic_pstreambuf::killpg()
+member function has been added to send a signal to the child's process
+group.
+
+New constructors to simplify the common case where the string specifying
+the file to be executed is the same as the first element of the argv_type
+vector.
+
+Fixes for compatibility with Clang++ and _FORTIFY_SOURCE.
 
 Release notes for PStreams 0.7.0
 ================================
@@ -152,7 +181,7 @@ fails. This will prevent static destructors being run in the child process
 
 I've also changed the macro that guards the pstream.h header from being
 included multiple times, by appending "_SEEN" to the names. If this
-causes any problems make sure you dont have any old versions of pstream.h
+causes any problems make sure you don't have any old versions of pstream.h
 on your system.
 
 This release has been long overdue and it shouldn't be as long before the
@@ -161,7 +190,7 @@ next one. I have some good suggestions to incorporate.
 Thanks to everyone who suggested fixes and improvements, or just got
 in touch to say they were using the code.
 
-Jon Wakely
+Jonathan Wakely
 
 
 The PStream Buffer class

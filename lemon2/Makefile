@@ -31,7 +31,7 @@ CFLIBS += -DWINDOWS -I/usr/include/ncurses -I/usr/local/include/SDL -I/usr/inclu
 endif
 
                                                                        
-CC      =g++ -o $@ lemon.cpp -g -ggdb $(GLLIBS) $(CFLIBS) -std=c++0x -W -Wall -Wextra  -pedantic \
+CC      =clang++-4.0  -std=c++11 -o $@ lemon.cpp -g -ggdb $(GLLIBS) $(CFLIBS) -std=c++11 -W -Wall -Wextra  -pedantic \
 	 -Dlibpng -lpng -Dnerve -lGLU  -lm -Wno-write-strings  -lXcomposite -lXdamage -lXfixes -lXrender -lX11 
 
 

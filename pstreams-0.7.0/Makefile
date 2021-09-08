@@ -1,29 +1,18 @@
-# $Id: Makefile,v 1.38 2010/05/12 15:45:21 redi Exp $
 # PStreams Makefile
-# Copyright (C) Jonathan Wakely
-#
-# This file is part of PStreams.
-# 
-# PStreams is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-# 
-# PStreams is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-# 
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# TODO configure script (allow doxgenating of EVISCERATE functions)
+#        Copyright (C) 2001 - 2020 Jonathan Wakely
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+#
+# SPDX-License-Identifier: BSL-1.0
+
+# TODO configure script (allow doxygenating of EVISCERATE functions)
 
 OPTIM= -O1 -g3
-EXTRA_CFLAGS=
 EXTRA_CXXFLAGS=
 
-CFLAGS=-pedantic -Werror -Wall -W -Wpointer-arith -Wcast-qual -Wcast-align -Wredundant-decls $(OPTIM)
+CFLAGS=-pedantic -Wall -Wextra -Wpointer-arith -Wcast-qual -Wcast-align -Wredundant-decls -Wshadow $(OPTIM)
 CXXFLAGS=$(CFLAGS) -std=c++98 -Woverloaded-virtual
 
 prefix = /usr/local
@@ -32,24 +21,37 @@ INSTALL = install
 INSTALL_DATA = $(INSTALL) -p -v -m 0644
 
 SOURCES = pstream.h
+TESTS = test_pstreams test_minimum
 GENERATED_FILES = ChangeLog MANIFEST
-EXTRA_FILES = AUTHORS COPYING.LIB Doxyfile INSTALL Makefile README \
+EXTRA_FILES = AUTHORS LICENSE_1_0.txt Doxyfile INSTALL.md Makefile README \
 	    mainpage.html test_pstreams.cc test_minimum.cc pstreams-devel.spec
 
 DIST_FILES = $(SOURCES) $(GENERATED_FILES) $(EXTRA_FILES)
 
-VERS = 0.7.0
+HASH := \#
+VERS := $(shell awk -F' ' '/^$(HASH)define *PSTREAMS_VERSION/{ print $$NF }' pstream.h)
 
-all: docs $(GENERATED_FILES)
+all: $(TESTS) | pstreams.wout
 
-check: pstreams.wout run_tests
+check run_tests test: all
+	@for t in $(TESTS) ; do \
+	  echo $$t ; \
+	  ./$$t >/dev/null 2>&1 || echo "$$t EXITED WITH STATUS $$?" ; \
+	done
 
-test: check
+# TODO why does valgrind cause some tests to hang?
+check-valgrind: all
+	@for t in $(TESTS) ; do \
+	  echo $$t ; \
+	  valgrind --track-fds=yes ./$$t \
+	    || echo "$$t EXITED WITH STATUS $$?" ; \
+	  echo ; \
+	done
 
-run_tests: test_pstreams test_minimum
-	@for test in $^ ; do echo $$test ; ./$$test >/dev/null 2>&1 || echo "$$test EXITED WITH STATUS $$?" ; done
+check-werror: EXTRA_CXXFLAGS := -Werror
+check-werror: check
 
-test_%: test_%.cc pstream.h
+test_%: test_%.cc pstream.h FORCE
 	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) -o $@ $<
 
 MANIFEST: Makefile
@@ -58,30 +60,36 @@ MANIFEST: Makefile
 docs: pstream.h mainpage.html
 	@doxygen Doxyfile
 
-mainpage.html: Makefile
+mainpage.html: pstream.h Makefile
 	@perl -pi -e "s/^(<p>Version) [0-9\.]*(<\/p>)/\1 $(VERS)\2/" $@
 
 ChangeLog:
-	@if [ -f CVS/Root ] ; then cvs2cl --no-times -U usermap -F trunk ; fi
+	@if [ -d .git ]; then git log --no-merges | grep -v '^commit ' > $@ ; fi
 
 dist: pstreams-$(VERS).tar.gz pstreams-docs-$(VERS).tar.gz
 
-pstreams-$(VERS).tar.gz: pstream.h $(GENERATED_FILES)
-	@ln -s . pstreams-$(VERS)
-	@tar -czvf $@ `cat MANIFEST`
-	@rm pstreams-$(VERS)
+srpm: pstreams-$(VERS).tar.gz
+	@rpmbuild -ts $<
 
-pstreams-docs-$(VERS).tar.gz: docs
-	@ln -s doc/html pstreams-docs-$(VERS)
+pstreams-$(VERS):
+	@ln -s . $@
+
+pstreams-$(VERS).tar.gz: pstream.h $(GENERATED_FILES) pstreams-$(VERS)
+	@tar -czvf $@ `cat MANIFEST`
+
+pstreams-docs-$(VERS):
+	@ln -s doc/html $@
+
+pstreams-docs-$(VERS).tar.gz: docs pstreams-docs-$(VERS)
 	@tar -czvhf $@ pstreams-docs-$(VERS)
-	@rm pstreams-docs-$(VERS)
 
 TODO : pstream.h mainpage.html test_pstreams.cc
 	@grep -nH TODO $^ | sed -e 's@ *// *@@' > $@
 
 clean:
 	@rm -f  test_minimum test_pstreams
-	@rm -rf doc TODO
+	@rm -rf doc TODO $(GENERATED_FILES)
+	@rm -f  *.tar.gz pstreams-$(VERS) pstreams-docs-$(VERS)
 
 install:
 	@install -d $(DESTDIR)$(includedir)/pstreams
@@ -90,5 +98,7 @@ install:
 pstreams.wout:
 	@echo "Wide Load" | iconv -f ascii -t UTF-32 > $@
 
-.PHONY: TODO check test ChangeLog run_tests
+.PHONY: TODO check test run_tests dist srpm FORCE
+.INTERMEDIATE: $(GENERATED_FILES) pstreams-$(VERS) pstreams-docs-$(VERS)
 
+# vim: sw=2 ts=8 noexpandtab
